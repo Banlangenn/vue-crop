@@ -27,4 +27,4 @@ $ yarn add vue-progresschart
 | bottomText |环进度下部字体 | String| --| 监 控|
 | lineWidth |厚度 | Number| --| 8|
 | bgImg |背景渐变图片 | String| --| --|
-| bgColor |背景颜色 | Array| ['red', 'yellow', 'green', '#030af8', 'pink']| 3000|
+| bgColor |背景颜色 | Array|--|  ['red', 'yellow', 'green', '#030af8', 'pink']|
