@@ -1,0 +1,18 @@
+{
+  "bin": {
+    "banlg": "./progress.js"
+  },
+  "name": "vue-progresschart",
+  "version": "1.0.0",
+  "description": "",
+  "main": "./progress.js",
+  "author": "https://github.com/Banlangenn",
+  "license": "ISC",
+  "keywords": [
+    "vue",
+    "vue-chart",
+    "vue-progress",
+    "progress"
+  ],
+  "repository": "https://github.com/Banlangenn/vue-progresschart"
+}
