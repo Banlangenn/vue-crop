@@ -1,7 +1,5 @@
 <template>
-    <div ref="canvasWrap" class="canvas-wrap">
-        <!-- <canvas class="canvas"></canvas> -->
-    </div>
+    <div ref="canvasWrap" class="canvas-wrap"/>
 </template>
 <script>
     export default {
@@ -46,10 +44,6 @@
                 type: Array,
                 default: _ => ['red', 'yellow', 'green', '#030af8', 'pink']
             }
-            // startp: {
-            //     type: Number,
-            //     default: 0
-            // }
         },
         data() {
             return {
@@ -76,54 +70,65 @@
                 this.animation()
             }
         },
-        computed: {
-            calc() {
-                return  this.percent / 100
-            },
-            progress() {
-                return  this.percent > 100 ? 100 : this.percent
-            }
-        },
         methods: {
+            pointCircle(cx, cy, r, color) {
+                    const { ctx } = this
+                    ctx.beginPath()
+                    ctx.fillStyle = color
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+                    ctx.fill()
+            },
             // 画圆
             circle(cx, cy, r, process, img) {
                 const { ctx } = this
                 ctx.beginPath()
                 ctx.lineWidth = this.lineWidth
-                // console.log(Math.PI * 1 / 3 * (process / 100))
-                    //  smallcircle1(150+Math.cos(2*Math.PI/360*120)*100, 150+Math.sin(2*Math.PI/360*120)*100, 10);
-                //  smallcircle2(150+Math.cos(2*Math.PI/360*(120+process*3))*100, 150+Math.sin(2*Math.PI/360*(120+process*3))*100, 10);
-
-                // 计算   弧度的重点位置
                 ctx.arc(cx, cy, r, Math.PI * 13 / 18,   (Math.PI * 13 / 18) + process / 100 * (Math.PI * 14 / 9))
                 // 就是  其实点  180     +  300度  --- 减少的 60 度 就是那个 空白
                 if (img) {
                     ctx.strokeStyle =  ctx.createPattern(img, 'repeat')
                 } else {
-                    let linGrad = ctx.createLinearGradient(cx, cy, cx * 2, cy)
+                    let linGrad = ctx.createLinearGradient(0, cy, cx * 2, cy)
                     linGrad.addColorStop(0, this.bgColor[0])
                     linGrad.addColorStop(1, this.bgColor[1])
                     ctx.strokeStyle = linGrad
                 }
+                //  ctx.fill()
                 ctx.lineCap = 'round'
                 ctx.stroke()
                 if (this.fontShow) {
-                    ctx.font = this.fontSize + 'px April'
-                    ctx.textAlign = 'center'
-                    ctx.textBaseline = 'middle'
-                    ctx.fillStyle = this.fontColor
-                    let fontWidth = ctx.measureText(parseFloat(process).toFixed(0)).width
-                    const len = parseFloat(process).toFixed(0).length
-                    fontWidth = len < 2 ? fontWidth + 1 :  fontWidth - this.fontSize / 7 * len//  傻逼方法 消除 误差
-                    ctx.fillText(parseFloat(process).toFixed(0), cx - this.fontSize / 3, cy)
-                    this.ctx.textAlign = 'center'
-                    this.ctx.textBaseline = 'middle'
-                    this.ctx.fillStyle = this.fontColor
-                    this.ctx.font = this.fontSize / 2 + 'px April'
-                    ctx.fillText('%', cx + fontWidth - this.fontSize / 3, cy + this.fontSize / 8)
-                    this.ctx.font = this.fontSize  + 'px April'
-                    ctx.fillText(this.bottomText, cx, cy * 2 -  this.lineWidth * 2)
+                    this.renderText(parseFloat(process).toFixed(0), cx, cy)
+                    ctx.font = this.fontSize  + 'px April'
+                    // ctx.textAlign = 'center'
+                    ctx.fillText(this.bottomText, cx, cy * 2 -  this.lineWidth)
                 }
+                this.pointCircle(cx + Math.cos(2 * Math.PI / 360 * 130) * r,
+                cx + Math.sin(2 * Math.PI / 360 * 130) * r,
+                this.lineWidth / 2, ctx.strokeStyle)
+                //  终点位置
+                // this.pointCircle(cx + Math.cos(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, cx + Math.sin(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, this.lineWidth / 2, ctx.strokeStyle)
+                // ddd
+                // x坐标=a + Math.sin(2Math.PI / 360) * r
+                // y坐标=b + Math.cos(2Math.PI / 360) * r
+                //  角度可以改
+                // console.log(Math.PI * 1 / 3 * (process / 100))
+                    //  smallcircle1(150+Math.cos(2*Math.PI/360*120)*100, 150+Math.sin(2*Math.PI/360*120)*100, 10);
+                //  smallcircle2(150+Math.cos(2*Math.PI/360*(120+process*3))*100, 150+Math.sin(2*Math.PI/360*(120+process*3))*100, 10);
+                // 计算   弧度的重点位置
+            },
+            renderText(text, x, y) {
+                const { ctx } = this
+                ctx.font = this.fontSize + 'px April'
+                ctx.textAlign = 'center'
+                ctx.textBaseline = 'middle'
+                ctx.fillStyle = this.fontColor
+                // 把消除误差的东西提出来
+                let fontWidth = ctx.measureText(text).width
+                const len = text.length
+                ctx.fillText(text, x, y)
+                this.ctx.font = this.fontSize / 2 + 'px April'
+                fontWidth = len < 2 ? fontWidth + 1 :  fontWidth - this.fontSize / 7 * len//  傻逼方法 消除 误差
+                ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
             //  画直线
             line(cx, cy, process) {
@@ -143,41 +148,27 @@
                     } else if (start === 1) {
                         linear.addColorStop(1, gColor)
                     } else {
-                        // console.log(start)
                         linear.addColorStop(start, gColor)
                     }
                     start += p
                 }
                 ctx.strokeStyle = linear
                 ctx.stroke()
-                    if (this.fontShow) {
-                    ctx.font = this.fontSize + 'px April'
-                    ctx.textAlign = 'center'
-                    ctx.textBaseline = 'middle'
-                    ctx.fillStyle = this.fontColor
-                    //  调节误差
-                    let fontWidth = ctx.measureText(parseFloat(process).toFixed(0)).width
-                    const len = parseFloat(process).toFixed(0).length
+                if (this.fontShow) {
                     let fontLeft = this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100 - this.fontSize / 6 * len - this.fontSize / 2
-                    if (fontLeft < this.fontSize) {
-                        fontLeft = this.fontSize
-                    }
                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
-                    if (fontLeft > deviation) {
-                        fontLeft = deviation
-                    }
-                    fontWidth = len < 2 ? fontWidth + 2 :  fontWidth - this.fontSize / 7 * len //  傻逼方法 消除 误差 cy)
-                    ctx.fillText(parseFloat(process).toFixed(0), fontLeft, cy * 2 - this.lineWidth * 2 - 2)
-                    this.ctx.font = this.fontSize / 2 + 'px April'
-                    ctx.fillText('%', fontLeft + fontWidth, cy * 2 - this.lineWidth * 2 - 2 + this.fontSize / 8)
-                    // cy + this.fontSize / 8
+                    fontLeft = this.critical(fontLeft, this.fontSize, deviation)
+                    this.renderText(parseFloat(process).toFixed(0), fontLeft, cy * 2 - this.lineWidth * 2 - 2)
                 }
+                this.pointCircle(0 + this.lineWidth,
+                cy * 2 - this.lineWidth,
+                this.lineWidth / 2, ctx.strokeStyle)
+                // 终点位置
+                // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth, this.lineWidth / 2, ctx.strokeStyle)
             },
-            // 定时器 动画
+            //  动画
             animation() {
                 if (this.percent > 100 || this.percent < 0)  return
-                // console.log(123456)
-                // https://github.com/inorganik/countUp.js/blob/master/countUp.js
                 this.process =  this.frameVal
                 this.startTime = 0
                 if (this.circleTime) {
@@ -190,18 +181,18 @@
                 this.timestamp = timestamp
                 const progressTime = timestamp - this.startTime
                 if (!this.isIncrease) {
-                    this.frameVal = this.process + this.easeOutExpo(progressTime, 0, this.percent - this.process, this.duration)
-                    this.frameVal  = this.frameVal < 0 ? 0 : this.frameVal
+                    this.frameVal = this.process + this.easeOutExpo(progressTime, 0, this.critical(this.percent, 0, 100) - this.process, this.duration)
                 } else {
-                    this.frameVal = this.easeOutExpo(progressTime, this.process, this.percent - this.process, this.duration)
+                    this.frameVal = this.easeOutExpo(progressTime, this.process,  this.critical(this.percent, 0, 100) - this.process, this.duration)
                 }
+                this.frameVal  = this.critical(this.frameVal, 0, 100)
                 // 清空画布
                 // 清除canvas内容
                 this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 if (this.type === 'line') {
                     this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
                 } else {
-                    this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth, this.frameVal, this.imgCanvas)
+                    this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
                 }
                 if (this.isIncrease) {
                     if (this.frameVal < this.percent) {
@@ -223,9 +214,28 @@
                 // b: 当前进度     c 差额
                 // t, b, c, d,
                 return c * (-Math.pow(1.5, -10 * t / d) + 1) * 1030 / 1023 + b
+            },
+            critical(value, min, max) {
+                if (value < min) {
+                    return min
+                }
+                if (value > max) {
+                    return max
+                }
+                return value
+            },
+            getPixelRatio(context) {
+                const backingStore = context.backingStorePixelRatio ||
+                context.webkitBackingStorePixelRatio ||
+                context.mozBackingStorePixelRatio ||
+                context.msBackingStorePixelRatio ||
+                context.oBackingStorePixelRatio ||
+                context.backingStorePixelRatio || 1
+                return (window.devicePixelRatio || 1) / backingStore
             }
         },
         mounted() {
+            // 兼容 requestAnimationFrame
             if (!window.requestAnimationFrame) {
                 window.requestAnimationFrame = function(callback, element) {
                     const currTime = new Date().getTime()
@@ -241,15 +251,20 @@
                     clearTimeout(id)
                 }
             }
-// 改动 ===========================================================
+            // 解决 字体模糊
             const { canvasWrap } = this.$refs
             let canvasDom =  document.createElement('canvas')
             this.canvasOpt.width = canvasWrap.clientWidth
             this.canvasOpt.height = canvasWrap.clientHeight
-            canvasDom.setAttribute('width', this.canvasOpt.width + 'px')
-            canvasDom.setAttribute('height', this.canvasOpt.height + 'px')
+            canvasDom.style.width =  this.canvasOpt.width + 'px'
+            canvasDom.style.height = this.canvasOpt.height + 'px'
             canvasWrap.appendChild(canvasDom)
             this.ctx = canvasDom.getContext('2d')
+            const pixelRatio = this.getPixelRatio(this.ctx)
+            canvasDom.width = this.canvasOpt.width * pixelRatio
+            canvasDom.height = this.canvasOpt.height * pixelRatio
+            this.ctx.scale(pixelRatio, pixelRatio)
+            //  环形渐变
             if (this.bgImg) {
                 let img = null
                 img = new Image()
