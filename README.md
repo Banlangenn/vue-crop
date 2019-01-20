@@ -23,8 +23,13 @@ $ yarn add vue-progresschart
 | percent |目标进度 | Number| --| 100|
 | fontSize |字体大小 | Number| --| 24|
 | fontColor |字体颜色 | String| --| #fff|
-| fontShow |是否显示字体 | Boolean| --| false|
+| progressShow |是否显示字体 | Boolean| --| false|
 | bottomText |环进度下部字体 | String| --| 监 控|
 | lineWidth |厚度 | Number| --| 8|
 | bgImg |背景渐变图片 | String| --| --|
-| bgColor |背景颜色 | Array|--|  ['red', 'yellow', 'green', '#030af8', 'pink']|
+| bgColor |进度颜色| Array|--| ['red', 'yellow']|
+| rotate |开始角度 | Number|--| 130|
+| arcEndeg |空缺角度 | Number|--| 80|
+| timingFunction |速度曲线 | String|easeOut / easeIn / easeInOut| easeInOut|
+| lineCap |结束线帽 | String| butt / round / square| round|
+| defaultBg |背景颜色 | String|--| --|
