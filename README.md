@@ -18,7 +18,7 @@ $ yarn add vue-progresschart
 
 | 参数   |  说明  |  类型 |   可选值 |默认值 |
 |--------|:-------:|------:|------:|------:|
-| duration |  毫秒 | Number| --| 3000|
+| duration |  完成动画(毫秒) | Number| --| 3000|
 | type |  图表类型 | String| circle / line | circle|
 | percent |目标进度 | Number| --| 100|
 | fontSize |字体大小 | Number| --| 24|
