@@ -155,7 +155,7 @@
                     ctx.font = this.bFontSize  + 'px April'
                     ctx.fillText(this.bText, cx, cy * 2 -  this.lineWidth)
                 }
-                this.pointCircle(cx + Math.cos(Math.PI / 180 * this.rotate) * r,
+                this.lineCap === 'round' && this.pointCircle(cx + Math.cos(Math.PI / 180 * this.rotate) * r,
                 cx + Math.sin(Math.PI / 180 * this.rotate) * r,
                 this.lineWidth / 2, ctx.strokeStyle)
                 //  终点位置
@@ -190,14 +190,14 @@
                 if(this.defaultBg) {
                     //  背景颜色
                     ctx.beginPath()
-                    ctx.moveTo(this.lineWidth, cy * 2 - this.lineWidth)
-                    ctx.lineTo(this.lineWidth + (cx * 2 - this.lineWidth * 2), cy * 2 - this.lineWidth)
+                    ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                    ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
                     ctx.strokeStyle = this.defaultBg
                     ctx.stroke()  
                 }
                 ctx.beginPath()
-                ctx.moveTo(this.lineWidth, cy * 2 - this.lineWidth)
-                ctx.lineTo(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth)
+                ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
                 let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
                 let start = 0
                 const len  = this.bgColor.length - 1
@@ -219,10 +219,11 @@
                     let fontLeft = this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100 - this.fontSize / 6 * len - this.fontSize / 2
                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
                     fontLeft = this.critical(fontLeft, this.fontSize, deviation)
-                    this.renderText(parseFloat(process).toFixed(0), fontLeft, cy * 2 - this.lineWidth * 2 - 2)
+                    this.renderText(parseFloat(process).toFixed(0), fontLeft,
+                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4)
                 }
-                this.pointCircle(0 + this.lineWidth,
-                cy * 2 - this.lineWidth,
+                this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
+                cy * 2 - this.lineWidth / 2,
                 this.lineWidth / 2, ctx.strokeStyle)
                 // 终点位置
                 // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth, this.lineWidth / 2, ctx.strokeStyle)
