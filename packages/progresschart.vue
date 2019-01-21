@@ -29,13 +29,17 @@
                 type: Boolean,
                 default: false
             },
-            // bottomShow: { // 下边子 是否显示
-            //     type: Boolean,
-            //     default: false
-            // },
-            bottomText: {
-                type: [Boolean, String],
+            bFontSize: {  // 下边文字 大小
+                type: Number,
+                default: 24
+            },
+            bShow: { // 下边文字 是否显示
+                type: Boolean,
                 default: false
+            },
+            bText: {  // 下边文字
+                type: String,
+                default: '监控'
             },
             lineWidth: { // 进度条 厚度
                 type: Number,
@@ -145,7 +149,11 @@
                     this.renderText(parseFloat(process).toFixed(0), cx, cy)
                     ctx.font = this.fontSize  + 'px April'
                     // ctx.textAlign = 'center'
-                    ctx.fillText(this.bottomText, cx, cy * 2 -  this.lineWidth)
+                    
+                }
+                if(this.bShow) {
+                    ctx.font = this.bFontSize  + 'px April'
+                    ctx.fillText(this.bText, cx, cy * 2 -  this.lineWidth)
                 }
                 this.pointCircle(cx + Math.cos(Math.PI / 180 * this.rotate) * r,
                 cx + Math.sin(Math.PI / 180 * this.rotate) * r,

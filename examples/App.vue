@@ -1,14 +1,14 @@
 <template>
   <div id="app">
      <p><button @click="percent+=20"> +++加</button>
-     0000
+     {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
             style="width:150px;height:150px; display: inline-block;"
             :lineWidth=15
             progressShow
             :percent=percent
-            bottomText="监 控"
+            bShow
             defaultBg="#ccc"
             />
         <!-- :bg-img="require('./img/colors.png')" -->

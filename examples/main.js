@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import progresschart from '../packages/index'
+import progresschart from '../lib/vue-progresschart.umd'
 Vue.use(progresschart)
 Vue.config.productionTip = false
 
