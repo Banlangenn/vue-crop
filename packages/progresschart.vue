@@ -19,7 +19,7 @@
             },
             fontSize: {  // 中间进度 大小
                 type: Number,
-                default: 15
+                default: 24
             },
             fontColor: { // 文字进度 颜色
                 type: String,
