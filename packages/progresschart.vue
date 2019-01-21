@@ -88,26 +88,25 @@
             }
         },
         destroyed() {
-            this.circleTime &&  clearInterval(this.circleTime)
+            this.circleTime && clearInterval(this.circleTime)
         },
         watch: {
-            percent(o, v) {
-                this.isIncrease =  o > v
+            percent(o) {
+                this.isIncrease =  o > this.frameVal
                 this.animation()
             }
         },
         methods: {
             pointCircle(cx, cy, r, color) {
-                    const { ctx } = this
-                    ctx.beginPath()
-                    ctx.fillStyle = color
-                    ctx.arc(cx, cy, r, 0, Math.PI * 2)
-                    ctx.fill()
+                const { ctx } = this
+                ctx.beginPath()
+                ctx.fillStyle = color
+                ctx.arc(cx, cy, r, 0, Math.PI * 2)
+                ctx.fill()
             },
             // 画圆
             circle(cx, cy, r, process, img) {
                 const { ctx } = this
-                
                 ctx.lineWidth = this.lineWidth
                 const startEndge =  Math.PI / 180 * this.rotate
                 const endEndge = Math.PI / 180 * (360 - this.arcEndeg)
@@ -121,7 +120,7 @@
                 ctx.arc(cx, cy, r, startEndge, startEndge + process / 100 * endEndge)
                 // 就是  其实点  180     +  300度  --- 减少的 60 度 就是那个 空白
                 if (img) {
-                    ctx.strokeStyle =  ctx.createPattern(img, 'repeat')
+                    ctx.strokeStyle = ctx.createPattern(img, 'repeat')
                 } else {
                     let linear = ctx.createLinearGradient(0, cy, cx * 2, cy)
                     let start = 0
@@ -180,7 +179,6 @@
             line(cx, cy, process) {
                 const { ctx } = this
                 ctx.lineWidth = this.lineWidth
-
                 if(this.defaultBg) {
                     //  背景颜色
                     ctx.beginPath()
@@ -223,7 +221,7 @@
             },
             //  动画
             animation() {
-                if (this.percent > 100 || this.percent < 0)  return
+                // if (this.percent > 100 || this.percent < 0)  return
                 this.process =  this.frameVal
                 this.startTime = 0
                 if (this.circleTime) {
@@ -249,15 +247,16 @@
                 } else {
                     this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
                 }
+                // console.log('走了几遍')
                 if (this.isIncrease) {
-                    if (this.frameVal < this.percent) {
+                    if (this.frameVal < this.percent && this.frameVal < 100) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
                         this.process =  this.frameVal
                         this.startTime = 0
                     }
                 } else {
-                    if (this.frameVal > this.percent) {
+                    if (this.frameVal > this.percent  && this.frameVal > 0.01) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
                         this.process =  this.frameVal
