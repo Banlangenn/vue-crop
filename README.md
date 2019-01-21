@@ -11,10 +11,24 @@
 $ npm install vue-progresschart
 $ yarn add vue-progresschart
 ```
+## Usage
 
+
+```js
+单组件
+import { progresschart } from "vue-progresschart";
+ // ...
+ components: {
+    progressChart: progresschart
+ },
+ // ...
+ 全局
+ import progresschart from "vue-progresschart";
+ // ...
+ Vue.use(progresschart)
+ // ... 
+```
 ## API
-# 
-
 
 | 参数   |  说明  |  类型 |   可选值 |默认值 |
 |--------|:-------:|------:|------:|------:|
