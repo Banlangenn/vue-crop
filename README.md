@@ -21,7 +21,7 @@ $ yarn add vue-progresschart
    ...
 </template>
 
-单组件引入
+组件内引入
 import { progresschart } from "vue-progresschart";
 // ...
 components: {
