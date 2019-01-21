@@ -40,7 +40,7 @@ Vue.use(progresschart)
 | percent |目标进度 | Number| --| 100|
 | fontSize |字体大小 | Number| --| 24|
 | fontColor |字体颜色 | String| --| #fff|
-| progressShow |是否显示字体 | Boolean| true / false false|
+| progressShow |是否显示字体 | Boolean| true / false | false|
 | bShow |环进度下部字体是否显示 | Boolean| true / false| false|
 | bFontSize |环进度下部字体大小 | Number| --| 24|
 | bText |环进度下部字体 | String| --| 监 控|
