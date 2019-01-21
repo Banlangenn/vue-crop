@@ -220,7 +220,7 @@
                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
                     fontLeft = this.critical(fontLeft, this.fontSize, deviation)
                     this.renderText(parseFloat(process).toFixed(0), fontLeft,
-                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4)
+                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 2)
                 }
                 this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
                 cy * 2 - this.lineWidth / 2,
