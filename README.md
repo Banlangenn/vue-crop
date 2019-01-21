@@ -16,7 +16,9 @@ $ yarn add vue-progresschart
 
 ```js
 <template>
- <progresschart/>
+   ...
+   <progresschart/>
+   ...
 </template>
 
 单组件引入
