@@ -2,7 +2,7 @@
   "name": "vue-progresschart",
   "main": "./lib/vue-progresschart.umd.min",
   "description": "vue图表件  进度条图标",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
