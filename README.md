@@ -15,18 +15,22 @@ $ yarn add vue-progresschart
 
 
 ```js
-单组件
+<template>
+ <progresschart/>
+</template>
+
+单组件引入
 import { progresschart } from "vue-progresschart";
- // ...
- components: {
-    progressChart: progresschart
- },
- // ...
- 全局
- import progresschart from "vue-progresschart";
- // ...
- Vue.use(progresschart)
- // ... 
+// ...
+components: {
+   progresschart
+},
+// ...
+全局引入
+import progresschart from "vue-progresschart";
+// ...
+Vue.use(progresschart)
+// ... 
 ```
 ## API
 
