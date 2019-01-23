@@ -218,7 +218,7 @@
                 if (this.progressShow) {
                     let fontLeft = this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100 - this.fontSize / 6 * len - this.fontSize / 2
                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
-                    fontLeft = this.critical(fontLeft, this.fontSize, deviation)
+                    fontLeft = this.critical(fontLeft, this.lineWidth / 2 + 1, deviation)
                     this.renderText(parseFloat(process).toFixed(0), fontLeft,
                     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 2)
                 }
