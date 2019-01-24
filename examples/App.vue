@@ -14,7 +14,7 @@
             />
         <!-- :bg-img="require('./img/colors.png')" -->
     <progresschart  style="width:150px;height:50px; display: inline-block;" 
-    :fontSize=5 :lineWidth=2 type="line"  progressShow 
+    :fontSize=12 :lineWidth=2 type="line"  progressShow 
     :percent=percent
     defaultBg="#ccc" />
    <HelloWorld msg="Welcome to Your Vue.js App"/>
