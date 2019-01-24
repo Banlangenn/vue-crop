@@ -182,7 +182,7 @@
                 this.ctx.font = this.fontSize / 2 + 'px April'
                 fontWidth = len < 2 ? fontWidth + 1 :  fontWidth - this.fontSize / 7 * len //  傻逼方法 消除 误差
                 if (len === 3 ) {
-                    fontWidth = fontWidth - this.fontSize / 15 * len
+                    fontWidth = fontWidth - this.fontSize / 26 * len
                 }
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
@@ -219,6 +219,13 @@
                 ctx.strokeStyle = linear
                 ctx.stroke()
                 if (this.progressShow) {
+
+//                     let fontLeft = this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100 - this.fontSize / 6 * len - this.fontSize / 2
+//                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
+//                     fontLeft = this.critical(fontLeft, this.lineWidth / 2 + 1, deviation)
+//                     this.renderText(parseFloat(process).toFixed(0), fontLeft,
+//                     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 2)
+// =======
                     // 如果想精确 需要 == 算出 他的 字体宽度
                      // 计算
                     const intProgress = parseFloat(process).toFixed(0)
@@ -227,7 +234,7 @@
                     const deviation = cx * 2 - fontWidth
                     fontLeft = this.critical(fontLeft, fontWidth, deviation)
                     this.renderText(intProgress, fontLeft,
-                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4)
+                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
                 }
                 this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
                 cy * 2 - this.lineWidth / 2,
