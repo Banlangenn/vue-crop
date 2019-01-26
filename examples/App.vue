@@ -17,22 +17,16 @@
     :fontSize=12 :lineWidth=6 type="line"  progressShow 
     :percent=percent
     defaultBg="#ccc" />
-   <HelloWorld msg="Welcome to Your Vue.js App"/>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
 export default {
   name: 'app',
   data() {
     return {
-      percent: 100
+      percent: 0
     }
-  },
-  components: {
-    HelloWorld
   }
 }
 </script>
