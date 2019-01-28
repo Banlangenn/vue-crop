@@ -25,7 +25,7 @@ export default {
   name: 'app',
   data() {
     return {
-      percent: 100
+      percent: 0
     }
   }
 }

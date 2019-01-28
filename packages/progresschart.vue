@@ -112,6 +112,7 @@
             circle(cx, cy, r, process, img) {
                 const { ctx } = this
                 ctx.lineWidth = this.lineWidth
+                ctx.lineCap = this.lineCap
                 const startEndge =  Math.PI / 180 * this.rotate
                 const endEndge = Math.PI / 180 * (360 - this.arcEndeg)
                 if(this.defaultBg) {
@@ -143,7 +144,6 @@
                     ctx.strokeStyle = linear
                 }
                 //  ctx.fill()
-                ctx.lineCap = this.lineCap
                 ctx.stroke()
                 if (this.progressShow) {
                     this.renderText(parseFloat(process).toFixed(0), cx, cy)
@@ -190,6 +190,7 @@
             line(cx, cy, process) {
                 const { ctx } = this
                 ctx.lineWidth = this.lineWidth
+                ctx.lineCap = this.lineCap
                 if(this.defaultBg) {
                     //  背景颜色
                     ctx.beginPath()
@@ -215,7 +216,6 @@
                     }
                     start += p
                 }
-                ctx.lineCap = this.lineCap
                 ctx.strokeStyle = linear
                 ctx.stroke()
                 if (this.progressShow) {
