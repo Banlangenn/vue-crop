@@ -13,10 +13,13 @@
             defaultBg="#ccc"
             />
         <!-- :bg-img="require('./img/colors.png')" -->
-    <progresschart  style="width:150px;height:50px; display: inline-block;" 
-    :fontSize=12 :lineWidth=6 type="line"  progressShow 
+    <progresschart  style="width:150px;height:150px; display: inline-block;" 
+    :fontSize=12 :lineWidth=30 type="line"  progressShow 
     :percent=percent
-    defaultBg="#ccc" />
+    defaultBg="#ccc"
+    :duration=3000
+    :arcEndeg=0
+    :data=data />
   </div>
 </template>
 
@@ -25,7 +28,13 @@ export default {
   name: 'app',
   data() {
     return {
-      percent: 0
+      percent: 100,
+      data:[
+        {value:1, name:'旅游客运', color:'#f60'},
+        {value:2, name:'班线客运', color:'pink'},
+        {value:3, name:'普货', color:'blue'},
+        {value:4, name:'危险品', color:'green'}
+    ]
     }
   }
 }

@@ -72,6 +72,10 @@
             defaultBg: { // 背景颜色
                 type: String,
                 default: ''
+            },
+            data: { // 背景颜色
+                type: Array,
+                default: () => []
             }
             
         },
@@ -88,7 +92,10 @@
                 startTime: 0,
                 timestamp: null,
                 isIncrease: true,
-                frameVal: 0
+                frameVal: 0,
+                startAngle:270,
+                newData:[],
+                total:0
             }
         },
         destroyed() {
@@ -187,60 +194,93 @@
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
             //  画直线
-            line(cx, cy, process) {
-                const { ctx } = this
-                ctx.lineWidth = this.lineWidth
-                ctx.lineCap = this.lineCap
-                if(this.defaultBg) {
-                    //  背景颜色
+            line(cx, cy, process, pointLocation ,cb) {
+               
+                let { ctx } = this
+                // ctx.save()
+                const radius = cy
+                const oneAngle = Math.PI / 180
+                this.startAngel =  oneAngle * this.rotate
+                for (const item of this.data) {
+                    const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * item.value / this.total
                     ctx.beginPath()
-                    ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                    ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
-                    ctx.strokeStyle = this.defaultBg
-                    ctx.stroke()  
-                }
-                ctx.beginPath()
-                ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
-                let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
-                let start = 0
-                const len  = this.bgColor.length - 1
-                let p = 1 / len
-                for (const gColor of this.bgColor) {
-                    if (start === 0) {
-                        linear.addColorStop(0, gColor)
-                    } else if (start === 1) {
-                        linear.addColorStop(1, gColor)
-                    } else {
-                        linear.addColorStop(start, gColor)
+                    ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
+                            cx + Math.sin(this.startAngel) * radius,) //移动到到圆心
+                    ctx.arc(cx, cy, radius - this.lineWidth, this.startAngel,  endAngle, false); //绘制圆弧5s
+                    ctx.lineTo(cx + Math.cos(endAngle) * radius,
+                        cx + Math.sin(endAngle) * radius,) //移动到到圆心
+                    ctx.arc(cx, cy, radius, endAngle,  this.startAngel, true); //绘制圆弧  
+                    ctx.fillStyle = item.color
+                    ctx.fill()
+                    ctx.closePath()
+                    if (cb) {
+                        ctx.isPointInPath(pointLocation.x, pointLocation.y) && cb(item)
                     }
-                    start += p
+                    this.startAngel = endAngle
                 }
-                ctx.strokeStyle = linear
-                ctx.stroke()
-                if (this.progressShow) {
-
-//                     let fontLeft = this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100 - this.fontSize / 6 * len - this.fontSize / 2
-//                     const deviation = cx * 2 - this.fontSize - this.fontSize / 6 * len - this.fontSize / 2
-//                     fontLeft = this.critical(fontLeft, this.lineWidth / 2 + 1, deviation)
-//                     this.renderText(parseFloat(process).toFixed(0), fontLeft,
-//                     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 2)
-// =======
-                    // 如果想精确 需要 == 算出 他的 字体宽度
-                     // 计算
-                    const intProgress = parseFloat(process).toFixed(0)
-                    let fontWidth = ctx.measureText(intProgress).width
-                    let fontLeft = this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100 - fontWidth - this.fontSize / 2
-                    const deviation = cx * 2 - fontWidth
-                    fontLeft = this.critical(fontLeft, fontWidth, deviation)
-                    this.renderText(intProgress, fontLeft,
-                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
-                }
-                this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
-                cy * 2 - this.lineWidth / 2,
-                this.lineWidth / 2, ctx.strokeStyle)
+                //  需要改造
+                /**
+                 * 1. 动态计算半径  以长 宽 大的  是半径
+                 * 2. radius  不用linewidth了   学echart （其实 linewidth 也行， 照顾 line）
+                 * ---3. 把defaultBg  放在 init 中（突然想到不行--- 清空画布--必须每次都来一遍）
+                 * 4. Angle  Endge 单词错误
+                 * 
+                 */
+                // const { ctx } = this
+                // ctx.lineWidth = this.lineWidth
+                // ctx.lineCap = this.lineCap
+                // if(this.defaultBg) {
+                //     ctx.beginPath()
+                //     ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                //     ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
+                //     ctx.strokeStyle = this.defaultBg
+                //     ctx.stroke()  
+                // }
+                // ctx.beginPath()
+                // ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                // ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
+                // let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
+                // let start = 0
+                // const len  = this.bgColor.length - 1
+                // let p = 1 / len
+                // for (const gColor of this.bgColor) {
+                //     if (start === 0) {
+                //         linear.addColorStop(0, gColor)
+                //     } else if (start === 1) {
+                //         linear.addColorStop(1, gColor)
+                //     } else {
+                //         linear.addColorStop(start, gColor)
+                //     }
+                //     start += p
+                // }
+                // ctx.strokeStyle = linear
+                // ctx.stroke()
+                // if (this.progressShow) {
+                //     const intProgress = parseFloat(process).toFixed(0)
+                //     let fontWidth = ctx.measureText(intProgress).width
+                //     let fontLeft = this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100 - fontWidth - this.fontSize / 2
+                //     const deviation = cx * 2 - fontWidth
+                //     fontLeft = this.critical(fontLeft, fontWidth, deviation)
+                //     this.renderText(intProgress, fontLeft,
+                //     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
+                // }
+                // this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
+                // cy * 2 - this.lineWidth / 2,
+                // this.lineWidth / 2, ctx.strokeStyle)
                 // 终点位置
                 // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth, this.lineWidth / 2, ctx.strokeStyle)
+            },
+            init() {
+                if (this.data.length < 1) {
+                    return
+                }
+                this.total = this.data.reduce((pre,curr) => {
+                        return pre + curr.value
+                }, 0)
+                // this.newData = this.data.map( item => {
+                //     item.ratio = parseFloat(item.value / total)
+                //     return item
+                // })
             },
             //  动画
             animation() {
@@ -326,6 +366,13 @@
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
+            },
+            getClickLocation: function(e, t, canvas) {
+                const a = canvas.getBoundingClientRect()
+                return {
+                    x: (e - a.left) * (canvas.width / a.width),
+                    y: (t - a.top) * (canvas.height / a.height)
+                }
             }
         },
         mounted() {
@@ -371,6 +418,14 @@
             } else {
                 this.animation()
             }
+            this.init()
+            canvasDom.addEventListener('click', e => {
+                const pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
+                this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
+                    // console.log(item)
+                    alert(item.name)
+                })
+            })
         }
     }
 </script>
