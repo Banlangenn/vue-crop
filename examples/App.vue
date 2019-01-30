@@ -14,7 +14,7 @@
             />
         <!-- :bg-img="require('./img/colors.png')" -->
     <progresschart  style="width:150px;height:150px; display: inline-block;" 
-    :fontSize=12 :lineWidth=30 type="line"  progressShow 
+    :fontSize=12 :lineWidth=20 type="line"  progressShow 
     :percent=percent
     defaultBg="#ccc"
     :duration=3000

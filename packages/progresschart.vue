@@ -117,6 +117,7 @@
             },
             // 画圆
             circle(cx, cy, r, process, img) {
+                this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const { ctx } = this
                 ctx.lineWidth = this.lineWidth
                 ctx.lineCap = this.lineCap
@@ -195,10 +196,10 @@
             },
             //  画直线
             line(cx, cy, process, pointLocation ,cb) {
-               
+                this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 let { ctx } = this
-                // ctx.save()
-                const radius = cy
+               
+                const radius = cy - 20
                 const oneAngle = Math.PI / 180
                 this.startAngel =  oneAngle * this.rotate
                 for (const item of this.data) {
@@ -208,13 +209,34 @@
                             cx + Math.sin(this.startAngel) * radius,) //移动到到圆心
                     ctx.arc(cx, cy, radius - this.lineWidth, this.startAngel,  endAngle, false); //绘制圆弧5s
                     ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                        cx + Math.sin(endAngle) * radius,) //移动到到圆心
+                        cx + Math.sin(endAngle) * radius,)
                     ctx.arc(cx, cy, radius, endAngle,  this.startAngel, true); //绘制圆弧  
                     ctx.fillStyle = item.color
                     ctx.fill()
-                    ctx.closePath()
+                    // ctx.strokeStyle="red";
+                    // ctx.stroke()
+                    // ctx.closePath()
                     if (cb) {
-                        ctx.isPointInPath(pointLocation.x, pointLocation.y) && cb(item)
+                        if (ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
+                            cb(item)
+                //             // 当前命中
+                //             // ctx.save()
+                //             if (condition) {
+                //                 // 已经变长的 还要减少
+                            }
+                //             ctx.beginPath()
+                //             ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
+                //                     cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
+                //             ctx.arc(cx, cy, radius + 10, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
+                //             ctx.lineTo(cx + Math.cos(endAngle) * radius,
+                //                 cx + Math.sin(endAngle) * radius,)
+                //             ctx.arc(cx, cy, radius - this.lineWidth, endAngle,  this.startAngel, true); //绘制圆弧  
+                //             ctx.fillStyle = item.color
+                //             ctx.fill()
+                //             // ctx.strokeStyle="red";
+                //             // ctx.stroke()
+                //             ctx.closePath()
+                //         }
                     }
                     this.startAngel = endAngle
                 }
@@ -224,7 +246,8 @@
                  * 2. radius  不用linewidth了   学echart （其实 linewidth 也行， 照顾 line）
                  * ---3. 把defaultBg  放在 init 中（突然想到不行--- 清空画布--必须每次都来一遍）
                  * 4. Angle  Endge 单词错误
-                 * 
+                 * 5. 动画方法 弄得单纯一点
+                 * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后 
                  */
                 // const { ctx } = this
                 // ctx.lineWidth = this.lineWidth
@@ -304,7 +327,7 @@
                 this.frameVal  = this.critical(this.frameVal, 0, 100)
                 // 清空画布
                 // 清除canvas内容
-                this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                // this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 if (this.type === 'line') {
                     this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
                 } else {
@@ -419,11 +442,13 @@
                 this.animation()
             }
             this.init()
+            if (this.type !== 'line') return
             canvasDom.addEventListener('click', e => {
                 const pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
                 this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
                     // console.log(item)
-                    alert(item.name)
+                    console.log(item)
+                    // 可以自定義事件
                 })
             })
         }
