@@ -199,7 +199,9 @@
             },
             //  画直线
             line(cx, cy, process, pointLocation ,cb) {
+                // console.log(cb)
                 let { ctx } = this
+
                 ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const radius = cy - 20
                 const oneAngle = Math.PI / 180
@@ -218,62 +220,34 @@
                     // ctx.strokeStyle="red";
                     // ctx.stroke()
                     // ctx.closePath()
-
-                    // 缩小动画
-                        // if(this.oldIndex === index && pointLocation && typeof(cb) !== 'function') {
-                        //     ctx.beginPath()
-                        //     ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                        //             cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
-                        //     ctx.arc(cx, cy, radius + (10 - cb), this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
-                        //     ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                        //         cx + Math.sin(endAngle) * radius,)
-                        //     ctx.arc(cx, cy, radius - this.lineWidth, endAngle,  this.startAngel, true); //绘制圆弧  
-                        //     ctx.fillStyle = item.color
-                        //     ctx.fill()
-                        // }
                     // if (cb && process === 100) {
                         //  为什么不对-- 是因为这一块  画布 是空的
-                        if (pointLocation && process === 100 && ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
+                        if (pointLocation && process === 100 && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
                             // ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                             if (typeof(cb) === 'function') {
-                                cb(item)
-                                ctx.beginPath()
-                                ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                                        cx + Math.sin(this.startAngel) * radius,) //移动到到圆心
-                                ctx.arc(cx, cy, radius - this.lineWidth, this.startAngel,  endAngle, false); //绘制圆弧5s
-                                ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                                    cx + Math.sin(endAngle) * radius,)
-                                ctx.arc(cx, cy, radius, endAngle,  this.startAngel, true); //绘制圆弧  
-                                ctx.fillStyle = item.color
-                                ctx.fill()
-                                
-                                // if (this.oldIndex === index) {
-                                //     this.oldIndex = -1
-                                //     cancelAnimationFrame(this.circleTime)
-                                // } else {
-                                //     this.oldIndex = index
-                                // }
+                                // 点击的第一针
+                                cb(item,index)
                             } else {
                                 let active = cb
-                                 // 当前命中
-                                    // ctx.save()
-                                    if (active === 10) {
-                                        this.oldIndex = index
-                                    }
-                                    ctx.beginPath()
-                                    ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                                            cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
-                                    ctx.arc(cx, cy, radius + active, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
-                                    ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                                        cx + Math.sin(endAngle) * radius,)
-                                    ctx.arc(cx, cy, radius - this.lineWidth + active, endAngle,  this.startAngel, true); //绘制圆弧  
-                                    ctx.fillStyle = item.color
-                                    ctx.fill()
+                                if (active === 10) {
+                                    this.oldIndex = index
+                                }
+                                ctx.beginPath()
+                                ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
+                                        cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
+                                ctx.arc(cx, cy, radius + active, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
+                                ctx.lineTo(cx + Math.cos(endAngle) * radius,
+                                    cx + Math.sin(endAngle) * radius,)
+                                ctx.arc(cx, cy, radius - this.lineWidth + active, endAngle,  this.startAngel, true); //绘制圆弧  
+                                ctx.fillStyle = item.color
+                                ctx.fill()
                                    
                             }
                         } else {
-                            // 点击 空白处
-                            if (cb && typeof(cb) !== 'function' && this.oldIndex === index) {
+                            if (cb && typeof(cb) !== 'function' && this.oldIndex === index && process === 100) {
+                                if (cb === 10 ) {
+                                    this.oldIndex = -1
+                                }
                                 ctx.beginPath()
                                 ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
                                         cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
@@ -286,20 +260,6 @@
                             }
                             // this.oldIndex = -1
                         }
-                        if (cb && typeof(cb) !== 'function' && this.oldIndex === index) {
-                            ctx.beginPath()
-                            ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                                    cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
-                            ctx.arc(cx, cy, radius + (10 - cb), this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
-                            ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                                cx + Math.sin(endAngle) * radius,)
-                            ctx.arc(cx, cy, radius - this.lineWidth, endAngle,  this.startAngel, true); //绘制圆弧  
-                            ctx.fillStyle = item.color
-                            ctx.fill()         
-                        } else {
-
-
-                        }
                     this.startAngel = endAngle
                 })
                 //  需要改造
@@ -309,7 +269,8 @@
                  * ---3. 把defaultBg  放在 init 中（突然想到不行--- 清空画布--必须每次都来一遍）
                  * 4. Angle  Endge 单词错误
                  * 5. 动画方法 弄得单纯一点
-                 * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后 
+                 * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后
+                 * 7 pie 动画优化
                  */
                 // const { ctx } = this
                 // ctx.lineWidth = this.lineWidth
@@ -418,12 +379,13 @@
                 const progressTime = timestamp - this.startTime
                 // 增加  --- 减少 
                     // pieVlaue = 10 - this.velocityCurve(progressTime, 0, 10, this.duration)
-                    let pieVlaue = this.velocityCurve(progressTime, 0, 10, 800)
+                    let pieVlaue = this.velocityCurve(progressTime, 0, 10, 500)
                 // 结束条件
                     if (pieVlaue <= 10) {
                         this.circleTime = requestAnimationFrame(this.pieFrame)
                     }
                 pieVlaue = this.critical(pieVlaue, 0, 10)
+                console.log(pieVlaue)
                 this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.pointLocation, pieVlaue)
                
             },
@@ -526,14 +488,15 @@
                 this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
                     // console.log(item)
                     // console.log(item)
+                    // 可以自定義事件
+                })
+                if (this.frameVal === 100) {
                     this.startTime = 0
                     if (this.circleTime) {
                         cancelAnimationFrame(this.circleTime)
                     }
                     this.circleTime = requestAnimationFrame(this.pieFrame)
-                    this.pieFrame()
-                    // 可以自定義事件
-                })
+                }
             })
         }
     }
