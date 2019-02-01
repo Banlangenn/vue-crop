@@ -197,69 +197,56 @@
                 }
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
+            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color) {
+                let { ctx } = this
+                ctx.beginPath()
+                ctx.moveTo(cx + Math.cos(startAngel) * insideRadius,
+                        cx + Math.sin(startAngel) * insideRadius,) //起始=== 外圈弧度
+                ctx.arc(cx, cy, insideRadius, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
+                ctx.lineTo(cx + Math.cos(endAngle) * insideRadius,
+                    cx + Math.sin(endAngle) * insideRadius,)
+                ctx.arc(cx, cy, outsideRadius, endAngle,  this.startAngel, true); //绘制圆弧  
+                ctx.fillStyle = color
+                ctx.fill()
+            },
             //  画直线
             line(cx, cy, process, pointLocation ,cb) {
-                // console.log(cb)
                 let { ctx } = this
-
                 ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const radius = cy - 20
                 const oneAngle = Math.PI / 180
                 this.startAngel =  oneAngle * this.rotate
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
-                    ctx.beginPath()
-                    ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                            cx + Math.sin(this.startAngel) * radius,) //移动到到圆心
-                    ctx.arc(cx, cy, radius - this.lineWidth, this.startAngel,  endAngle, false); //绘制圆弧5s
-                    ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                        cx + Math.sin(endAngle) * radius,)
-                    ctx.arc(cx, cy, radius, endAngle,  this.startAngel, true); //绘制圆弧  
-                    ctx.fillStyle = item.color
-                    ctx.fill()
-                    // ctx.strokeStyle="red";
-                    // ctx.stroke()
-                    // ctx.closePath()
-                    // if (cb && process === 100) {
-                        //  为什么不对-- 是因为这一块  画布 是空的
-                        if (pointLocation && process === 100 && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
-                            // ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
-                            if (typeof(cb) === 'function') {
-                                // 点击的第一针
-                                cb(item,index)
-                            } else {
-                                let active = cb
-                                if (active === 10) {
-                                    this.oldIndex = index
-                                }
-                                ctx.beginPath()
-                                ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                                        cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
-                                ctx.arc(cx, cy, radius + active, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
-                                ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                                    cx + Math.sin(endAngle) * radius,)
-                                ctx.arc(cx, cy, radius - this.lineWidth + active, endAngle,  this.startAngel, true); //绘制圆弧  
-                                ctx.fillStyle = item.color
-                                ctx.fill()
-                                   
-                            }
+                    if (pointLocation && process === this.percent && this.oldIndex === index) {
+                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth,  radius + (10 - cb), item.color)
+                    } else {
+                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
+                    }
+                    //  画布必须画了之后 才能判断是否在区域内
+                    if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
+                        // ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                        if (typeof(cb) === 'function') {
+                            // 点击的第一针
+                            cb(item,index)
                         } else {
-                            if (cb && typeof(cb) !== 'function' && this.oldIndex === index && process === 100) {
-                                if (cb === 10 ) {
-                                    this.oldIndex = -1
-                                }
-                                ctx.beginPath()
-                                ctx.moveTo(cx + Math.cos(this.startAngel) * radius,
-                                        cx + Math.sin(this.startAngel) * radius,) //起始=== 外圈弧度
-                                ctx.arc(cx, cy, radius + (10 - cb), this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
-                                ctx.lineTo(cx + Math.cos(endAngle) * radius,
-                                    cx + Math.sin(endAngle) * radius,)
-                                ctx.arc(cx, cy, radius - this.lineWidth, endAngle,  this.startAngel, true); //绘制圆弧  
-                                ctx.fillStyle = item.color
-                                ctx.fill()         
+                            let active = cb
+                            if (active === 10) {
+                                this.oldIndex = index
                             }
-                            // this.oldIndex = -1
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - 1, radius + active, item.color)
+                                
                         }
+                    } else {
+                        // 缩小动画
+                        if (cb && typeof(cb) !== 'function' && this.oldIndex === index && process === this.percent) {
+                            if (cb === 10 ) {
+                                this.oldIndex = -1
+                            }
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius + (10 - cb), radius - 1, item.color)
+                        }
+                        // this.oldIndex = -1
+                    }
                     this.startAngel = endAngle
                 })
                 //  需要改造
@@ -358,7 +345,7 @@
                 }
                 // console.log('走了几遍')
                 if (this.isIncrease) {
-                    if (this.frameVal < this.percent && this.frameVal < 100) {
+                    if (this.frameVal < this.percent && this.frameVal <= 100) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
                         this.process =  this.frameVal
@@ -379,13 +366,13 @@
                 const progressTime = timestamp - this.startTime
                 // 增加  --- 减少 
                     // pieVlaue = 10 - this.velocityCurve(progressTime, 0, 10, this.duration)
-                    let pieVlaue = this.velocityCurve(progressTime, 0, 10, 500)
+                    let pieVlaue = this.pieVelocityCurve(progressTime, 0, 10, 1000)
                 // 结束条件
                     if (pieVlaue <= 10) {
                         this.circleTime = requestAnimationFrame(this.pieFrame)
                     }
                 pieVlaue = this.critical(pieVlaue, 0, 10)
-                console.log(pieVlaue)
+                // console.log(pieVlaue)
                 this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.pointLocation, pieVlaue)
                
             },
@@ -409,6 +396,17 @@
                         }
                     default:
                         return c * (-Math.pow(1.5, -10 * t / d) + 1) * 1030 / 1023 + b
+                }
+            },
+            pieVelocityCurve (t, b, c, d) {
+                if ((t /= d) < (1 / 2.75)) {
+                    return c * (7.5625 * t * t)* 1030 / 1023 + b;
+                } else if (t < (2 / 2.75)) {
+                    return c * (7.5625 * (t -= (1.5 / 2.75)) * t + .75)* 1030 / 1023 + b;
+                } else if (t < (2.5 / 2.75)) {
+                    return c * (7.5625 * (t -= (2.25 / 2.75)) * t + .9375)* 1030 / 1023 + b;
+                } else {
+                    return c * (7.5625 * (t -= (2.625 / 2.75)) * t + .984375)* 1030 / 1023 + b;
                 }
             },
             critical(value, min, max) {
@@ -490,7 +488,8 @@
                     // console.log(item)
                     // 可以自定義事件
                 })
-                if (this.frameVal === 100) {
+                console.log(this.frameVal == this.percent)
+                if (this.frameVal >= this.percent) {
                     this.startTime = 0
                     if (this.circleTime) {
                         cancelAnimationFrame(this.circleTime)
