@@ -81,7 +81,6 @@
                 type: Number,
                 default: 8
             }
-            
         },
         data() {
             return {
@@ -94,11 +93,9 @@
                 process: 0,
                 lastTime: 0,
                 startTime: 0,
-                timestamp: null,
                 isIncrease: true,
                 frameVal: 0,
                 startAngle:270,
-                newData:[],
                 total:0,
                 oldIndex: -1,
                 pieVlaue: 10,
@@ -125,7 +122,7 @@
                 ctx.fill()
             },
             // 画圆
-            circle(cx, cy, r, process, img) {
+            circle(cx, cy, process, r, img) {
                 this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const { ctx } = this
                 ctx.lineWidth = this.lineWidth
@@ -217,10 +214,9 @@
                 ctx.fill()
             },
             // 画饼图
-            pie(cx, cy, process, pointLocation ,cb) {
+            pie(cx, cy, process,radius, pointLocation ,cb) {
                 let { ctx } = this
                 ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
-                const radius = cy - 20
                 const oneAngle = Math.PI / 180
                 this.startAngel =  oneAngle * this.rotate
                 if(this.defaultBg) {
@@ -323,10 +319,6 @@
                 this.total = this.data.reduce((pre,curr) => {
                         return pre + curr.value
                 }, 0)
-                // this.newData = this.data.map( item => {
-                //     item.ratio = parseFloat(item.value / total)
-                //     return item
-                // })
             },
             //  动画
             animation() {
@@ -340,14 +332,8 @@
             },
             frame(timestamp) {
                 if (!this.startTime) { this.startTime = timestamp }
-                this.timestamp = timestamp
                 const progressTime = timestamp - this.startTime
-                //  一样
-                if (!this.isIncrease) {
-                    this.frameVal = this.process + this.velocityCurve(progressTime, 0, this.critical(this.percent, 0, 100) - this.process, this.duration)
-                } else {
-                    this.frameVal = this.velocityCurve(progressTime, this.process,  this.critical(this.percent, 0, 100) - this.process, this.duration)
-                }
+                this.frameVal = this.process + this.velocityCurve(progressTime, 0, this.critical(this.percent, 0, 100) - this.process, this.duration)
                 if (this.isIncrease) {
                     if (this.frameVal < this.percent && this.frameVal <= 100) {
                         this.circleTime = requestAnimationFrame(this.frame)
@@ -355,7 +341,7 @@
                         this.process =  this.frameVal = this.critical(this.percent, 0, 100)
                     }
                 } else {
-                    if (this.frameVal > this.percent  && this.frameVal > 0.01) {
+                    if (this.frameVal > this.percent  && this.frameVal >= 0) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
                         this.process =  this.frameVal = this.critical(this.percent, 0, 100)
@@ -367,19 +353,18 @@
                             this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
                         break;
                     case 'circle':
-                            this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
+                            this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.imgCanvas)
                         break;
                     case 'pie':
-                         this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
+                         this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal, this.canvasOpt.height / 2 - this.pieDeviation)
                         break;
                     default:
-                        this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
+                        this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.imgCanvas)
                 }
                 console.log('进度条')
             },
             pieFrame(timestamp){
                 if (!this.startTime) { this.startTime = timestamp }
-                this.timestamp = timestamp
                 const progressTime = timestamp - this.startTime
                 // 增加  --- 减少 
                 let pieVlaue = this.pieVlaue = this.pieVelocityCurve(progressTime, 0, this.pieDeviation, 1000)
@@ -388,9 +373,8 @@
                     this.circleTime = requestAnimationFrame(this.pieFrame)
                 }
                 pieVlaue = this.critical(pieVlaue, 0, this.pieDeviation)
-                // console.log(pieVlaue)
-                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.pointLocation, pieVlaue)
-               
+                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal,  this.canvasOpt.height / 2 - this.pieDeviation, this.pointLocation, pieVlaue)
+                console.log('放大缩小')
             },
             velocityCurve(t, b, c, d) {
                 // b: 当前进度     c 差额
