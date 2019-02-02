@@ -4,22 +4,31 @@
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
-            style="width:150px;height:150px; display: inline-block;"
-            :lineWidth=15
-            progressShow
-            :percent=percent
-            :fontSize=28
-            bShow
-            defaultBg="#ccc"
-            />
+      style="width:150px;height:150px; display: inline-block;"
+      :lineWidth=15
+      progressShow
+      :percent=percent
+      :fontSize=28
+      bShow
+      defaultBg="#ccc"
+    />
         <!-- :bg-img="require('./img/colors.png')" -->
     <progresschart  style="width:150px;height:150px; display: inline-block;" 
-    :fontSize=12 :lineWidth=25 type="line"  progressShow 
-    :percent=percent
-    defaultBg="#ccc"
-    :duration=3000
-    :arcEndeg=0
-    :data=data />
+      :fontSize=12 :lineWidth=8 type="line"  progressShow 
+      :percent=percent
+      defaultBg="#ccc"
+      :duration=3000
+      :arcEndeg=0
+      :data=data
+    />
+    <progresschart  style="width:250px;height:250px; display: inline-block;" 
+      :fontSize=12 :lineWidth=30 type="pie"  progressShow 
+      :percent=percent
+      defaultBg="#ccc"
+      :duration=3000
+      :arcEndeg=0
+      :data=data
+    />
   </div>
 </template>
 

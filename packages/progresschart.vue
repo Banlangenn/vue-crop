@@ -76,6 +76,10 @@
             data: { // 背景颜色
                 type: Array,
                 default: () => []
+            },
+            pieDeviation: { // 饼图 选中偏移
+                type: Number,
+                default: 8
             }
             
         },
@@ -97,7 +101,7 @@
                 newData:[],
                 total:0,
                 oldIndex: -1,
-                pieVlaue: 0,
+                pieVlaue: 10,
                 pointLocation:null
             }
         },
@@ -107,6 +111,8 @@
         watch: {
             percent(o) {
                 this.isIncrease =  o > this.frameVal
+                this.oldIndex = -1
+                this.pieVlaue = this.pieDeviation
                 this.animation()
             }
         },
@@ -197,6 +203,7 @@
                 }
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
+            // 画饼图
             renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color) {
                 let { ctx } = this
                 ctx.beginPath()
@@ -209,8 +216,8 @@
                 ctx.fillStyle = color
                 ctx.fill()
             },
-            //  画直线
-            line(cx, cy, process, pointLocation ,cb) {
+            // 画饼图
+            pie(cx, cy, process, pointLocation ,cb) {
                 let { ctx } = this
                 ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const radius = cy - 20
@@ -219,7 +226,7 @@
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if (pointLocation && process === this.percent && this.oldIndex === index) {
-                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth,  radius + (10 - cb), item.color)
+                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth,  radius + (this.pieDeviation - cb), item.color)
                     } else {
                         this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
                     }
@@ -231,24 +238,26 @@
                             cb(item,index)
                         } else {
                             let active = cb
-                            if (active === 10) {
+                            if (active === this.pieDeviation) {
                                 this.oldIndex = index
                             }
                             this.renderPie(cx, cy, this.startAngel, endAngle, radius - 1, radius + active, item.color)
                                 
                         }
                     } else {
-                        // 缩小动画
+                        // 点击上
                         if (cb && typeof(cb) !== 'function' && this.oldIndex === index && process === this.percent) {
-                            if (cb === 10 ) {
+                            if (cb === this.pieDeviation ) {
                                 this.oldIndex = -1
                             }
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius + (10 - cb), radius - 1, item.color)
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius + (this.pieDeviation - cb), radius - 1, item.color)
                         }
-                        // this.oldIndex = -1
                     }
                     this.startAngel = endAngle
                 })
+            },   
+            //  画直线
+            line(cx, cy, process) {
                 //  需要改造
                 /**
                  * 1. 动态计算半径  以长 宽 大的  是半径
@@ -259,47 +268,48 @@
                  * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后
                  * 7 pie 动画优化
                  */
-                // const { ctx } = this
-                // ctx.lineWidth = this.lineWidth
-                // ctx.lineCap = this.lineCap
-                // if(this.defaultBg) {
-                //     ctx.beginPath()
-                //     ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                //     ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
-                //     ctx.strokeStyle = this.defaultBg
-                //     ctx.stroke()  
-                // }
-                // ctx.beginPath()
-                // ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                // ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
-                // let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
-                // let start = 0
-                // const len  = this.bgColor.length - 1
-                // let p = 1 / len
-                // for (const gColor of this.bgColor) {
-                //     if (start === 0) {
-                //         linear.addColorStop(0, gColor)
-                //     } else if (start === 1) {
-                //         linear.addColorStop(1, gColor)
-                //     } else {
-                //         linear.addColorStop(start, gColor)
-                //     }
-                //     start += p
-                // }
-                // ctx.strokeStyle = linear
-                // ctx.stroke()
-                // if (this.progressShow) {
-                //     const intProgress = parseFloat(process).toFixed(0)
-                //     let fontWidth = ctx.measureText(intProgress).width
-                //     let fontLeft = this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100 - fontWidth - this.fontSize / 2
-                //     const deviation = cx * 2 - fontWidth
-                //     fontLeft = this.critical(fontLeft, fontWidth, deviation)
-                //     this.renderText(intProgress, fontLeft,
-                //     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
-                // }
-                // this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
-                // cy * 2 - this.lineWidth / 2,
-                // this.lineWidth / 2, ctx.strokeStyle)
+                const { ctx } = this
+                ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                ctx.lineWidth = this.lineWidth
+                ctx.lineCap = this.lineCap
+                if(this.defaultBg) {
+                    ctx.beginPath()
+                    ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                    ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
+                    ctx.strokeStyle = this.defaultBg
+                    ctx.stroke()  
+                }
+                ctx.beginPath()
+                ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
+                ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
+                let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
+                let start = 0
+                const len  = this.bgColor.length - 1
+                let p = 1 / len
+                for (const gColor of this.bgColor) {
+                    if (start === 0) {
+                        linear.addColorStop(0, gColor)
+                    } else if (start === 1) {
+                        linear.addColorStop(1, gColor)
+                    } else {
+                        linear.addColorStop(start, gColor)
+                    }
+                    start += p
+                }
+                ctx.strokeStyle = linear
+                ctx.stroke()
+                if (this.progressShow) {
+                    const intProgress = parseFloat(process).toFixed(0)
+                    let fontWidth = ctx.measureText(intProgress).width
+                    let fontLeft = this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100 - fontWidth - this.fontSize / 2
+                    const deviation = cx * 2 - fontWidth
+                    fontLeft = this.critical(fontLeft, fontWidth, deviation)
+                    this.renderText(intProgress, fontLeft,
+                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
+                }
+                this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
+                cy * 2 - this.lineWidth / 2,
+                this.lineWidth / 2, ctx.strokeStyle)
                 // 终点位置
                 // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth, this.lineWidth / 2, ctx.strokeStyle)
             },
@@ -329,51 +339,54 @@
                 if (!this.startTime) { this.startTime = timestamp }
                 this.timestamp = timestamp
                 const progressTime = timestamp - this.startTime
+                //  一样
                 if (!this.isIncrease) {
                     this.frameVal = this.process + this.velocityCurve(progressTime, 0, this.critical(this.percent, 0, 100) - this.process, this.duration)
                 } else {
                     this.frameVal = this.velocityCurve(progressTime, this.process,  this.critical(this.percent, 0, 100) - this.process, this.duration)
                 }
-                this.frameVal  = this.critical(this.frameVal, 0, 100)
-                // 清空画布
-                // 清除canvas内容
-                // this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
-                if (this.type === 'line') {
-                    this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
-                } else {
-                    this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
-                }
-                // console.log('走了几遍')
                 if (this.isIncrease) {
                     if (this.frameVal < this.percent && this.frameVal <= 100) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
-                        this.process =  this.frameVal
-                        this.startTime = 0
+                        this.process =  this.frameVal = this.critical(this.percent, 0, 100)
                     }
                 } else {
                     if (this.frameVal > this.percent  && this.frameVal > 0.01) {
                         this.circleTime = requestAnimationFrame(this.frame)
                     } else {
-                        this.process =  this.frameVal
-                        this.startTime = 0
+                        this.process =  this.frameVal = this.critical(this.percent, 0, 100)
                     }
                 }
+
+                switch (this.type) {
+                    case 'line':
+                            this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
+                        break;
+                    case 'circle':
+                            this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
+                        break;
+                    case 'pie':
+                         this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
+                        break;
+                    default:
+                        this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.frameVal, this.imgCanvas)
+                }
+                console.log('进度条')
             },
             pieFrame(timestamp){
                 if (!this.startTime) { this.startTime = timestamp }
                 this.timestamp = timestamp
                 const progressTime = timestamp - this.startTime
                 // 增加  --- 减少 
-                    // pieVlaue = 10 - this.velocityCurve(progressTime, 0, 10, this.duration)
-                    let pieVlaue = this.pieVelocityCurve(progressTime, 0, 10, 1000)
+                let pieVlaue = this.pieVlaue = this.pieVelocityCurve(progressTime, 0, this.pieDeviation, 1000)
                 // 结束条件
-                    if (pieVlaue <= 10) {
-                        this.circleTime = requestAnimationFrame(this.pieFrame)
-                    }
-                pieVlaue = this.critical(pieVlaue, 0, 10)
+                if (pieVlaue <= this.pieDeviation) {
+                    this.circleTime = requestAnimationFrame(this.pieFrame)
+                }
+                pieVlaue = this.critical(pieVlaue, 0, this.pieDeviation)
                 // console.log(pieVlaue)
-                this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.pointLocation, pieVlaue)
+                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.pointLocation, pieVlaue)
                
             },
             velocityCurve(t, b, c, d) {
@@ -479,16 +492,20 @@
                 this.animation()
             }
             this.init()
-            if (this.type !== 'line') return
+            if (this.type !== 'pie') return
+            this.pieVlaue = this.pieDeviation
             canvasDom.addEventListener('click', e => {
+                //  console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
+                if (this.pieVlaue < this.pieDeviation || this.frameVal !== this.percent) return
+                // console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
                 const pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
                 this.pointLocation = pointLocation
-                this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
+                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
                     // console.log(item)
                     // console.log(item)
                     // 可以自定義事件
                 })
-                console.log(this.frameVal == this.percent)
+                // console.log(this.frameVal + '===' + this.percent)
                 if (this.frameVal >= this.percent) {
                     this.startTime = 0
                     if (this.circleTime) {
