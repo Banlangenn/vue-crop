@@ -223,6 +223,9 @@
                 const radius = cy - 20
                 const oneAngle = Math.PI / 180
                 this.startAngel =  oneAngle * this.rotate
+                if(this.defaultBg) {
+                   this.renderPie(cx, cy, this.startAngel, this.startAngel + oneAngle * 360, radius - this.lineWidth, radius, this.defaultBg)  
+                }            
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if (pointLocation && process === this.percent && this.oldIndex === index) {
