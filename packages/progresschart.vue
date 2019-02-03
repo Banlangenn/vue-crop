@@ -209,6 +209,7 @@
                 ctx.arc(cx, cy, insideRadius, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
                 ctx.lineTo(cx + Math.cos(endAngle) * insideRadius,
                     cx + Math.sin(endAngle) * insideRadius,)
+                    // 这个方式有点极端 难受
                 ctx.arc(cx, cy, outsideRadius, endAngle,  this.startAngel, true); //绘制圆弧  
                 ctx.fillStyle = color
                 ctx.fill()
@@ -225,13 +226,13 @@
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if (pointLocation && process === this.percent && this.oldIndex === index) {
+                        // 减少动画
                         this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth,  radius + (this.pieDeviation - cb), item.color)
                     } else {
                         this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
                     }
                     //  画布必须画了之后 才能判断是否在区域内
                     if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
-                        // ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                         if (typeof(cb) === 'function') {
                             // 点击的第一针
                             cb(item,index)
@@ -240,16 +241,15 @@
                             if (active === this.pieDeviation) {
                                 this.oldIndex = index
                             }
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - 1, radius + active, item.color)
-                                
-                        }
-                    } else {
-                        // 点击上
-                        if (cb && typeof(cb) !== 'function' && this.oldIndex === index && process === this.percent) {
-                            if (cb === this.pieDeviation ) {
-                                this.oldIndex = -1
-                            }
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius + (this.pieDeviation - cb), radius - 1, item.color)
+                            // 增加动画
+                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - 1, radius + active, item.color)
+                            // ctx.save()
+                            // ctx.translate(25,25)
+                            // ctx.fillStyle="yellow"
+                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth - 1 , radius + active, '#fff')
+                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, '#ccc')
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, item.color)
+                            // ctx.restore()
                         }
                     }
                     this.startAngel = endAngle
@@ -317,7 +317,7 @@
                     return
                 }
                 this.total = this.data.reduce((pre,curr) => {
-                        return pre + curr.value
+                    return pre + curr.value
                 }, 0)
             },
             //  动画
@@ -347,7 +347,6 @@
                         this.process =  this.frameVal = this.critical(this.percent, 0, 100)
                     }
                 }
-
                 switch (this.type) {
                     case 'line':
                             this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
