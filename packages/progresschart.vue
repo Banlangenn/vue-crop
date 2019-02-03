@@ -201,18 +201,16 @@
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
             // 画饼图
-            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color,angleDeviation = 0) {
+            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color) {
                 let { ctx } = this
-                startAngel = startAngel + angleDeviation
-                endAngle = endAngle - angleDeviation
                 ctx.beginPath()
                 ctx.moveTo(cx + Math.cos(startAngel) * insideRadius,
                         cx + Math.sin(startAngel) * insideRadius,) //起始=== 外圈弧度
-                ctx.arc(cx, cy, insideRadius, this.startAngel,  endAngle, false); // 内圈绘制圆弧5s
+                ctx.arc(cx, cy, insideRadius, startAngel, endAngle, false); // 内圈绘制圆弧5s
                 ctx.lineTo(cx + Math.cos(endAngle) * insideRadius,
                     cx + Math.sin(endAngle) * insideRadius,)
                     // 这个方式有点极端 难受
-                ctx.arc(cx, cy, outsideRadius, endAngle , this.startAngel + angleDeviation, true); //绘制圆弧
+                ctx.arc(cx, cy, outsideRadius, endAngle, startAngel, true); //绘制圆弧
                 ctx.fillStyle = color
                 ctx.fill()
             },
@@ -239,6 +237,7 @@
                         } else {
                             this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
                         }
+                        // //  画布必须画了之后 才能判断是否在区域内
                         if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
                             if (typeof(cb) === 'function') {
                                 // 点击的第一针
@@ -247,10 +246,9 @@
                                 let active = cb
                                 if (active === this.pieDeviation) {
                                     this.oldIndex = index
-                                    console.log('自己点中自己不执行')
                                 }
                                 // 增加动画
-                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, item.color, 1 * oneAngle)
+                                this.renderPie(cx, cy, this.startAngel + 1 * oneAngle, endAngle - 1 * oneAngle, radius - this.lineWidth + active, radius + active, item.color)
                             }
                         } else {
                             if (process === this.percent && this.oldIndex !== index) {
@@ -260,7 +258,7 @@
                             } 
                         }
                     }
-                    //  画布必须画了之后 才能判断是否在区域内
+                    
                     this.startAngel = endAngle
                 })
             },   
@@ -275,6 +273,8 @@
                  * 5. 动画方法 弄得单纯一点
                  * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后
                  * 7 pie 动画优化
+                 * z
+                 * 8 把动画返回只是一个  1 - 100    具体值 * x / 100 z      这样子 把动画统一了
                  */
                 const { ctx } = this
                 ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
