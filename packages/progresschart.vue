@@ -201,8 +201,10 @@
                 ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
             },
             // 画饼图
-            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color) {
+            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color,angleDeviation = 0) {
                 let { ctx } = this
+                startAngel = startAngel + angleDeviation
+                endAngle = endAngle - angleDeviation
                 ctx.beginPath()
                 ctx.moveTo(cx + Math.cos(startAngel) * insideRadius,
                         cx + Math.sin(startAngel) * insideRadius,) //起始=== 外圈弧度
@@ -210,7 +212,7 @@
                 ctx.lineTo(cx + Math.cos(endAngle) * insideRadius,
                     cx + Math.sin(endAngle) * insideRadius,)
                     // 这个方式有点极端 难受
-                ctx.arc(cx, cy, outsideRadius, endAngle,  this.startAngel, true); //绘制圆弧  
+                ctx.arc(cx, cy, outsideRadius, endAngle , this.startAngel + angleDeviation, true); //绘制圆弧
                 ctx.fillStyle = color
                 ctx.fill()
             },
@@ -227,31 +229,38 @@
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if (pointLocation && process === this.percent && this.oldIndex === index) {
                         // 减少动画
-                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth,  radius + (this.pieDeviation - cb), item.color)
+                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + (this.pieDeviation - cb),  radius + (this.pieDeviation - cb), item.color)
+                        if (cb === this.pieDeviation) {
+                            this.oldIndex = -1
+                        }
                     } else {
-                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
-                    }
-                    //  画布必须画了之后 才能判断是否在区域内
-                    if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
-                        if (typeof(cb) === 'function') {
-                            // 点击的第一针
-                            cb(item,index)
+                        if (process === this.percent) {
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, 'transparent')
                         } else {
-                            let active = cb
-                            if (active === this.pieDeviation) {
-                                this.oldIndex = index
+                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
+                        }
+                        if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
+                            if (typeof(cb) === 'function') {
+                                // 点击的第一针
+                                cb(item,index)
+                            } else {
+                                let active = cb
+                                if (active === this.pieDeviation) {
+                                    this.oldIndex = index
+                                    console.log('自己点中自己不执行')
+                                }
+                                // 增加动画
+                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, item.color, 1 * oneAngle)
                             }
-                            // 增加动画
-                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - 1, radius + active, item.color)
-                            // ctx.save()
-                            // ctx.translate(25,25)
-                            // ctx.fillStyle="yellow"
-                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth - 1 , radius + active, '#fff')
-                            // this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, '#ccc')
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth + active, radius + active, item.color)
-                            // ctx.restore()
+                        } else {
+                            if (process === this.percent && this.oldIndex !== index) {
+                                console.log('初始化我只是执行一次')
+                                // 没有点中  没有上一次  执行
+                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - this.lineWidth, radius, item.color)
+                            } 
                         }
                     }
+                    //  画布必须画了之后 才能判断是否在区域内
                     this.startAngel = endAngle
                 })
             },   
