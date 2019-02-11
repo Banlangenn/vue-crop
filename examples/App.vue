@@ -22,10 +22,9 @@
       :data=data
     />
     <progresschart  style="width:250px;height:250px; display: inline-block;" 
-      :fontSize=12 :lineWidth=30 type="pie"  progressShow 
+      :fontSize=12 :lineWidth=3000 type="pie"  progressShow 
       :percent=percent
-      defaultBg="#ccc"
-      :duration=3000
+      :duration=1000
       :arcEndeg=0
       :data=data
     />
@@ -39,10 +38,10 @@ export default {
     return {
       percent: 100,
       data:[
-        {value:1, name:'旅游客运', color:'#f60'},
-        {value:5, name:'班线客运', color:'pink'},
-        {value:4, name:'普货', color:'blue'},
-        {value:3, name:'危险品', color:'green'}
+        {value:10, name:'旅游客运', color:'#3aa1ff'},
+        {value:20, name:'班线客运', color:'#36cbcb'},
+        {value:4, name:'普货', color:'#6dd48c'},
+        {value:3, name:'危险品', color:'#fbd437'}
     ]
     }
   }
