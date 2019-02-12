@@ -1,5 +1,5 @@
 <template>
-    <div ref="progresschartWrap" class="progresschart-wrap"/>
+    <div ref="mountNode" class="mount-node"/>
 </template>
 <script>
     export default {
@@ -469,13 +469,25 @@
                 }
             }
             // 解决 字体模糊
-            const { progresschartWrap } = this.$refs
+            const { mountNode } = this.$refs
+            const { clientWidth, clientHeight } = mountNode
             let canvasDom =  document.createElement('canvas')
-            this.canvasOpt.width = progresschartWrap.clientWidth
-            this.canvasOpt.height = progresschartWrap.clientHeight
-            canvasDom.style.width =  this.canvasOpt.width + 'px'
-            canvasDom.style.height = this.canvasOpt.height + 'px'
-            progresschartWrap.appendChild(canvasDom)
+
+            const radius = clientWidth > clientHeight ? clientHeight : clientWidth
+            if (this.type === 'line') {
+                this.canvasOpt.width = clientWidth
+                this.canvasOpt.height = clientHeight
+                canvasDom.style.width =  clientWidth + 'px'
+                canvasDom.style.height = clientHeight + 'px'
+            } else {
+                this.canvasOpt.width = radius
+                this.canvasOpt.height = radius
+                canvasDom.style.width =  radius + 'px'
+                canvasDom.style.height = radius + 'px'
+            }
+
+
+            mountNode.appendChild(canvasDom)
             this.ctx = canvasDom.getContext('2d')
             const pixelRatio = this.getPixelRatio(this.ctx)
             canvasDom.width = this.canvasOpt.width * pixelRatio

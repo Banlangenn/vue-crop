@@ -21,10 +21,17 @@
       :arcEndeg=0
       :data=data
     />
-    <progresschart  style="width:250px;height:250px; display: inline-block;" 
+    <progresschart  style="width:150px;height:250px; display: inline-block;" 
       :fontSize=12 :lineWidth=3000 type="pie"  progressShow 
       :percent=percent
-      :duration=1000
+      :duration=2000
+      :arcEndeg=0
+      :data=data
+    />
+    <progresschart  style="width:150px;height:150px; display: inline-block;" 
+      :fontSize=12 :lineWidth=30 type="pie"  progressShow 
+      :percent=percent
+      :duration=2000
       :arcEndeg=0
       :data=data
     />
