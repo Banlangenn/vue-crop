@@ -85,9 +85,9 @@
         data() {
             return {
                 ctx: null,
-                canvasOpt: {
-                    width: null,
-                    height: null
+                centrality: {
+                    x: null,
+                    y: null
                 },
                 imgCanvas: null,
                 process: 0,
@@ -123,8 +123,8 @@
             },
             // 画圆
             circle(cx, cy, process, r, img) {
-                this.ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
                 const { ctx } = this
+                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
                 ctx.lineWidth = this.lineWidth
                 ctx.lineCap = this.lineCap
                 const startEndge =  Math.PI / 180 * this.rotate
@@ -218,7 +218,7 @@
             // 画饼图
             pie(cx, cy, process,radius, pointLocation ,cb) {
                 let { ctx } = this
-                ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
                 const oneAngle = Math.PI / 180
                 const lineWidth = this.critical(this.lineWidth, 5, radius)
                 this.startAngel =  oneAngle * this.rotate
@@ -285,7 +285,7 @@
                  * 8 把动画返回只是一个  1 - 100    具体值 * x / 100 z      这样子 把动画统一了
                  */
                 const { ctx } = this
-                ctx.clearRect(0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
                 ctx.lineWidth = this.lineWidth
                 ctx.lineCap = this.lineCap
                 if(this.defaultBg) {
@@ -366,16 +366,16 @@
                 }
                 switch (this.type) {
                     case 'line':
-                            this.line(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal)
+                            this.line(this.centrality.x, this.centrality.y,  this.frameVal)
                         break;
                     case 'circle':
-                            this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.imgCanvas)
+                            this.circle(this.centrality.x, this.centrality.y, this.frameVal, this.radius - this.lineWidth / 2 - 1, this.imgCanvas)
                         break;
                     case 'pie':
-                         this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2,  this.frameVal, this.canvasOpt.height / 2 - this.pieDeviation)
+                         this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
                         break;
                     default:
-                        this.circle(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, this.canvasOpt.height / 2 - this.lineWidth / 2 - 1, this.imgCanvas)
+                        this.circle(this.centrality.x, this.centrality.y, this.frameVal, this.radius - this.lineWidth / 2 - 1, this.imgCanvas)
                 }
                 console.log('进度条')
             },
@@ -389,7 +389,7 @@
                     this.circleTime = requestAnimationFrame(this.pieFrame)
                 }
                 pieVlaue = this.critical(pieVlaue, 0, this.pieDeviation)
-                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal,  this.canvasOpt.height / 2 - this.pieDeviation, this.pointLocation, pieVlaue)
+                this.pie(this.centrality.x, this.centrality.y, this.frameVal,  this.radius - this.pieDeviation, this.pointLocation, pieVlaue)
                 console.log('放大缩小')
             },
             velocityCurve(t, b, c, d) {
@@ -472,26 +472,17 @@
             const { mountNode } = this.$refs
             const { clientWidth, clientHeight } = mountNode
             let canvasDom =  document.createElement('canvas')
-
-            const radius = clientWidth > clientHeight ? clientHeight : clientWidth
-            if (this.type === 'line') {
-                this.canvasOpt.width = clientWidth
-                this.canvasOpt.height = clientHeight
-                canvasDom.style.width =  clientWidth + 'px'
-                canvasDom.style.height = clientHeight + 'px'
-            } else {
-                this.canvasOpt.width = radius
-                this.canvasOpt.height = radius
-                canvasDom.style.width =  radius + 'px'
-                canvasDom.style.height = radius + 'px'
-            }
-
-
+            const diameter = clientWidth > clientHeight ? clientHeight : clientWidth
+            this.radius = diameter / 2
+            this.centrality.x = clientWidth / 2
+            this.centrality.y = clientHeight / 2
+            canvasDom.style.width =  clientWidth + 'px'
+            canvasDom.style.height = clientHeight + 'px'
             mountNode.appendChild(canvasDom)
             this.ctx = canvasDom.getContext('2d')
             const pixelRatio = this.getPixelRatio(this.ctx)
-            canvasDom.width = this.canvasOpt.width * pixelRatio
-            canvasDom.height = this.canvasOpt.height * pixelRatio
+            canvasDom.width = clientWidth * pixelRatio
+            canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
             //  环形渐变
             if (this.bgImg) {
@@ -500,7 +491,7 @@
                 img.src = this.bgImg
                 img.onload = () => { // 等到图片加载进来之后
                     this.imgCanvas = canvasDom.cloneNode(true)
-                    this.imgCanvas.getContext('2d').drawImage(img, 0, 0, this.canvasOpt.width, this.canvasOpt.height)
+                    this.imgCanvas.getContext('2d').drawImage(img, 0, 0, clientWidth, clientHeight)
                     this.animation()
                 }
             } else {
@@ -515,7 +506,7 @@
                 // console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
                 const pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
                 this.pointLocation = pointLocation
-                this.pie(this.canvasOpt.width / 2, this.canvasOpt.height / 2, this.frameVal, pointLocation, item => {
+                this.pie(clientWidth, clientHeight, this.frameVal, this.radius, pointLocation, item => {
                     // console.log(item)
                     // console.log(item)
                     // 可以自定義事件
