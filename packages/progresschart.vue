@@ -80,6 +80,14 @@
             pieDeviation: { // 饼图 选中偏移
                 type: Number,
                 default: 10
+            },
+            html: { // 图中心html
+                type: String,
+                default: ''
+            },
+            sectorSelect: { // 扇形单击事件
+                type: Function,
+                default: _ => {}
             }
         },
         data() {
@@ -165,14 +173,14 @@
                     // ctx.textAlign = 'center'
                     
                 }
-                if(this.bShow) {
+                if (this.bShow) {
                     ctx.font = this.bFontSize  + 'px April'
-                    ctx.fillText(this.bText, cx, cy * 2 -  this.lineWidth)
+                    ctx.fillText(this.bText, cx, cy + r -  this.lineWidth)
                 }
                 this.lineCap === 'round' && this.pointCircle(cx + Math.cos(Math.PI / 180 * this.rotate) * r,
-                cx + Math.sin(Math.PI / 180 * this.rotate) * r,
+                cy + Math.sin(Math.PI / 180 * this.rotate) * r,
                 this.lineWidth / 2, ctx.strokeStyle)
-                //  终点位置
+                //  终点位置-------------------=====----------
                 // this.pointCircle(cx + Math.cos(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, cx + Math.sin(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, this.lineWidth / 2, ctx.strokeStyle)
                 // ddd
                 // x坐标=a + Math.sin(2Math.PI / 360) * r
@@ -224,7 +232,8 @@
                 this.startAngel =  oneAngle * this.rotate
                 if(this.defaultBg) {
                    this.renderPie(cx, cy, this.startAngel, this.startAngel + oneAngle * 360, radius - lineWidth, radius, this.defaultBg)  
-                }            
+                }
+                // const isSelect = fase          
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if (pointLocation && process === this.percent && this.oldIndex === index) {
@@ -261,9 +270,9 @@
                         } else {
                             if (process === this.percent && this.oldIndex !== index) {
                                 console.log('初始化我只是执行一次')
-                                // 没有点中  没有上一次  执行
+                                // 没有点中  没有上一次 的扇形  执行
                                 this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                            } 
+                            }
                         }
                     }
                     
@@ -478,13 +487,27 @@
             this.centrality.y = clientHeight / 2
             canvasDom.style.width =  clientWidth + 'px'
             canvasDom.style.height = clientHeight + 'px'
-            mountNode.appendChild(canvasDom)
+            // mountNode.appendChild(canvasDom)
+                        // 中间dom
+            let divTemp = document.createElement('div')
+            divTemp.style.position = 'absolute'
+            divTemp.style.visibility = 'hidden'
+            divTemp.style.display = 'inlineBlock'
+            //this.html
+            divTemp.innerHTML = this.html
+            mountNode.appendChild(divTemp).cloneNode(true)
+            mountNode.appendChild(canvasDom).cloneNode(true)
+            // console.log()
+            // const deviation = this.type === 'circle' ? this.lineWidth : this.pieDeviation
+            divTemp.style.top = (clientHeight - divTemp.clientHeight) / 2  + 'px'
+            // 为啥 left  不用加
+            divTemp.style.left =  (clientWidth - divTemp.clientWidth) / 2 + 'px'
+            divTemp.style.visibility = 'visible'
             this.ctx = canvasDom.getContext('2d')
             const pixelRatio = this.getPixelRatio(this.ctx)
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-            //  环形渐变
             if (this.bgImg) {
                 let img = null
                 img = new Image()
@@ -504,12 +527,9 @@
                 //  console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
                 if (this.pieVlaue < this.pieDeviation || this.frameVal !== this.percent) return
                 // console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
-                const pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
-                this.pointLocation = pointLocation
+                const pointLocation = this.pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
                 this.pie(clientWidth, clientHeight, this.frameVal, this.radius, pointLocation, item => {
-                    // console.log(item)
-                    // console.log(item)
-                    // 可以自定義事件
+                    this.sectorSelect(item)
                 })
                 // console.log(this.frameVal + '===' + this.percent)
                 if (this.frameVal >= this.percent) {
@@ -523,3 +543,13 @@
         }
     }
 </script>
+<style>
+    div,p,span {
+        margin: 0;
+        padding: 0;
+    }
+    .mount-node {
+        position: relative;
+    }
+</style>
+

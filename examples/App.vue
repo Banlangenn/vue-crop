@@ -4,7 +4,7 @@
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
-      style="width:150px;height:150px; display: inline-block;"
+      style="width:150px;height:250px; display: inline-block;"
       :lineWidth=15
       progressShow
       :percent=percent
@@ -28,12 +28,13 @@
       :arcEndeg=0
       :data=data
     />
-    <progresschart  style="width:150px;height:150px; display: inline-block;" 
-      :fontSize=12 :lineWidth=30 type="pie"  progressShow 
+    <progresschart  style="width:550px;height:450px; display: inline-block;" 
+      :fontSize=12 :lineWidth=50 type="pie"  progressShow 
       :percent=percent
       :duration=2000
       :arcEndeg=0
       :data=data
+      html='<p style="color:#8c8c8c;font-size:80px">主机</p><p style="color:#8c8c8c;font-size:20px">200 <span style="color:red">台</span></p>'
     />
   </div>
 </template>
