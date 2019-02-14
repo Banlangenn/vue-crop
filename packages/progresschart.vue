@@ -84,10 +84,6 @@
             html: { // 图中心html
                 type: String,
                 default: ''
-            },
-            sectorSelect: { // 扇形单击事件
-                type: Function,
-                default: _ => {}
             }
         },
         data() {
@@ -171,7 +167,6 @@
                     this.renderText(parseFloat(process).toFixed(0), cx, cy)
                     ctx.font = this.fontSize  + 'px April'
                     // ctx.textAlign = 'center'
-                    
                 }
                 if (this.bShow) {
                     ctx.font = this.bFontSize  + 'px April'
@@ -224,7 +219,8 @@
                 ctx.fill()
             },
             // 画饼图
-            pie(cx, cy, process,radius, pointLocation ,cb) {
+            pie(cx, cy, process,radius, pointLocation ,count) {
+                // 用坐标来判断是 进度  还是放大
                 let { ctx } = this
                 ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
                 const oneAngle = Math.PI / 180
@@ -233,49 +229,80 @@
                 if(this.defaultBg) {
                    this.renderPie(cx, cy, this.startAngel, this.startAngel + oneAngle * 360, radius - lineWidth, radius, this.defaultBg)  
                 }
-                // const isSelect = fase          
+                // const isSelect = fase
+                // console.log(this.oldIndex)
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
-                    if (pointLocation && process === this.percent && this.oldIndex === index) {
-                        // 减少动画
-                         this.renderPie(
-                            cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - cb) ,
-                            cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - cb) ,
-                            this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                        if (cb === this.pieDeviation) {
-                            this.oldIndex = -1
-                        }
-                    } else {
-                        if (process === this.percent) {
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, 'transparent')
-                        } else {
-                            this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                        }
-                        // //  画布必须画了之后 才能判断是否在区域内
-                        if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
-                            if (typeof(cb) === 'function') {
-                                // 点击的第一针
-                                cb(item,index)
-                            } else {
-                                let active = cb
-                                if (active === this.pieDeviation) {
-                                    this.oldIndex = index
-                                }
-                                // 增加动画
-                                this.renderPie(
-                                    cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * active ,
-                                    cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * active ,
-                                    this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                    if ( process === this.percent && pointLocation) {
+                        if (this.oldIndex === index) {
+                            this.renderPie(
+                                cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
+                                cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
+                                this.startAngel, endAngle, radius - lineWidth, radius, item.color
+                            )
+                            if (count === this.pieDeviation) {
+                                this.oldIndex = -1
                             }
                         } else {
-                            if (process === this.percent && this.oldIndex !== index) {
-                                console.log('初始化我只是执行一次')
-                                // 没有点中  没有上一次 的扇形  执行
+                            if (process === this.percent) {
+                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, 'transparent')
+                            } else {
+                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                            }
+                            if ( ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
+                                if (count === this.pieDeviation) {
+                                    this.oldIndex = index
+                                }
+                                this.renderPie(
+                                    cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
+                                    cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
+                                    this.startAngel, endAngle, radius - lineWidth, radius, item.color
+                                )
+                            } else {
                                 this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
                             }
                         }
+                    } else {
+                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
                     }
-                    
+
+
+
+
+
+                    // if (pointLocation && process === this.percent && this.oldIndex === index) {
+                    //     // 减少动画
+                    //      this.renderPie(
+                    //         cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
+                    //         cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
+                    //         this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                    //     if (count === this.pieDeviation) {
+                    //         this.oldIndex = -1
+                    //     }
+                    // } else {
+                    //     // //  画布必须画了之后 才能判断是否在区域内
+                    //     if (process === this.percent) {
+                    //         this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, 'transparent')
+                    //     } else {
+                    //         this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                    //     }
+                    //     if (pointLocation && process === this.percent && ctx.isPointInPath(pointLocation.x, pointLocation.y) && this.oldIndex !== index) {
+                    //             if (count === this.pieDeviation) {
+                    //                 this.oldIndex = index
+                    //             }
+                    //             // 增加动画
+                    //             this.renderPie(
+                    //                 cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
+                    //                 cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
+                    //                 this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                    //     } else {
+                    //         if (process === this.percent && this.oldIndex !== index) {
+                    //             console.log('初始化我只是执行一次')
+                    //             // 没有点中  没有上一次 的扇形  执行
+                    //             this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
+                    //         }
+                    //     }
+                    // }
                     this.startAngel = endAngle
                 })
             },   
@@ -332,11 +359,11 @@
                     this.renderText(intProgress, fontLeft,
                     cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
                 }
-                this.lineCap === 'round' && this.pointCircle(0 + this.lineWidth / 2,
+                this.lineCap === 'round' && this.pointCircle(this.lineWidth / 2,
                 cy * 2 - this.lineWidth / 2,
                 this.lineWidth / 2, ctx.strokeStyle)
                 // 终点位置
-                // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth, this.lineWidth / 2, ctx.strokeStyle)
+                // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth / 2, this.lineWidth / 2, ctx.strokeStyle)
             },
             init() {
                 if (this.data.length < 1) {
@@ -526,19 +553,17 @@
             canvasDom.addEventListener('click', e => {
                 //  console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
                 if (this.pieVlaue < this.pieDeviation || this.frameVal !== this.percent) return
+                // if ( this.frameVal !== this.percent) return
                 // console.log('放大值：' + this.pieVlaue +'-----放大第几片'+ this.oldIndex)
+                // alert(this.getClickLocation(e.pageX, e.pageY, canvasDom))
                 const pointLocation = this.pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
-                this.pie(clientWidth, clientHeight, this.frameVal, this.radius, pointLocation, item => {
-                    this.sectorSelect(item)
-                })
-                // console.log(this.frameVal + '===' + this.percent)
-                if (this.frameVal >= this.percent) {
-                    this.startTime = 0
-                    if (this.circleTime) {
-                        cancelAnimationFrame(this.circleTime)
-                    }
-                    this.circleTime = requestAnimationFrame(this.pieFrame)
-                }
+                // this.pie(this.centrality.x, this.centrality.y, this.frameVal, this.radius, pointLocation, item => {
+                //     this.sectorSelect(item)
+                // })
+               // 启动 变大缩小
+
+                this.startTime = 0
+                this.circleTime = requestAnimationFrame(this.pieFrame)
             })
         }
     }
