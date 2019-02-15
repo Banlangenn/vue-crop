@@ -3,7 +3,7 @@
      <p><button @click="percent+=20"> +++加</button>
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
-    <!-- <progresschart  
+    <progresschart  
       style="width:290px;height:250px; display: inline-block;"
       :lineWidth=15
       progressShow
@@ -11,9 +11,10 @@
       :fontSize=28
       bShow
       defaultBg="#ccc"
-    /> -->
+      :bg-img="require('./assets/logo.png')"
+    />
         <!-- :bg-img="require('./img/colors.png')" -->
-    <!-- <progresschart  style="width:200px;height:150px; display: inline-block;" 
+    <progresschart  style="width:200px;height:150px; display: inline-block;" 
       :fontSize=12 :lineWidth=8 type="line"  progressShow 
       :percent=percent
       defaultBg="#ccc"
@@ -27,14 +28,14 @@
       :duration=2000
       :arcEndeg=0
       :data=data
-    /> -->
+    />
     <progresschart  style="width:100%;height:300px; display: inline-block;" 
       :fontSize=12 :lineWidth=50 type="pie"  progressShow 
       :percent=percent
       :duration=2000
       :arcEndeg=0
       :data=data
-      html='<p style="color:#000;font-size:30px">主机</p><p style="color:#8c8c8c;font-size:20px">200 <span style="color:red">台</span></p>'
+      html='<p style="pading:0;margin:0;color:#000;font-size:30px">主机</p><p style="pading:0;margin:0;color:#8c8c8c;font-size:20px">200 <span style="pading:0;margin:0;color:red">台</span></p>'
     />
   </div>
 </template>
