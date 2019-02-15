@@ -29,18 +29,6 @@
                 type: Boolean,
                 default: false
             },
-            bFontSize: {  // 下边文字 大小
-                type: Number,
-                default: 24
-            },
-            bShow: { // 下边文字 是否显示
-                type: Boolean,
-                default: false
-            },
-            bText: {  // 下边文字
-                type: String,
-                default: '监控'
-            },
             lineWidth: { // 进度条 厚度
                 type: Number,
                 default: 8
@@ -59,7 +47,7 @@
             },
             arcEndeg: {
                 type: Number,
-                default: 80 // 空缺角度
+                default: 0 // 空缺角度
             },
             lineCap: { // 结束线帽
                 type: String,
@@ -84,8 +72,12 @@
             html: { // 图中心html
                 type: String,
                 default: ''
-            }
-        },
+            },
+            position: { // html内容位置
+                type: Array,
+                default: () => ['50%', '50%']
+            },
+        },  
         data() {
             return {
                 ctx: null,
@@ -115,7 +107,7 @@
                 this.isIncrease =  o > this.frameVal
                 this.oldIndex = -1
                 this.pieVlaue = this.pieDeviation
-                if (this.percent > 0 && this.percent <= 100) {
+                if (this.percent >= 0 && this.percent <= 100) {
                     this.animation()
                 }
             }
@@ -134,8 +126,9 @@
                 ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
                 ctx.lineWidth = this.lineWidth
                 ctx.lineCap = this.lineCap
-                const startEndge =  Math.PI / 180 * this.rotate
-                const endEndge = Math.PI / 180 * (360 - this.arcEndeg)
+                const oneAngle = Math.PI / 180 // 一度
+                const startEndge =  oneAngle * this.rotate
+                const endEndge = oneAngle * (360 - this.arcEndeg)
                 if(this.defaultBg) {
                     ctx.beginPath()
                     ctx.arc(cx, cy, r, startEndge, startEndge + endEndge)
@@ -167,17 +160,13 @@
                 //  ctx.fill()
                 ctx.stroke()
                 if (this.progressShow) {
-                    this.renderText(parseFloat(process).toFixed(0), cx, cy)
+                    this.renderText(parseFloat(process).toFixed(0), cx - this.fontSize / 5, cy)
                     ctx.font = this.fontSize  + 'px April'
-                    // ctx.textAlign = 'center'
                 }
-                if (this.bShow) {
-                    ctx.font = this.bFontSize  + 'px April'
-                    ctx.fillText(this.bText, cx, cy + r -  this.lineWidth)
-                }
-                this.lineCap === 'round' && this.pointCircle(cx + Math.cos(Math.PI / 180 * this.rotate) * r,
-                cy + Math.sin(Math.PI / 180 * this.rotate) * r,
+                this.lineCap === 'round' && this.pointCircle(cx + Math.cos(oneAngle * this.rotate) * r,
+                cy + Math.sin(oneAngle * this.rotate) * r,
                 this.lineWidth / 2, ctx.strokeStyle)
+                // ctx.strokeStyle
                 //  终点位置-------------------=====----------
                 // this.pointCircle(cx + Math.cos(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, cx + Math.sin(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, this.lineWidth / 2, ctx.strokeStyle)
                 // ddd
@@ -238,7 +227,8 @@
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if ( isprogress && pointLocation) {
-                        if (this.oldIndex === index) {
+                        if (this.oldIndex === index) { // 上一个被选中的  
+                            // 缩小
                             this.renderPie(
                                 cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
                                 cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
@@ -253,8 +243,9 @@
                             } else {
                                 this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
                             }
-                            if ( ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
+                            if (ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
                                 this.tempOldIndex = index
+                                // 放大
                                 if (count === this.pieDeviation) {
                                     this.oldIndex = index
                                 }
@@ -489,8 +480,9 @@
                 divTemp.style.display = 'inlineBlock'
                 divTemp.innerHTML = this.html
                 mountNode.appendChild(divTemp).cloneNode(true)
-                divTemp.style.top = (clientHeight - divTemp.clientHeight) / 2  + 'px'
-                divTemp.style.left =  (clientWidth - divTemp.clientWidth) / 2 + 'px'
+                const [x, y] = this.position
+                divTemp.style.left =  (clientWidth - divTemp.clientWidth) * parseInt(x) / 100 + 'px'
+                divTemp.style.top = (clientHeight - divTemp.clientHeight) * parseInt(y) / 100 + 'px'
                 divTemp.style.visibility = 'visible'
             }
             // canvas dom

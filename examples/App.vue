@@ -4,36 +4,35 @@
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
-      style="width:290px;height:250px; display: inline-block;"
+      style="width:100%;height:250px; display: inline-block;"
       :lineWidth=15
       progressShow
       :percent=percent
       :fontSize=28
-      bShow
+      :arcEndeg=80
       defaultBg="#ccc"
       :bg-img="require('./assets/logo.png')"
+      html='<p style="pading:0;margin:0;color:#000;font-size:10px">霸霸</p>'
+      :position= "['50%', '90%']"
     />
         <!-- :bg-img="require('./img/colors.png')" -->
-    <progresschart  style="width:200px;height:150px; display: inline-block;" 
+    <progresschart  style="width:100%;height:150px; display: inline-block;" 
       :fontSize=12 :lineWidth=8 type="line"  progressShow 
       :percent=percent
       defaultBg="#ccc"
       :duration=3000
-      :arcEndeg=0
       :data=data
     />
     <progresschart  style="width:100%;height:280px; display: inline-block;" 
-      :fontSize=12 :lineWidth=3000 type="pie"  progressShow 
+      :fontSize=12 :lineWidth=3000 type="pie"
       :percent=percent
       :duration=2000
-      :arcEndeg=0
       :data=data
     />
     <progresschart  style="width:100%;height:300px; display: inline-block;" 
-      :fontSize=12 :lineWidth=50 type="pie"  progressShow 
+      :fontSize=12 :lineWidth=50 type="pie"  
       :percent=percent
       :duration=2000
-      :arcEndeg=0
       :data=data
       html='<p style="pading:0;margin:0;color:#000;font-size:30px">主机</p><p style="pading:0;margin:0;color:#8c8c8c;font-size:20px">200 <span style="pading:0;margin:0;color:red">台</span></p>'
     />
@@ -45,7 +44,7 @@ export default {
   name: 'app',
   data() {
     return {
-      percent: 100,
+      percent: 0,
       data:[
         {value:10, name:'旅游客运', color:'#3aa1ff'},
         {value:20, name:'班线客运', color:'#36cbcb'},
