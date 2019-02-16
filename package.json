@@ -1,8 +1,8 @@
 {
   "name": "vue-progresschart",
   "main": "./lib/vue-progresschart.umd.min",
-  "description": "vue进度组件  环形进度 条型进度",
-  "version": "0.0.10",
+  "description": "一个vue 简单图表插件,目前支持:弧形进度(仪表盘)/线进度/饼图",
+  "version": "1.0.0",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
