@@ -12,11 +12,11 @@
       :arcEndeg=80
       defaultBg="#ccc"
       :bg-img="require('./assets/logo.png')"
-      html='<p style="pading:0;margin:0;color:#000;font-size:10px">霸霸</p>'
+      html='<p style="pading:0;margin:0;color:#000;font-size:35px">霸霸</p>'
       :position= "['50%', '90%']"
     />
         <!-- :bg-img="require('./img/colors.png')" -->
-    <progresschart  style="width:100%;height:150px; display: inline-block;" 
+    <!-- <progresschart  style="width:100%;height:150px; display: inline-block;" 
       :fontSize=12 :lineWidth=8 type="line"  progressShow 
       :percent=percent
       defaultBg="#ccc"
@@ -28,7 +28,7 @@
       :percent=percent
       :duration=2000
       :data=data
-    />
+    /> -->
     <progresschart  style="width:100%;height:300px; display: inline-block;" 
       :fontSize=12 :lineWidth=50 type="pie"  
       :percent=percent
