@@ -44,7 +44,7 @@ export default {
   name: 'app',
   data() {
     return {
-      percent: 0,
+      percent: 100,
       data:[
         {value:10, name:'旅游客运', color:'#3aa1ff'},
         {value:20, name:'班线客运', color:'#36cbcb'},

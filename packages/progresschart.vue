@@ -479,7 +479,8 @@
                 divTemp.style.visibility = 'hidden'
                 divTemp.style.display = 'inlineBlock'
                 divTemp.innerHTML = this.html
-                mountNode.appendChild(divTemp).cloneNode(true)
+                // console.log(divTemp.cloneNode)
+                mountNode.appendChild(divTemp)
                 const [x, y] = this.position
                 divTemp.style.left =  (clientWidth - divTemp.clientWidth) * parseInt(x) / 100 + 'px'
                 divTemp.style.top = (clientHeight - divTemp.clientHeight) * parseInt(y) / 100 + 'px'
@@ -493,7 +494,7 @@
             this.centrality.y = clientHeight / 2
             canvasDom.style.width =  clientWidth + 'px'
             canvasDom.style.height = clientHeight + 'px'
-            mountNode.appendChild(canvasDom).cloneNode(true)
+            mountNode.appendChild(canvasDom)
             this.ctx = canvasDom.getContext('2d')
             const pixelRatio = this.getPixelRatio(this.ctx)
             canvasDom.width = clientWidth * pixelRatio
@@ -505,27 +506,26 @@
                 img.src = this.bgImg
                 img.onload = () => { // 等到图片加载进来之后
                     this.imgCanvas = canvasDom.cloneNode(true)
-                    this.imgCanvas.getContext('2d').drawImage(img, 0, 0, clientWidth, clientHeight)
+                    this.imgCanvas.getContext('2d').drawImage(img, (clientWidth - diameter) / 2 , (clientHeight - diameter) / 2, diameter, diameter)
                     this.animation()
                 }
             } else {
                 this.animation()
             }
-            this.init()
             if (this.type !== 'pie') return
+            this.init()
             this.pieVlaue = this.pieDeviation
             canvasDom.addEventListener('click', e => {
-                if ( this.frameVal !== this.percent) return
+                if (this.frameVal !== this.percent) return
                 if (this.pieVlaue < this.pieDeviation) { // 动画没有结束  就点击了下一个
                     cancelAnimationFrame(this.circleTime)
                     this.oldIndex = this.tempOldIndex
                     this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
                 }
-                const pointLocation = this.pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
+                this.pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
                 this.startTime = 0
                 this.circleTime = requestAnimationFrame(this.pieFrame)
             })
         }
     }
 </script>
-

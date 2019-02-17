@@ -54,7 +54,7 @@ Vue.use(progresschart)
 | data |饼图数据 | Array|[{value: 数字, name:'名字', color:'背景颜色'}]| --|
 | pieDeviation | 饼图 点中区域 偏移值 | Number|--| 10|
 | html | htmlDom | String|--| --|
-| posation | html内容位置  | Array|--| ['50%', '50%']|
+| position | html内容位置  | Array|--| ['50%', '50%']|
 
 
 
