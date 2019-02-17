@@ -173,7 +173,7 @@
                 // x坐标=a + Math.sin(2Math.PI / 360) * r
                 // y坐标=b + Math.cos(2Math.PI / 360) * r
                 //  角度可以改
-                // console.log(Math.PI * 1 / 3 * (process / 100))
+                // cosole.log(Math.PI * 1 / 3 * (process / 100))
                     //  smallcircle1(150+Math.cos(2*Math.PI/360*120)*100, 150+Math.sin(2*Math.PI/360*120)*100, 10);
                 //  smallcircle2(150+Math.cos(2*Math.PI/360*(120+process*3))*100, 150+Math.sin(2*Math.PI/360*(120+process*3))*100, 10);
                 // 计算   弧度的重点位置
@@ -223,7 +223,7 @@
                 if(this.defaultBg) {
                    this.renderPie(cx, cy, this.startAngel, this.startAngel + oneAngle * 360, radius - lineWidth, radius, this.defaultBg)  
                 }
-                // console.log(this.oldIndex)
+                // cosole.log(this.oldIndex)
                 this.data.forEach((item, index) => {
                     const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
                     if ( isprogress && pointLocation) {
@@ -378,7 +378,7 @@
                     default:
                         this.circle(this.centrality.x, this.centrality.y, this.frameVal, this.radius - this.lineWidth / 2 - 1, this.imgCanvas)
                 }
-                console.log('进度条')
+                // cosole.log('进度条')
             },
             pieFrame(timestamp){
                 if (!this.startTime) { this.startTime = timestamp }
@@ -391,7 +391,7 @@
                 }
                 pieVlaue = this.critical(pieVlaue, 0, this.pieDeviation)
                 this.pie(this.centrality.x, this.centrality.y, this.frameVal,  this.radius - this.pieDeviation, this.pointLocation, pieVlaue)
-                console.log('放大缩小')
+                // cosole.log('放大缩小')
             },
             velocityCurve(t, b, c, d) {
                 // b: 当前进度     c 差额
@@ -479,7 +479,7 @@
                 divTemp.style.visibility = 'hidden'
                 divTemp.style.display = 'inlineBlock'
                 divTemp.innerHTML = this.html
-                // console.log(divTemp.cloneNode)
+                // cosole.log(divTemp.cloneNode)
                 mountNode.appendChild(divTemp)
                 const [x, y] = this.position
                 divTemp.style.left =  (clientWidth - divTemp.clientWidth) * parseInt(x) / 100 + 'px'
