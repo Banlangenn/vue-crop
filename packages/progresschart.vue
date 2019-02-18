@@ -1,5 +1,5 @@
 <template>
-    <div ref="mountNode" class="mount-node" style="position: relative;"/>
+    <div ref="mountNode" class="mount-node" style="position: relative;" @click="canvasHandle($event)"/>
 </template>
 <script>
     export default {
@@ -96,6 +96,7 @@
                 oldIndex: -1,
                 tempOldIndex: -1,
                 pieVlaue: 10,
+                platform: 'click',
                 pointLocation:null
             }
         },
@@ -444,12 +445,27 @@
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
             },
-            getClickLocation: function(e, t, canvas) {
+            getClickLocation(e, t, canvas) {
                 const a = canvas.getBoundingClientRect()
+                // console.log('canvas的距离顶部：' + a.top)
                 return {
                     x: (e - a.left) * (canvas.width / a.width),
                     y: (t - a.top) * (canvas.height / a.height)
                 }
+            },
+            canvasHandle(e) {
+                // if (this.type !== 'pie') return
+                // 把事件移到到这个位置 把  绑定事件和移除事件 交给vue
+                // console.log('点击的点距离顶部：' + e.screenX)
+                if (this.frameVal !== this.percent || this.type !== 'pie') return
+                if (this.pieVlaue < this.pieDeviation) { // 动画没有结束  就点击了下一个
+                    cancelAnimationFrame(this.circleTime)
+                    this.oldIndex = this.tempOldIndex
+                    this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
+                }
+                this.pointLocation = this.getClickLocation(e.clientX, e.clientY, e.target)
+                this.startTime = 0
+                this.circleTime = requestAnimationFrame(this.pieFrame)
             }
         },
         mounted() {
@@ -515,24 +531,6 @@
             if (this.type !== 'pie') return
             this.init()
             this.pieVlaue = this.pieDeviation
-            let platform = 'click'  
-            try{
-                if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)){
-                    platform = 'touchstart'
-                }
-            }catch(e){}
-            canvasDom.addEventListener(platform, e => {
-                // console.log()
-                if (this.frameVal !== this.percent) return
-                if (this.pieVlaue < this.pieDeviation) { // 动画没有结束  就点击了下一个
-                    cancelAnimationFrame(this.circleTime)
-                    this.oldIndex = this.tempOldIndex
-                    this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
-                }
-                this.pointLocation = platform === 'click' ? this.getClickLocation(e.pageX, e.pageY, canvasDom) : this.getClickLocation(e.touches[0].pageX, e.touches[0].pageY, canvasDom)
-                this.startTime = 0
-                this.circleTime = requestAnimationFrame(this.pieFrame)
-            })
         }
     }
 </script>

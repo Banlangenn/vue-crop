@@ -22,13 +22,13 @@
       defaultBg="#ccc"
       :duration=3000
       :data=data
-    />
+    /> -->
     <progresschart  style="width:100%;height:280px; display: inline-block;" 
       :fontSize=12 :lineWidth=3000 type="pie"
       :percent=percent
       :duration=2000
       :data=data
-    /> -->
+    />
     <progresschart  style="width:100%;height:300px; display: inline-block;" 
       :fontSize=12 :lineWidth=50 type="pie"  
       :percent=percent
