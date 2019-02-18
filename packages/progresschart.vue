@@ -515,14 +515,21 @@
             if (this.type !== 'pie') return
             this.init()
             this.pieVlaue = this.pieDeviation
-            canvasDom.addEventListener('click', e => {
+            let platform = 'click'  
+            try{
+                if(/Android|webOS|iPhone|iPod|BlackBerry/i.test(navigator.userAgent)){
+                    platform = 'touchstart'
+                }
+            }catch(e){}
+            canvasDom.addEventListener(platform, e => {
+                // console.log()
                 if (this.frameVal !== this.percent) return
                 if (this.pieVlaue < this.pieDeviation) { // 动画没有结束  就点击了下一个
                     cancelAnimationFrame(this.circleTime)
                     this.oldIndex = this.tempOldIndex
                     this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
                 }
-                this.pointLocation = this.getClickLocation(e.pageX, e.pageY, canvasDom)
+                this.pointLocation = platform === 'click' ? this.getClickLocation(e.pageX, e.pageY, canvasDom) : this.getClickLocation(e.touches[0].pageX, e.touches[0].pageY, canvasDom)
                 this.startTime = 0
                 this.circleTime = requestAnimationFrame(this.pieFrame)
             })
