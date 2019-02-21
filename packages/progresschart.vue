@@ -127,6 +127,19 @@
                         clientWidth: clientW,
                         clientHeight: clientH
                     }
+                    // this.cropper = {
+                    //     x: (width - currentW) / 2,
+                    //     y: (height - currentH) / 2,
+                    //     width: currentW,
+                    //     height: currentH
+                    // }
+                    this.cropper = {
+                        x:(width - 80) / 2,
+                        y:(height - 80) / 2,
+                        width:80,
+                        height:80
+                    }
+                    
                     const image = this.image;
                     this.arg = [image.element, image.x, image.y, image.width, image.height]
                     this.scale = k
@@ -140,11 +153,11 @@
             },
             draw() {
                 const { width, height } = this.options
-
                 // 避免预览到背景
-                this.ctx.clearRect(0, 0, width, height)
+                this.ctx.clearRect(0, 0, width, height)     
                 this.fillBackground()
                 this.fillImage()
+                this.updatePoint()
                 this.fillCropper();
                 this.preview();
             },
@@ -154,25 +167,64 @@
             },
             updatePoint() {
                 const c = this.cropper;
-                const w = 8;
-                const h = 8;    
+                const w = 15;
+                const h = 15;
+                this.points = [
+                    {
+                        x: c.x,
+                        y: c.y,
+                        width: w,
+                        height: h
+                    },
+                    {
+                        x: c.x + c.width - w,
+                        y: c.y,
+                        width: w,
+                        height: h
+                    },
+                    {
+                        x: c.x,
+                        y: c.y + c.height - h,
+                        width: w,
+                        height: h
+                    },
+                    {
+                        x: c.x + c.width - w,
+                        y: c.y + c.height - h,
+                        width: w,
+                        height: h
+                    }
+                ]   
+                // this.point = {
+                //     width: w,
+                //     height: h,
+                //     x: c.x + c.width - w,
+                //     y: c.y + c.height - h
+                // };
                 this.point = {
-                    width: w,
-                    height: h,
-                    x: c.x + c.width - w / 2,
-                    y: c.y + c.height - h / 2
-                };
+                        width: w,
+                        height: h,
+                        x: c.x ,
+                        y: c.y
+                    }
             },
             fillCropper() {
                 const ctx = this.ctx,
-                cropper = this.cropper
-                this.updatePoint()
-                const point = this.point;
+                cropper = this.cropper,
+                point = this.point,
+                points = this.points
                 ctx.save();
-                ctx.strokeStyle = '#39f';
+                ctx.strokeStyle = '#fff';
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height);
-                ctx.fillStyle = '#39f';
-                ctx.fillRect(point.x, point.y, point.width, point.height);
+                ctx.fillStyle = '#fff';
+                for (const item of points) {
+                    ctx.fillRect(item.x, item.y, item.width, item.height)
+                    // ctx.fillRect(item.x, item.y, item.list[1].width, item.list[1].height);
+                }
+                // ctx.fillRect(point.x, point.y, point.width / 4, point.height);
+                // ctx.fillRect(point.x, point.y, point.width, point.height / 4);
+                // 
+                // ctx.fillRect(point.x, point.y, point.width, point.height / 4);
                 ctx.restore();
             },
            // 填充背景
@@ -201,16 +253,31 @@
                 ctx.restore()
             },
             handlePointMove({ x, y }) {
+                console.log('---')
                 const s = this.startPoint;
+                // let w,h
+                // switch (this.index) {
+                //     case 3:
+                //          w = this.point[2].x - this.points.x;
+                //          h = this.point[3].y - this.points[2].y
+                //         break;
+                //     case 0:
+                //          w = this.cropper.x - x;
+                //          h = this.cropper.y - y;
+                //         break;
+                
+                //     default:
+                //         break;
+                // }
                 const w = x - this.cropper.x;
                 const h = y - this.cropper.y;
-
-                if (w <= 0 || h <= 0) {
+                if (w <= 50 || h <= 50) {
                     return;
                 }
+                // this.cropper.x = s].x
+                // this.cropper.y = s.y
                 this.cropper.width = w 
                 this.cropper.height = h
-                this.updatePoint()
                 this.draw()
             },
            handleCropperMove({ x, y }) {
@@ -242,7 +309,6 @@
                 }
                 this.cropper.x = currentX 
                 this.cropper.y = currentY
-                this.updatePoint()
                 this.draw()
             },
             getCoordinateByEvent(e){
@@ -256,25 +322,24 @@
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
                 this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
-                if (this.startPoint.type ==  'preview') {
-                    this.preview()
-                }
             },
             getPointByCoordinate({x, y}) {
-                const point = this.point;
+                // const point = this.point;
                 const cropper = this.cropper;
                 const image = this.image;
                 let t = {}
-
-                // 设置偏移(点击坐标与定点坐标)
-                if (
-                    point &&
-                    x > point.x &&
+                let index = 0
+                // 设置偏移(点击坐标与定点坐标)         
+                if (this.points.some((point,i) => {
+                    index = i
+                    return x > point.x &&
                     x < point.x + point.width &&
                     y > point.y &&
                     y < point.y + point.height
+                } )
                 ) {
-                t.type = 'handlePointMove'
+                    t.type = 'handlePointMove'
+                    this.index = index
                 } else if (
                 cropper &&
                 x > cropper.x &&
@@ -333,19 +398,16 @@
                 const h = cropper.height * v.zoom
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
-                    this.copyCanvs = this.canvas.cloneNode(true)
                     // this.canvas.style.display = 'none'
                     const { mountNode } = this.$refs
                     mountNode.appendChild(this.canvas)
                     this.cCtx = this.canvas.getContext('2d')
-                    this.copyCtx = this.copyCanvs.getContext('2d')
                 }
                 // console.log(this.canvas)
-                this.canvas.width = this.copyCanvs.width = w
-                this.canvas.height = this.copyCanvs.height = h
-                console.log(this.canvas)
+                this.canvas.width = w
+                this.canvas.height = h
+                // console.log(this.canvas)
                 this.cCtx.clearRect(0, 0, w, h)
-                this.copyCtx.clearRect(0, 0, w, h)
                 // -------------
                 this.cCtx.drawImage(
                     image.element,
@@ -353,30 +415,15 @@
                     (image.y - cropper.y) * v.zoom,
                     image.width * v.zoom,
                     image.height * v.zoom
-                );
-                this.copyCtx.drawImage(
-                    this.canvas
-                    (image.x - cropper.x) * v.zoom,
-                    (image.y - cropper.y) * v.zoom,
-                    image.width * v.zoom,
-                    image.height * v.zoom
-                );
-                
-                this.image = {
-                    element: this.copyCanvs,
-                    x: cropper.x,
-                    y: cropper.y,
-                    width: cropper.width,
-                    height: cropper.height
-                }
-                this.arg = [
-                    this.canvas,
-                    cropper.x,
-                    cropper.y,
-                    cropper.width,
-                    cropper.height,
-                ]
-                this.draw()
+                )
+                // this.arg = [
+                //     this.canvas,
+                //     cropper.x,
+                //     cropper.y,
+                //     cropper.width,
+                //     cropper.height,
+                // ]
+                // this.draw()
             },
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
@@ -430,12 +477,6 @@
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-            this.cropper = {
-                x:0,
-                y:0,
-                width:80,
-                height:80
-            }
             // if (this.bgImg) {
                 let img = null
                 img = new Image()
@@ -451,27 +492,6 @@
             // canvasDom.addEventListener('mousewheel', this.handleMouseWheel);
             canvasDom.addEventListener('touchstart', this.handleStart);
             canvasDom.addEventListener('touchmove', this.handleMove);
-
-            // this._id = bind(canvas, {
-            // onStart: this.handleStart,
-            // onMove: this.handleMove
-            // });
         }
-
-        // private handleStart = e => {
-        //     this._startPoint = this.getPointByCoordinate(e.x, e.y);
-        // };
-
-        // private handleMove = e => {
-        //     const type = this._types[this._startPoint.type];
-
-        //     if (!type || !type.handler) {
-        //     return;
-        //     }
-
-        //     type.handler(e);
-        // };
-           
-        // }
     }
 </script>

@@ -4,7 +4,7 @@
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
-      style="width:100%;height:250px; display: inline-block;"
+      style="width:100%;height:500px; display: inline-block;"
     />
   </div>
 </template>
