@@ -81,39 +81,229 @@
         data() {
             return {
                 ctx: null,
+                options: null,
+                arg: null,
+                scale:1,
+                canvas: null,
                 centrality: {
                     x: null,
                     y: null
                 },
-                imgCanvas: null,
-                process: 0,
-                lastTime: 0,
-                startTime: 0,
-                isIncrease: true,
-                frameVal: 0,
-                startAngle:270,
-                total:0,
-                oldIndex: -1,
-                tempOldIndex: -1,
-                pieVlaue: 10,
-                platform: 'click',
-                pointLocation:null
+                image: {},
+                point: {},
+                cropper: {},
+                startPoint: {}
             }
         },
         destroyed() {
             this.circleTime && cancelAnimationFrame(this.circleTime)
         },
-        watch: {
-            percent(o) {
-                this.isIncrease =  o > this.frameVal
-                this.oldIndex = -1
-                this.pieVlaue = this.pieDeviation
-                if (this.percent >= 0 && this.percent <= 100) {
-                    this.animation()
-                }
-            }
-        },
         methods: {
+            animation(img){
+                if (img) {
+                    const clientW = img.width,
+                    clientH = img.height;
+                    const { width, height } = this.options
+                    let currentW = clientW,
+                        currentH = clientH,
+                        k = 1; // contain 时的缩放比
+                    // contain 图片
+                    if (clientW > width) {
+                        currentW = width
+                        k = currentW / clientW
+                        currentH = k * clientH
+                    }
+                    if (currentH > height) {
+                        currentH = height;
+                        k = currentH / clientH
+                        currentW = k * clientW
+                    }
+                    this.image = {
+                        element: img,
+                        width: currentW,
+                        height: currentH,
+                        x: (width - currentW) / 2,
+                        y: (height - currentH) / 2,
+                        clientWidth: clientW,
+                        clientHeight: clientH
+                    }
+                    const image = this.image;
+                    this.arg = [image.element, image.x, image.y, image.width, image.height]
+                    this.scale = k
+                    this.draw()
+                }
+              
+                // 两点之间的距离
+                // d=√[(x2-x1)²+(y2-y1)²]
+              
+                // this.fillBackground()
+            },
+            draw() {
+                const { width, height } = this.options
+
+                // 避免预览到背景
+                this.ctx.clearRect(0, 0, width, height)
+                this.fillBackground()
+                this.fillImage()
+                this.fillCropper();
+                this.preview();
+            },
+            fillImage() {
+                const ctx = this.ctx
+                ctx.drawImage(...this.arg);
+            },
+            updatePoint() {
+                const c = this.cropper;
+                const w = 8;
+                const h = 8;    
+                this.point = {
+                    width: w,
+                    height: h,
+                    x: c.x + c.width - w / 2,
+                    y: c.y + c.height - h / 2
+                };
+            },
+            fillCropper() {
+                const ctx = this.ctx,
+                cropper = this.cropper
+                this.updatePoint()
+                const point = this.point;
+                ctx.save();
+                ctx.strokeStyle = '#39f';
+                ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height);
+                ctx.fillStyle = '#39f';
+                ctx.fillRect(point.x, point.y, point.width, point.height);
+                ctx.restore();
+            },
+           // 填充背景
+            fillBackground() {
+                // 多个变量可以用逗号 一次赋值
+                const { width, height } = this.options
+                const ctx = this.ctx,
+                side = 15 ,//width / 80,
+                x = Math.ceil(width / side),
+                y = Math.ceil(height / side)
+                // Math.ceil 向上取整
+                ctx.save()
+                ctx.fillStyle = '#ccc'
+                // y方向
+                for (let i = 0; i < y; i++) {//  铺满每一行
+                    for (let j = 0; j < x; j++) { // 一行的小方格
+                        if ((j + i) % 2 === 0) {
+                            ctx.fillRect(j * side, i * side, side, side)
+                        }
+                    }
+                }
+                //蒙层 
+                ctx.fillStyle = 'rgba(0,0,0,0.1)'
+                ctx.fillRect(0, 0, width, height)
+                 //蒙层 
+                ctx.restore()
+            },
+            handlePointMove({ x, y }) {
+                const s = this.startPoint;
+                const w = x - this.cropper.x;
+                const h = y - this.cropper.y;
+
+                if (w <= 0 || h <= 0) {
+                    return;
+                }
+                this.cropper.width = w 
+                this.cropper.height = h
+                this.updatePoint()
+                this.draw()
+            },
+           handleCropperMove({ x, y }) {
+                const { width, height } = this.options;
+                const s = this.startPoint;
+                const oX = s.offsetX;
+                const oY = s.offsetY;
+                const maxX = width - this.cropper.width;
+                const maxY = height - this.cropper.height;
+
+                let currentX = x - oX,
+                currentY = y - oY;
+                // 判断边界
+
+                if (currentX < 0) {
+                currentX = 0;
+                }
+
+                if (currentX > maxX) {
+                currentX = maxX;
+                }
+
+                if (currentY < 0) {
+                currentY = 0;
+                }
+
+                if (currentY > maxY) {
+                currentY = maxY;
+                }
+                this.cropper.x = currentX 
+                this.cropper.y = currentY
+                this.updatePoint()
+                this.draw()
+            },
+            getCoordinateByEvent(e){
+                const rect = e.target.getBoundingClientRect()
+                const touch = e.touches[0]
+                return {
+                    x: touch.clientX - rect.left,
+                    y: touch.clientY - rect.top
+                }
+            },
+            // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
+            handleStart(e) {
+                this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
+                if (this.startPoint.type ==  'preview') {
+                    this.preview()
+                }
+            },
+            getPointByCoordinate({x, y}) {
+                const point = this.point;
+                const cropper = this.cropper;
+                const image = this.image;
+                let t = {}
+
+                // 设置偏移(点击坐标与定点坐标)
+                if (
+                    point &&
+                    x > point.x &&
+                    x < point.x + point.width &&
+                    y > point.y &&
+                    y < point.y + point.height
+                ) {
+                t.type = 'handlePointMove'
+                } else if (
+                cropper &&
+                x > cropper.x &&
+                x < cropper.x + cropper.width &&
+                y > cropper.y &&
+                y < cropper.y + cropper.height
+                ) {
+                t.offsetX = x - cropper.x;
+                t.offsetY = y - cropper.y;
+                t.type = 'handleCropperMove'
+                } else if (
+                image &&
+                x > image.x &&
+                x < image.x + image.width &&
+                y > image.y &&
+                y < image.y + image.height
+                ) {
+                t.offsetX = x - image.x;
+                t.offsetY = y - image.y;
+                t.type = Types.image;
+                } else {
+                    t.type = Types.background;
+                }
+                return t;
+            },
+            handleMove (e) {
+                const type = this.startPoint.type;
+                this[type](this.getCoordinateByEvent(e));
+            },
             pointCircle(cx, cy, r, color) {
                 const { ctx } = this
                 ctx.beginPath()
@@ -122,311 +312,6 @@
                 ctx.fill()
             },
             // 画圆
-            circle(cx, cy, process, r, img) {
-                const { ctx } = this
-                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
-                ctx.lineWidth = this.lineWidth
-                ctx.lineCap = this.lineCap
-                const oneAngle = Math.PI / 180 // 一度
-                const startEndge =  oneAngle * this.rotate
-                const endEndge = oneAngle * (360 - this.arcEndeg)
-                if(this.defaultBg) {
-                    ctx.beginPath()
-                    ctx.arc(cx, cy, r, startEndge, startEndge + endEndge)
-                    ctx.strokeStyle = this.defaultBg
-                    ctx.stroke()  
-                }
-                ctx.beginPath()
-                ctx.arc(cx, cy, r, startEndge, startEndge + process / 100 * endEndge)
-                // 就是  其实点  180     +  300度  --- 减少的 60 度 就是那个 空白
-                if (img) {
-                    ctx.strokeStyle = ctx.createPattern(img, 'repeat')
-                } else {
-                    let linear = ctx.createLinearGradient(0, cy, cx * 2, cy)
-                    let start = 0
-                    const len  = this.bgColor.length - 1
-                    let p = 1 / len
-                    for (const gColor of this.bgColor) {
-                        if (start === 0) {
-                            linear.addColorStop(0, gColor)
-                        } else if (start === 1) {
-                            linear.addColorStop(1, gColor)
-                        } else {
-                            linear.addColorStop(start, gColor)
-                        }
-                        start += p
-                    }
-                    ctx.strokeStyle = linear
-                }
-                //  ctx.fill()
-                ctx.stroke()
-                if (this.progressShow) {
-                    this.renderText(parseFloat(process).toFixed(0), cx - this.fontSize / 5, cy)
-                    ctx.font = this.fontSize  + 'px April'
-                }
-                this.lineCap === 'round' && this.pointCircle(cx + Math.cos(oneAngle * this.rotate) * r,
-                cy + Math.sin(oneAngle * this.rotate) * r,
-                this.lineWidth / 2, ctx.strokeStyle)
-                // ctx.strokeStyle
-                //  终点位置-------------------=====----------
-                // this.pointCircle(cx + Math.cos(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, cx + Math.sin(2 * Math.PI / 360 * ((360 - 80) * process / 100 + 130)) * r, this.lineWidth / 2, ctx.strokeStyle)
-                // ddd
-                // x坐标=a + Math.sin(2Math.PI / 360) * r
-                // y坐标=b + Math.cos(2Math.PI / 360) * r
-                //  角度可以改
-                // cosole.log(Math.PI * 1 / 3 * (process / 100))
-                    //  smallcircle1(150+Math.cos(2*Math.PI/360*120)*100, 150+Math.sin(2*Math.PI/360*120)*100, 10);
-                //  smallcircle2(150+Math.cos(2*Math.PI/360*(120+process*3))*100, 150+Math.sin(2*Math.PI/360*(120+process*3))*100, 10);
-                // 计算   弧度的重点位置
-            },
-            renderText(text, x, y) {
-                const { ctx } = this
-                ctx.font = this.fontSize + 'px April'
-                ctx.textAlign = 'center'
-                ctx.textBaseline = 'middle'
-                ctx.fillStyle = this.fontColor
-                // 把消除误差的东西提出来
-                let fontWidth = ctx.measureText(text).width
-                const len = text.length
-                ctx.fillText(text, x, y)
-                this.ctx.font = this.fontSize / 2 + 'px April'
-                fontWidth = len < 2 ? fontWidth + 1 :  fontWidth - this.fontSize / 7 * len //  傻逼方法 消除 误差
-                if (len === 3 ) {
-                    fontWidth = fontWidth - this.fontSize / 26 * len
-                }
-                ctx.fillText('%', x + fontWidth, y + this.fontSize / 8)
-            },
-            // 画饼图
-            // 圆心坐标x y   开始角度  结束角度 内圈弧度  外圈弧度  颜色
-            renderPie(cx, cy, startAngel, endAngle, insideRadius, outsideRadius,color) {
-                let { ctx } = this
-                ctx.beginPath()
-                ctx.moveTo(cx + Math.cos(startAngel) * insideRadius,
-                        cy + Math.sin(startAngel) * insideRadius,) //起始=== 外圈弧度
-                ctx.arc(cx, cy, insideRadius, startAngel, endAngle, false); // 内圈绘制圆弧5s
-                ctx.lineTo(cx + Math.cos(endAngle) * insideRadius,
-                    cy + Math.sin(endAngle) * insideRadius,)
-                    // 这个方式有点极端 难受
-                ctx.arc(cx, cy, outsideRadius, endAngle, startAngel, true); //绘制圆弧
-                ctx.fillStyle = color
-                ctx.fill()
-            },
-            // 画饼图
-            pie(cx, cy, process,radius, pointLocation ,count) {
-                // 用坐标来判断是 进度  还是放大
-                let { ctx } = this
-                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
-                const oneAngle = Math.PI / 180 // 一度
-                const lineWidth = this.critical(this.lineWidth, 5, radius) // 最小 墙宽
-                const isprogress = process === this.percent // 是不是 进度
-                let isSelect = false // 是不是 选中
-                this.startAngel =  oneAngle * this.rotate
-                if(this.defaultBg) {
-                   this.renderPie(cx, cy, this.startAngel, this.startAngel + oneAngle * 360, radius - lineWidth, radius, this.defaultBg)  
-                }
-                // cosole.log(this.oldIndex)
-                this.data.forEach((item, index) => {
-                    const endAngle = this.startAngel + oneAngle * (360 - this.arcEndeg) * process / 100 * (this.total === 0 ? 1 / this.data.length  : item.value / this.total)
-                    if ( isprogress && pointLocation) {
-                        if (this.oldIndex === index) { // 上一个被选中的  
-                            // 缩小
-                            this.renderPie(
-                                cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
-                                cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * (this.pieDeviation - count) ,
-                                this.startAngel, endAngle, radius - lineWidth, radius, item.color
-                            )
-                            if (count === this.pieDeviation) {
-                                this.oldIndex = -1
-                            }
-                        } else {
-                            if (isprogress) {
-                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, 'transparent')
-                            } else {
-                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                            }
-                            if (ctx.isPointInPath(pointLocation.x, pointLocation.y)) {
-                                this.tempOldIndex = index
-                                // 放大
-                                if (count === this.pieDeviation) {
-                                    this.oldIndex = index
-                                }
-                                isSelect = true
-                                this.renderPie(
-                                    cx + Math.cos(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
-                                    cy + Math.sin(this.startAngel + ((endAngle - this.startAngel) / 2)) * count ,
-                                    this.startAngel, endAngle, radius - lineWidth, radius, item.color
-                                )
-                            } else {
-                                this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                            }
-                        }
-                    } else {
-                        this.renderPie(cx, cy, this.startAngel, endAngle, radius - lineWidth, radius, item.color)
-                    }
-                    this.startAngel = endAngle
-                })
-                // 点击空白
-                if (isprogress &&  !isSelect && this.oldIndex == -1) {
-                    this.pieVlaue = this.pieDeviation
-                    cancelAnimationFrame(this.circleTime)
-                }
-            },   
-            //  画直线
-            line(cx, cy, process) {
-                //  需要改造
-                /**
-                 * 1. 动态计算半径  以长 宽 大的  是半径
-                 * 2. radius  不用linewidth了   学echart （其实 linewidth 也行， 照顾 line）
-                 * ---3. 把defaultBg  放在 init 中（突然想到不行--- 清空画布--必须每次都来一遍）
-                 * 4. Angle  Endge 单词错误
-                 * 5. 动画方法 弄得单纯一点
-                 * 6. 一动一动的动画也是可以做的 相当麻烦 100% 之后
-                 * 7 pie 动画优化
-                 * z
-                 * 8 把动画返回只是一个  1 - 100    具体值 * x / 100 z      这样子 把动画统一了
-                 * 9 超过100  或者 少于0 报错
-                 */
-                const { ctx } = this
-                ctx.clearRect(0, 0, this.centrality.x * 2, this.centrality.y * 2)
-                ctx.lineWidth = this.lineWidth
-                ctx.lineCap = this.lineCap
-                if(this.defaultBg) {
-                    ctx.beginPath()
-                    ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                    ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth), cy * 2 - this.lineWidth / 2)
-                    ctx.strokeStyle = this.defaultBg
-                    ctx.stroke()  
-                }
-                ctx.beginPath()
-                ctx.moveTo(this.lineWidth / 2, cy * 2 - this.lineWidth / 2)
-                ctx.lineTo(this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100, cy * 2 - this.lineWidth / 2)
-                let linear = ctx.createLinearGradient(0, 0, cx * 2, 0)
-                let start = 0
-                const len  = this.bgColor.length - 1
-                let p = 1 / len
-                for (const gColor of this.bgColor) {
-                    if (start === 0) {
-                        linear.addColorStop(0, gColor)
-                    } else if (start === 1) {
-                        linear.addColorStop(1, gColor)
-                    } else {
-                        linear.addColorStop(start, gColor)
-                    }
-                    start += p
-                }
-                ctx.strokeStyle = linear
-                ctx.stroke()
-                if (this.progressShow) {
-                    const intProgress = parseFloat(process).toFixed(0)
-                    let fontWidth = ctx.measureText(intProgress).width
-                    let fontLeft = this.lineWidth / 2 + (cx * 2 - this.lineWidth) * process / 100 - fontWidth - this.fontSize / 2
-                    const deviation = cx * 2 - fontWidth
-                    fontLeft = this.critical(fontLeft, fontWidth, deviation)
-                    this.renderText(intProgress, fontLeft,
-                    cy * 2 - this.lineWidth * 1.5 + (this.lineWidth - this.fontSize) / 4 - 1)
-                }
-                this.lineCap === 'round' && this.pointCircle(this.lineWidth / 2,
-                cy * 2 - this.lineWidth / 2,
-                this.lineWidth / 2, ctx.strokeStyle)
-                // 终点位置
-                // this.pointCircle(this.lineWidth + (cx * 2 - this.lineWidth * 2) * process / 100, cy * 2 - this.lineWidth / 2, this.lineWidth / 2, ctx.strokeStyle)
-            },
-            init() {
-                if (this.data.length < 1) {
-                    return
-                }
-                this.total = this.data.reduce((pre,curr) => {
-                    return pre + curr.value
-                }, 0)
-            },
-            //  动画
-            animation() {
-                // if (this.percent > 100 || this.percent < 0)  return
-                this.process =  this.frameVal
-                this.startTime = 0
-                if (this.circleTime) {
-                    cancelAnimationFrame(this.circleTime)
-                }
-                this.circleTime = requestAnimationFrame(this.frame)
-            },
-            frame(timestamp) {
-                if (!this.startTime) { this.startTime = timestamp }
-                const progressTime = timestamp - this.startTime
-                this.frameVal = this.process + this.velocityCurve(progressTime, 0, this.critical(this.percent, 0, 100) - this.process, this.duration)
-                if (this.isIncrease) {
-                    if (this.frameVal < this.percent && this.frameVal <= 100) {
-                        this.circleTime = requestAnimationFrame(this.frame)
-                    } else {
-                        this.process =  this.frameVal = this.critical(this.percent, 0, 100)
-                    }
-                } else {
-                    if (this.frameVal > this.percent  && this.frameVal >= 0) {
-                        this.circleTime = requestAnimationFrame(this.frame)
-                    } else {
-                        this.process =  this.frameVal = this.critical(this.percent, 0, 100)
-                    }
-                }
-                switch (this.type) {
-                    case 'line':
-                            this.line(this.centrality.x, this.centrality.y,  this.frameVal)
-                        break;
-                    case 'circle':
-                            this.circle(this.centrality.x, this.centrality.y, this.frameVal, this.radius - this.lineWidth / 2 - 1, this.imgCanvas)
-                        break;
-                    case 'pie':
-                         this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
-                        break;
-                    default:
-                        this.circle(this.centrality.x, this.centrality.y, this.frameVal, this.radius - this.lineWidth / 2 - 1, this.imgCanvas)
-                }
-                // cosole.log('进度条')
-            },
-            pieFrame(timestamp){
-                if (!this.startTime) { this.startTime = timestamp }
-                const progressTime = timestamp - this.startTime
-                // 增加  --- 减少 
-                let pieVlaue = this.pieVlaue = this.pieVelocityCurve(progressTime, 0, this.pieDeviation, 1000)
-                // 结束条件
-                if (pieVlaue <= this.pieDeviation) {
-                    this.circleTime = requestAnimationFrame(this.pieFrame)
-                }
-                pieVlaue = this.critical(pieVlaue, 0, this.pieDeviation)
-                this.pie(this.centrality.x, this.centrality.y, this.frameVal,  this.radius - this.pieDeviation, this.pointLocation, pieVlaue)
-                // cosole.log('放大缩小')
-            },
-            velocityCurve(t, b, c, d) {
-                // b: 当前进度     c 差额
-                // t 当前消耗时间  d总时间
-                // t, b, c, d,
-                switch (this.timingFunction) {
-                    case 'easeIn':
-                        return  b + c * Math.pow(1.5, 10 * (t / d - 1)) * 1030 / 1023
-                    case 'easeOut':
-                        return c * (-Math.pow(1.5, -10 * t / d) + 1) * 1030 / 1023 + b
-                    case 'easeInOut':
-                        {
-                        let progress = t / d * 2
-                        if (progress < 1) {
-                            return c / 2 * Math.pow(1.5, 10 * (progress - 1)) * 1030 / 1023 + b
-                        } else {
-                            return c / 2 * (-Math.pow(1.5, -10 * --progress) + 2) * 1030 / 1023 + b
-                        }
-                        }
-                    default:
-                        return c * (-Math.pow(1.5, -10 * t / d) + 1) * 1030 / 1023 + b
-                }
-            },
-            pieVelocityCurve (t, b, c, d) {
-                if ((t /= d) < (1 / 2.75)) {
-                    return c * (7.5625 * t * t)* 1030 / 1023 + b;
-                } else if (t < (2 / 2.75)) {
-                    return c * (7.5625 * (t -= (1.5 / 2.75)) * t + .75)* 1030 / 1023 + b;
-                } else if (t < (2.5 / 2.75)) {
-                    return c * (7.5625 * (t -= (2.25 / 2.75)) * t + .9375)* 1030 / 1023 + b;
-                } else {
-                    return c * (7.5625 * (t -= (2.625 / 2.75)) * t + .984375)* 1030 / 1023 + b;
-                }
-            },
             critical(value, min, max) {
                 if (value < min) {
                     return min
@@ -435,6 +320,63 @@
                     return max
                 }
                 return value
+            },
+            preview() {
+                const image = this.image;
+                const cropper = this.cropper;
+                const op = this.options;
+                const v = {
+                    zoom: 1.8
+                }
+                // this.previewList.forEach(v => {
+                const w = cropper.width * v.zoom
+                const h = cropper.height * v.zoom
+                if (!this.canvas) {
+                    this.canvas = document.createElement('canvas')
+                    this.copyCanvs = this.canvas.cloneNode(true)
+                    // this.canvas.style.display = 'none'
+                    const { mountNode } = this.$refs
+                    mountNode.appendChild(this.canvas)
+                    this.cCtx = this.canvas.getContext('2d')
+                    this.copyCtx = this.copyCanvs.getContext('2d')
+                }
+                // console.log(this.canvas)
+                this.canvas.width = this.copyCanvs.width = w
+                this.canvas.height = this.copyCanvs.height = h
+                console.log(this.canvas)
+                this.cCtx.clearRect(0, 0, w, h)
+                this.copyCtx.clearRect(0, 0, w, h)
+                // -------------
+                this.cCtx.drawImage(
+                    image.element,
+                    (image.x - cropper.x) * v.zoom,
+                    (image.y - cropper.y) * v.zoom,
+                    image.width * v.zoom,
+                    image.height * v.zoom
+                );
+                this.copyCtx.drawImage(
+                    this.canvas
+                    (image.x - cropper.x) * v.zoom,
+                    (image.y - cropper.y) * v.zoom,
+                    image.width * v.zoom,
+                    image.height * v.zoom
+                );
+                
+                this.image = {
+                    element: this.copyCanvs,
+                    x: cropper.x,
+                    y: cropper.y,
+                    width: cropper.width,
+                    height: cropper.height
+                }
+                this.arg = [
+                    this.canvas,
+                    cropper.x,
+                    cropper.y,
+                    cropper.width,
+                    cropper.height,
+                ]
+                this.draw()
             },
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
@@ -469,45 +411,17 @@
             }
         },
         mounted() {
-            // 兼容 requestAnimationFrame
-            if (!window.requestAnimationFrame) {
-                window.requestAnimationFrame = function(callback) {
-                    const currTime = new Date().getTime()
-                    const timeToCall = Math.max(0, 16 - (currTime - this.lastTime))
-                    const time = currTime + timeToCall
-                    var id = window.setTimeout(function() { callback(time) }, timeToCall)
-                    this.lastTime = currTime + timeToCall
-                    return id
-                }
-            }
-            if (!window.cancelAnimationFrame) {
-                window.cancelAnimationFrame = function(id) {
-                    clearTimeout(id)
-                }
-            }
             // 解决 字体模糊
             const { mountNode } = this.$refs
             const { clientWidth, clientHeight } = mountNode
-            // 中间dom
-            if (this.html) {
-                let divTemp = document.createElement('div')
-                divTemp.style.position = 'absolute'
-                divTemp.style.visibility = 'hidden'
-                divTemp.style.display = 'inlineBlock'
-                divTemp.innerHTML = this.html
-                // cosole.log(divTemp.cloneNode)
-                mountNode.appendChild(divTemp)
-                const [x, y] = this.position
-                divTemp.style.left =  (clientWidth - divTemp.clientWidth) * parseInt(x) / 100 + 'px'
-                divTemp.style.top = (clientHeight - divTemp.clientHeight) * parseInt(y) / 100 + 'px'
-                divTemp.style.visibility = 'visible'
+
+            // p可以优化
+            this.options = {
+                width: clientWidth,
+                height: clientHeight
             }
             // canvas dom
             let canvasDom =  document.createElement('canvas')
-            const diameter = clientWidth > clientHeight ? clientHeight : clientWidth
-            this.radius = diameter / 2
-            this.centrality.x = clientWidth / 2
-            this.centrality.y = clientHeight / 2
             canvasDom.style.width =  clientWidth + 'px'
             canvasDom.style.height = clientHeight + 'px'
             mountNode.appendChild(canvasDom)
@@ -516,21 +430,48 @@
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-            if (this.bgImg) {
+            this.cropper = {
+                x:0,
+                y:0,
+                width:80,
+                height:80
+            }
+            // if (this.bgImg) {
                 let img = null
                 img = new Image()
-                img.src = this.bgImg
+                img.src =  require('./../bg.png')
                 img.onload = () => { // 等到图片加载进来之后
-                    this.imgCanvas = canvasDom.cloneNode(true)
-                    this.imgCanvas.getContext('2d').drawImage(img, (clientWidth - diameter) / 2 , (clientHeight - diameter) / 2, diameter, diameter)
-                    this.animation()
+                    this.animation(img)
                 }
-            } else {
-                this.animation()
-            }
-            if (this.type !== 'pie') return
-            this.init()
-            this.pieVlaue = this.pieDeviation
+            // } else {
+            //     this.animation()
+            // }
+
+              // 缩放
+            // canvasDom.addEventListener('mousewheel', this.handleMouseWheel);
+            canvasDom.addEventListener('touchstart', this.handleStart);
+            canvasDom.addEventListener('touchmove', this.handleMove);
+
+            // this._id = bind(canvas, {
+            // onStart: this.handleStart,
+            // onMove: this.handleMove
+            // });
         }
+
+        // private handleStart = e => {
+        //     this._startPoint = this.getPointByCoordinate(e.x, e.y);
+        // };
+
+        // private handleMove = e => {
+        //     const type = this._types[this._startPoint.type];
+
+        //     if (!type || !type.handler) {
+        //     return;
+        //     }
+
+        //     type.handler(e);
+        // };
+           
+        // }
     }
 </script>
