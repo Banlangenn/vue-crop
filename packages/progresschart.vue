@@ -139,9 +139,6 @@
                         width:80,
                         height:80
                     }
-                    
-                    const image = this.image;
-                    this.arg = [image.element, image.x, image.y, image.width, image.height]
                     this.scale = k
                     this.draw()
                 }
@@ -158,12 +155,13 @@
                 this.fillBackground()
                 this.fillImage()
                 this.updatePoint()
-                this.fillCropper();
-                this.preview();
+                this.fillCropper()
+                this.preview()
             },
             fillImage() {
+                 const image = this.image;
                 const ctx = this.ctx
-                ctx.drawImage(...this.arg);
+                ctx.drawImage(image.element, image.x, image.y, image.width, image.height);
             },
             updatePoint() {
                 const c = this.cropper;
@@ -171,61 +169,58 @@
                 const h = 15;
                 this.points = [
                     {
-                        x: c.x,
-                        y: c.y,
+                        x: c.x -    1,
+                        y: c.y - 1,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x + c.width - w,
-                        y: c.y,
+                        x: c.x + c.width - w + 1,
+                        y: c.y - 1,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x,
-                        y: c.y + c.height - h,
+                        x: c.x - 1,
+                        y: c.y + c.height - h + 1,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x + c.width - w,
-                        y: c.y + c.height - h,
+                        x: c.x + c.width - w + 1,
+                        y: c.y + c.height - h + 1,
                         width: w,
                         height: h
                     }
                 ]   
-                // this.point = {
-                //     width: w,
-                //     height: h,
-                //     x: c.x + c.width - w,
-                //     y: c.y + c.height - h
-                // };
                 this.point = {
-                        width: w,
-                        height: h,
-                        x: c.x ,
-                        y: c.y
-                    }
+                    width: w,
+                    height: h,
+                    x: c.x ,
+                    y: c.y
+                }
             },
             fillCropper() {
                 const ctx = this.ctx,
                 cropper = this.cropper,
                 point = this.point,
                 points = this.points
-                ctx.save();
+                // ctx.save();
                 ctx.strokeStyle = '#fff';
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height);
                 ctx.fillStyle = '#fff';
-                for (const item of points) {
-                    ctx.fillRect(item.x, item.y, item.width, item.height)
-                    // ctx.fillRect(item.x, item.y, item.list[1].width, item.list[1].height);
-                }
-                // ctx.fillRect(point.x, point.y, point.width / 4, point.height);
-                // ctx.fillRect(point.x, point.y, point.width, point.height / 4);
-                // 
-                // ctx.fillRect(point.x, point.y, point.width, point.height / 4);
-                ctx.restore();
+                ctx.fillRect(points[0].x, points[0].y, points[0].width / 4, points[0].height)
+                ctx.fillRect(points[0].x, points[0].y, points[0].width, points[0].height / 4)
+
+                ctx.fillRect(points[1].x + points[1].width / 4 * 3 , points[1].y, points[1].width / 4, points[1].height)
+                ctx.fillRect(points[1].x, points[1].y, points[1].width, points[1].height / 4)
+
+                 ctx.fillRect(points[2].x , points[2].y, points[2].width / 4, points[2].height)
+                ctx.fillRect(points[2].x, points[2].y  + points[2].width / 4 * 3, points[2].width, points[2].height / 4)
+
+                ctx.fillRect(points[3].x + points[3].width / 4 * 3 , points[3].y, points[3].width / 4, points[3].height)
+                ctx.fillRect(points[3].x, points[3].y + points[3].width / 4 * 3, points[3].width, points[3].height / 4)
+                
             },
            // 填充背景
             fillBackground() {
@@ -253,34 +248,60 @@
                 ctx.restore()
             },
             handlePointMove({ x, y }) {
-                console.log('---')
-                const s = this.startPoint;
-                // let w,h
-                // switch (this.index) {
-                //     case 3:
-                //          w = this.point[2].x - this.points.x;
-                //          h = this.point[3].y - this.points[2].y
-                //         break;
-                //     case 0:
-                //          w = this.cropper.x - x;
-                //          h = this.cropper.y - y;
-                //         break;
-                
-                //     default:
-                //         break;
-                // }
-                const w = x - this.cropper.x;
-                const h = y - this.cropper.y;
-                if (w <= 50 || h <= 50) {
+                const s = this.startPoint,
+                cropper = this.cropper,
+                points = this.points
+                let w,h,originX,originY
+                switch (this.index) {
+                    case 3:
+                        w = x - this.cropper.x
+                        h = y - this.cropper.y
+                        originX = this.cropper.x
+                        originY = this.cropper.y
+                        break;
+                    case 0:
+                    // console.log()
+                        w =  (this.cropper.x + this.cropper.width) - x
+                        h =  (this.cropper.y + this.cropper.height) - y
+                        originX = x
+                        originY = y
+                        break;
+                    case 1:
+                    // x  不会动
+                        w =  x - this.cropper.x
+                        h =  (this.cropper.y + this.cropper.height) - y
+                        originX = this.cropper.x
+                        originY = y
+                        break;
+                    case 2:
+                    // y 不会动
+                        w = (this.cropper.x + this.cropper.width) - x
+                        h = y - this.cropper.y
+                        originX = x
+                        originY = this.cropper.y
+                        break;
+                    default:
+                        break;
+                }
+                if (w <= 20 || h <= 20) {
                     return;
                 }
-                // this.cropper.x = s].x
-                // this.cropper.y = s.y
-                this.cropper.width = w 
+                // console.log(w)
+                
+                this.cropper.width = w
                 this.cropper.height = h
+                this.cropper.x = originX
+                this.cropper.y = originY
                 this.draw()
             },
-           handleCropperMove({ x, y }) {
+            handleImageMove ({ x, y }) {
+                const s = this.startPoint
+                this.image.x = x - s.offsetX
+                this.image.y = y - s.offsetY
+                this.draw()
+            },
+            handleCropperMove({ x, y }) {
+               console.log('123')
                 const { width, height } = this.options;
                 const s = this.startPoint;
                 const oX = s.offsetX;
@@ -349,6 +370,7 @@
                 ) {
                 t.offsetX = x - cropper.x;
                 t.offsetY = y - cropper.y;
+                console.log('handleCropperMove')
                 t.type = 'handleCropperMove'
                 } else if (
                 image &&
@@ -359,9 +381,8 @@
                 ) {
                 t.offsetX = x - image.x;
                 t.offsetY = y - image.y;
-                t.type = Types.image;
-                } else {
-                    t.type = Types.background;
+                t.type = 'handleImageMove'
+                // console.log('img')
                 }
                 return t;
             },
@@ -391,7 +412,7 @@
                 const cropper = this.cropper;
                 const op = this.options;
                 const v = {
-                    zoom: 1.8
+                    zoom: 0.5
                 }
                 // this.previewList.forEach(v => {
                 const w = cropper.width * v.zoom
@@ -416,14 +437,6 @@
                     image.width * v.zoom,
                     image.height * v.zoom
                 )
-                // this.arg = [
-                //     this.canvas,
-                //     cropper.x,
-                //     cropper.y,
-                //     cropper.width,
-                //     cropper.height,
-                // ]
-                // this.draw()
             },
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
