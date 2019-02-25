@@ -2,10 +2,14 @@
   <div id="app">
      <p><button @click="percent+=20"> +++加</button>
      {{percent}}
-         <button @click="percent-=20"> 减-----</button></p>
-    <progresschart  
+         <button @click="getImageData"> 减-----</button></p>
+    <progresschart   
+      v-if="imgae" 
+      ref = "crop"
       style="width:100%;height:500px; display: inline-block;"
+      :imgaeFile = imgae
     />
+    <input type="file" v-if="!imgae" @change="uploadImg"  accept="image/jpeg,image/x-icon,image/png">
   </div>
 </template>
 
@@ -14,13 +18,22 @@ export default {
   name: 'app',
   data() {
     return {
-      percent: 100,
-      data:[
-        {value:10, name:'旅游客运', color:'#3aa1ff'},
-        {value:20, name:'班线客运', color:'#36cbcb'},
-        {value:4, name:'普货', color:'#6dd48c'},
-        {value:3, name:'危险品', color:'#fbd437'}
-    ]
+        imgae:null,
+        percent: 100,
+        data:[
+          {value:10, name:'旅游客运', color:'#3aa1ff'},
+          {value:20, name:'班线客运', color:'#36cbcb'},
+          {value:4, name:'普货', color:'#6dd48c'},
+          {value:3, name:'危险品', color:'#fbd437'}
+        ]
+    }
+  },
+  methods: {
+    uploadImg(e) {
+      this.imgae = e.target.files[0]
+    },
+    getImageData(data) {
+      console.log(this.$refs.crop.getImageData())
     }
   }
 }

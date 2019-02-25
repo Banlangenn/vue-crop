@@ -9,80 +9,7 @@
 <script>
     export default {
         name: 'progresschart',
-        props: {
-            duration: {
-                type: Number,
-                default: 3000
-            },
-            type: {
-                type: String,
-                default: 'circle' // circle  line
-            },
-            percent: { // 进度结束 百分比
-                type: Number,
-                default: 100
-            },
-            fontSize: {  // 中间进度 大小
-                type: Number,
-                default: 24
-            },
-            fontColor: { // 文字进度 颜色
-                type: String,
-                default: '#000'
-            },
-            progressShow: { // 文字进度 是否显示
-                type: Boolean,
-                default: false
-            },
-            lineWidth: { // 进度条 厚度
-                type: Number,
-                default: 8
-            },
-            bgImg: { // 背景图片
-                type: String,
-                default: ''
-            },
-            bgColor: {// 渐变颜色  环形最多支持2个颜色
-                type: Array,
-                default: () => ['red', 'yellow']
-            },
-            rotate: {// 开始角度
-                type: Number,
-                default: 130
-            },
-            arcEndeg: {
-                type: Number,
-                default: 0 // 空缺角度
-            },
-            lineCap: { // 结束线帽
-                type: String,
-                default: 'round' //  "butt|round|square"
-            },
-            timingFunction: { // 速度曲线
-                type: String,
-                default: 'easeInOut' //  "easeOut|easeIn|easeInOut"
-            },
-            defaultBg: { // 背景颜色
-                type: String,
-                default: ''
-            },
-            data: { // 背景颜色
-                type: Array,
-                default: () => []
-            },
-            pieDeviation: { // 饼图 选中偏移
-                type: Number,
-                default: 10
-            },
-            html: { // 图中心html
-                type: String,
-                default: ''
-            },
-            position: { // html内容位置
-                type: Array,
-                default: () => ['50%', '50%']
-            },
-        },  
+        props:['imgaeFile'],
         data() {
             return {
                 ctx: null,
@@ -90,10 +17,6 @@
                 arg: null,
                 scale:1,
                 canvas: null,
-                centrality: {
-                    x: null,
-                    y: null
-                },
                 image: {},
                 points: [],
                 lines: [],
@@ -498,6 +421,9 @@
                     image.height * v.zoom
                 )
             },
+            getImageData(){
+                return this.canvas.toDataURL('image/jpeg', 1)
+            },
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
                 context.webkitBackingStorePixelRatio ||
@@ -528,10 +454,9 @@
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-            // if (this.bgImg) {
                 let img = null
                 img = new Image()
-                img.src =  require('./../bg2.jpg')
+                img.src =  window.URL.createObjectURL(this.imgaeFile)
                 img.onload = () => { // 等到图片加载进来之后
                     this.animation(img)
                 }
@@ -548,18 +473,18 @@
             // canvasDom.removeEventListener(touchstar,this.handleStart)
             // canvasDom.removeEventListener(touchmove,this.handleMove)s
 
-           let button =  document.createElement('button')
-           const downloader = document.createElement('a')
-           let downloadCount = 100
-           button.innerHTML = '12'
-           button.onclick = ()=> {
-            const base64 = this.canvas.toDataURL('image/jpeg', 1)
-            downloader.href = base64;
-            downloader.download = `dingjs-cropper-${++downloadCount}.png`;
-            downloader.click();
-           }
-           mountNode.appendChild(button)
-          
+        //    let button =  document.createElement('button')
+        //    const downloader = document.createElement('a')
+        //    let downloadCount = 100
+        //    button.innerHTML = '12'
+        //    button.onclick = ()=> {
+        //     const base64 = this.canvas.toDataURL('image/jpeg', 1)
+        //     downloader.href = base64;
+        //     downloader.download = `dingjs-cropper-${++downloadCount}.png`;
+        //     downloader.click();
+        //    }
+        //    mountNode.appendChild(button)
+
         }
     }
 </script>
