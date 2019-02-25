@@ -1,5 +1,10 @@
 <template>
-    <div ref="mountNode" class="mount-node" style="position: relative;" @click="canvasHandle($event)"/>
+    <div ref="mountNode" 
+        class="mount-node" 
+        style="position: relative;"
+        @touchstart="handleStart($event)"
+        @touchmove="handleMove($event)"
+    />
 </template>
 <script>
     export default {
@@ -95,9 +100,6 @@
                 startPoint: {}
             }
         },
-        destroyed() {
-            this.circleTime && cancelAnimationFrame(this.circleTime)
-        },
         methods: {
             animation(img){
                 if (img) {
@@ -127,26 +129,15 @@
                         clientWidth: clientW,
                         clientHeight: clientH
                     }
-                    // this.cropper = {
-                    //     x: (width - currentW) / 2,
-                    //     y: (height - currentH) / 2,
-                    //     width: currentW,
-                    //     height: currentH
-                    // }
                     this.cropper = {
-                        x:(width - 80) / 2,
-                        y:(height - 80) / 2,
-                        width:80,
-                        height:80
+                        x: (width - currentW / 2) / 2,
+                        y: (height - currentH / 2) / 2,
+                        width: currentW  / 2,
+                        height: currentH / 2
                     }
                     this.scale = k
                     this.draw()
                 }
-              
-                // 两点之间的距离
-                // d=√[(x2-x1)²+(y2-y1)²]
-              
-                // this.fillBackground()
             },
             draw() {
                 const { width, height } = this.options
@@ -165,8 +156,8 @@
             },
             updatePoint() {
                 const c = this.cropper;
-                const w = 15;
-                const h = 15;
+                let w = 25;
+                let h = 25;
                 this.points = [
                     {
                         x: c.x -    1,
@@ -192,13 +183,36 @@
                         width: w,
                         height: h
                     }
-                ]   
-                this.point = {
-                    width: w,
-                    height: h,
-                    x: c.x ,
-                    y: c.y
-                }
+                ]
+                // 寻找四根线
+                w = 20
+                h = 20
+                this.lines = [
+                     {
+                        x: c.x,
+                        y: c.y - w / 2,
+                        width: c.width,
+                        height: h
+                    },
+                    {
+                        x: c.x + c.width - w +  w / 2,
+                        y: c.y,
+                        width: w,
+                        height: c.height
+                    },
+                    {
+                        x: c.x,
+                        y: c.y + c.height - h + w / 2,
+                        width: c.width,
+                        height: h
+                    },
+                    {
+                        x: c.x - w / 2 ,
+                        y: c.y,
+                        width: w,
+                        height: c.height
+                    }
+                ]
             },
             fillCropper() {
                 const ctx = this.ctx,
@@ -206,9 +220,10 @@
                 point = this.point,
                 points = this.points
                 // ctx.save();
-                ctx.strokeStyle = '#fff';
-                ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height);
+                ctx.strokeStyle = '#fff'
+                ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
                 ctx.fillStyle = '#fff';
+
                 ctx.fillRect(points[0].x, points[0].y, points[0].width / 4, points[0].height)
                 ctx.fillRect(points[0].x, points[0].y, points[0].width, points[0].height / 4)
 
@@ -242,56 +257,44 @@
                     }
                 }
                 //蒙层 
-                ctx.fillStyle = 'rgba(0,0,0,0.1)'
+                ctx.fillStyle = 'rgba(0,0,0,0.4)'
                 ctx.fillRect(0, 0, width, height)
                  //蒙层 
                 ctx.restore()
             },
             handlePointMove({ x, y }) {
-                const s = this.startPoint,
-                cropper = this.cropper,
-                points = this.points
-                let w,h,originX,originY
+                const cropper = this.cropper,
+                newCropper = {}
                 switch (this.index) {
                     case 3:
-                        w = x - this.cropper.x
-                        h = y - this.cropper.y
-                        originX = this.cropper.x
-                        originY = this.cropper.y
+                        newCropper.width = x - cropper.x
+                        newCropper.height = y - cropper.y
                         break;
                     case 0:
-                    // console.log()
-                        w =  (this.cropper.x + this.cropper.width) - x
-                        h =  (this.cropper.y + this.cropper.height) - y
-                        originX = x
-                        originY = y
+                        newCropper.width =  (cropper.x + cropper.width) - x
+                        newCropper.height =  (cropper.y + cropper.height) - y
+                        newCropper.x = x
+                        newCropper.y = y
                         break;
                     case 1:
                     // x  不会动
-                        w =  x - this.cropper.x
-                        h =  (this.cropper.y + this.cropper.height) - y
-                        originX = this.cropper.x
-                        originY = y
+                        newCropper.width =  x - cropper.x
+                        newCropper.height =  (cropper.y + cropper.height) - y
+                        newCropper.y = y
                         break;
                     case 2:
                     // y 不会动
-                        w = (this.cropper.x + this.cropper.width) - x
-                        h = y - this.cropper.y
-                        originX = x
-                        originY = this.cropper.y
+                        newCropper.width = (cropper.x + cropper.width) - x
+                        newCropper.height = y - this.cropper.y
+                        newCropper.x = x
                         break;
                     default:
                         break;
                 }
-                if (w <= 20 || h <= 20) {
+                if (newCropper.width <= 20 || newCropper.height <= 20) {
                     return;
                 }
-                // console.log(w)
-                
-                this.cropper.width = w
-                this.cropper.height = h
-                this.cropper.x = originX
-                this.cropper.y = originY
+                this.cropper = {...this.cropper,...newCropper}
                 this.draw()
             },
             handleImageMove ({ x, y }) {
@@ -300,36 +303,47 @@
                 this.image.y = y - s.offsetY
                 this.draw()
             },
+            handleLineMove ({ x, y }) {
+                //   console.log('123456')
+                const cropper = this.cropper,
+                newCropper = {}
+                switch (this.index) {
+                    case 3:
+                        newCropper.width = (cropper.x + cropper.width) - x
+                        newCropper.x = x
+                        break;
+                    case 0:
+                        newCropper.height =  (cropper.y + cropper.height) - y
+                        newCropper.y = y
+                        break;
+                    case 1:
+                        newCropper.width =  x - cropper.x
+                        break;
+                    case 2:
+                    // y 不会动
+                        newCropper.height = y - cropper.y
+                        break;
+                    default:
+                        break;
+                }
+                if (newCropper.width <= 20 || newCropper.height <= 20) {
+                    return;
+                }
+                this.cropper = {...this.cropper,...newCropper}
+                this.draw()
+            },
             handleCropperMove({ x, y }) {
-               console.log('123')
                 const { width, height } = this.options;
                 const s = this.startPoint;
                 const oX = s.offsetX;
                 const oY = s.offsetY;
                 const maxX = width - this.cropper.width;
                 const maxY = height - this.cropper.height;
-
                 let currentX = x - oX,
                 currentY = y - oY;
                 // 判断边界
-
-                if (currentX < 0) {
-                currentX = 0;
-                }
-
-                if (currentX > maxX) {
-                currentX = maxX;
-                }
-
-                if (currentY < 0) {
-                currentY = 0;
-                }
-
-                if (currentY > maxY) {
-                currentY = maxY;
-                }
-                this.cropper.x = currentX 
-                this.cropper.y = currentY
+                this.cropper.x = this.limit(currentX, 0, maxX)
+                this.cropper.y = this.limit(currentY, 0, maxY)
                 this.draw()
             },
             getCoordinateByEvent(e){
@@ -342,7 +356,44 @@
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
+                if (e.touches.length > 1) {
+                    this.startTouches = e.touches
+                    this.startPoint.type = null
+                    return;
+                }
                 this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
+            },
+            handleMove (e) {
+                const touches = e.touches
+                if (touches.length > 1) {
+                    e.preventDefault()
+                    const image = this.image
+                    let startTouches = this.startTouches
+                    let width = image.clientWidth
+                    let height = image.clientHeight
+                    let k; // 最终的缩放系数
+                    const scale = this.scale;
+                    // const offset = e.deltaY / 800;
+                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+                    // k = k < 1 ? k / 10 : k * 10
+                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
+                    k = k * scale;
+                    this.scale = this.limit(k, 0.2, 4)
+                    // if ( this.scale < 0.2 ||  this.scale > 2) return 
+                    // alert(k)
+                    width *= k;
+                    height *= k;
+                    image.x += (image.width - width) / 2;
+                    image.y += (image.height - height) / 2;
+                    image.width = width;
+                    image.height = height;
+                    this.draw();
+                    return
+                }
+                const type = this.startPoint.type
+                if (type) {
+                    this[type](this.getCoordinateByEvent(e));
+                }
             },
             getPointByCoordinate({x, y}) {
                 // const point = this.point;
@@ -350,29 +401,42 @@
                 const image = this.image;
                 let t = {}
                 let index = 0
-                // 设置偏移(点击坐标与定点坐标)         
+                // 四个角移动         
                 if (this.points.some((point,i) => {
                     index = i
                     return x > point.x &&
                     x < point.x + point.width &&
                     y > point.y &&
                     y < point.y + point.height
-                } )
+                })
                 ) {
                     t.type = 'handlePointMove'
                     this.index = index
-                } else if (
-                cropper &&
-                x > cropper.x &&
-                x < cropper.x + cropper.width &&
-                y > cropper.y &&
-                y < cropper.y + cropper.height
+                }
+                // 四根线移动
+                else if (this.lines.some((line,i) => {
+                    index = i
+                    return x > line.x &&
+                    x < line.x + line.width &&
+                    y > line.y &&
+                    y < line.y + line.height
+                }) 
                 ) {
-                t.offsetX = x - cropper.x;
-                t.offsetY = y - cropper.y;
-                console.log('handleCropperMove')
-                t.type = 'handleCropperMove'
-                } else if (
+                    t.type = 'handleLineMove'
+                    this.index = index
+                }
+                // else if (
+                // cropper &&
+                // x > cropper.x &&
+                // x < cropper.x + cropper.width &&
+                // y > cropper.y &&
+                // y < cropper.y + cropper.height
+                // ) {
+                // t.offsetX = x - cropper.x;
+                // t.offsetY = y - cropper.y;
+                // t.type = 'handleCropperMove'
+                // }
+                else if (
                 image &&
                 x > image.x &&
                 x < image.x + image.width &&
@@ -382,23 +446,15 @@
                 t.offsetX = x - image.x;
                 t.offsetY = y - image.y;
                 t.type = 'handleImageMove'
-                // console.log('img')
                 }
                 return t;
             },
-            handleMove (e) {
-                const type = this.startPoint.type;
-                this[type](this.getCoordinateByEvent(e));
+            getDistance(p1, p2) {
+                const x = p2.pageX - p1.pageX,
+                    y = p2.pageY - p1.pageY;
+                return Math.sqrt((x * x) + (y * y))
             },
-            pointCircle(cx, cy, r, color) {
-                const { ctx } = this
-                ctx.beginPath()
-                ctx.fillStyle = color
-                ctx.arc(cx, cy, r, 0, Math.PI * 2)
-                ctx.fill()
-            },
-            // 画圆
-            critical(value, min, max) {
+            limit(value, min, max) {
                 if (value < min) {
                     return min
                 }
@@ -446,28 +502,6 @@
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
-            },
-            getClickLocation(e, t, canvas) {
-                const a = canvas.getBoundingClientRect()
-                // console.log('canvas的距离顶部：' + a.top)
-                return {
-                    x: (e - a.left) * (canvas.width / a.width),
-                    y: (t - a.top) * (canvas.height / a.height)
-                }
-            },
-            canvasHandle(e) {
-                // if (this.type !== 'pie') return
-                // 把事件移到到这个位置 把  绑定事件和移除事件 交给vue
-                // console.log('点击的点距离顶部：' + e.screenX)
-                if (this.frameVal !== this.percent || this.type !== 'pie') return
-                if (this.pieVlaue < this.pieDeviation) { // 动画没有结束  就点击了下一个
-                    cancelAnimationFrame(this.circleTime)
-                    this.oldIndex = this.tempOldIndex
-                    this.pie(this.centrality.x, this.centrality.y,  this.frameVal, this.radius - this.pieDeviation)
-                }
-                this.pointLocation = this.getClickLocation(e.clientX, e.clientY, e.target)
-                this.startTime = 0
-                this.circleTime = requestAnimationFrame(this.pieFrame)
             }
         },
         mounted() {
@@ -493,7 +527,7 @@
             // if (this.bgImg) {
                 let img = null
                 img = new Image()
-                img.src =  require('./../bg.png')
+                img.src =  require('./../bg2.jpg')
                 img.onload = () => { // 等到图片加载进来之后
                     this.animation(img)
                 }
@@ -503,8 +537,25 @@
 
               // 缩放
             // canvasDom.addEventListener('mousewheel', this.handleMouseWheel);
-            canvasDom.addEventListener('touchstart', this.handleStart);
-            canvasDom.addEventListener('touchmove', this.handleMove);
+
+            // canvasDom.addEventListener('touchstart', this.handleStart);
+            // canvasDom.addEventListener('touchmove', this.handleMove);
+
+            // canvasDom.removeEventListener(touchstar,this.handleStart)
+            // canvasDom.removeEventListener(touchmove,this.handleMove)s
+
+           let button =  document.createElement('button')
+           const downloader = document.createElement('a')
+           let downloadCount = 100
+           button.innerHTML = '12'
+           button.onclick = ()=> {
+            const base64 = this.canvas.toDataURL('image/jpeg', 1)
+            downloader.href = base64;
+            downloader.download = `dingjs-cropper-${++downloadCount}.png`;
+            downloader.click();
+           }
+           mountNode.appendChild(button)
+          
         }
     }
 </script>

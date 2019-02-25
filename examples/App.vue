@@ -4,7 +4,7 @@
      {{percent}}
          <button @click="percent-=20"> 减-----</button></p>
     <progresschart  
-      style="width:100%;height:300px; display: inline-block;"
+      style="width:100%;height:500px; display: inline-block;"
     />
   </div>
 </template>
@@ -34,5 +34,13 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
+
+-webkit-touch-callout: none; /* iOS Safari */
+-webkit-user-select: none; /* Chrome/Safari/Opera */
+-khtml-user-select: none; /* Konqueror */
+-moz-user-select: none; /* Firefox */
+-ms-user-select: none; /* Internet Explorer/Edge */
+user-select: none; /* Non-prefixed version, currently not supported by any browser */
+
 }
 </style>
