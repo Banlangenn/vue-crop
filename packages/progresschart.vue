@@ -1,5 +1,10 @@
 <template>
-    <div ref="mountNode" class="mount-node" style="position: relative;" @click="canvasHandle($event)"/>
+    <div ref="mountNode" 
+        class="mount-node" 
+        style="position: relative;"
+        @touchstart="handleStart($event)"
+        @touchmove="handleMove($event)"
+    />
 </template>
 <script>
     export default {
@@ -159,7 +164,7 @@
                 this.preview()
             },
             fillImage() {
-                 const image = this.image;
+                const image = this.image;
                 const ctx = this.ctx
                 ctx.drawImage(image.element, image.x, image.y, image.width, image.height);
             },
@@ -300,6 +305,47 @@
                 this.image.y = y - s.offsetY
                 this.draw()
             },
+                // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
+            handleStart(e) {
+                if (e.touches.length > 1) {
+                    this.startTouches = e.touches
+                    this.startPoint.type = null
+                    return;
+                }
+                this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
+            },
+            handleMove (e) {
+                const touches = e.touches
+                if (touches.length > 1 && this.scale) {
+                    e.preventDefault()
+                    const image = this.image
+                    let startTouches = this.startTouches
+                    let width = image.clientWidth
+                    let height = image.clientHeight
+                    let k; // 最终的缩放系数
+                    const scale = this.scale;
+                    // const offset = e.deltaY / 800;
+                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+                    // k = k < 1 ? k / 10 : k * 10
+                    k = k < 1 ? 1 / (1 + k / 100) : 1 + Math.abs(k) / 100
+                    k = k * scale;
+                    this.scale = k;
+                    // alert(k)
+                    width *= k;
+                    height *= k;
+                    image.x += (image.width - width) / 2;
+                    image.y += (image.height - height) / 2;
+                    image.width = width;
+                    image.height = height;
+                    this.draw();
+                    return
+                }
+                const type = this.startPoint.type
+                if (type) {
+                    this[type](this.getCoordinateByEvent(e));
+                }
+                
+            },
             handleCropperMove({ x, y }) {
                console.log('123')
                 const { width, height } = this.options;
@@ -340,10 +386,11 @@
                     y: touch.clientY - rect.top
                 }
             },
-            // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
-            handleStart(e) {
-                this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
-            },
+            getDistance(p1, p2) {
+                const x = p2.pageX - p1.pageX,
+                    y = p2.pageY - p1.pageY;
+                return Math.sqrt((x * x) + (y * y))
+		    },
             getPointByCoordinate({x, y}) {
                 // const point = this.point;
                 const cropper = this.cropper;
@@ -361,18 +408,20 @@
                 ) {
                     t.type = 'handlePointMove'
                     this.index = index
-                } else if (
-                cropper &&
-                x > cropper.x &&
-                x < cropper.x + cropper.width &&
-                y > cropper.y &&
-                y < cropper.y + cropper.height
-                ) {
-                t.offsetX = x - cropper.x;
-                t.offsetY = y - cropper.y;
-                console.log('handleCropperMove')
-                t.type = 'handleCropperMove'
-                } else if (
+                } 
+                // else if (
+                // cropper &&
+                // x > cropper.x &&
+                // x < cropper.x + cropper.width &&
+                // y > cropper.y &&
+                // y < cropper.y + cropper.height
+                // ) {
+                // t.offsetX = x - cropper.x;
+                // t.offsetY = y - cropper.y;
+                // console.log('handleCropperMove')
+                // t.type = 'handleCropperMove'
+                // } 
+                else if (
                 image &&
                 x > image.x &&
                 x < image.x + image.width &&
@@ -385,10 +434,6 @@
                 // console.log('img')
                 }
                 return t;
-            },
-            handleMove (e) {
-                const type = this.startPoint.type;
-                this[type](this.getCoordinateByEvent(e));
             },
             pointCircle(cx, cy, r, color) {
                 const { ctx } = this
@@ -503,8 +548,8 @@
 
               // 缩放
             // canvasDom.addEventListener('mousewheel', this.handleMouseWheel);
-            canvasDom.addEventListener('touchstart', this.handleStart);
-            canvasDom.addEventListener('touchmove', this.handleMove);
+            // canvasDom.addEventListener('touchstart', this.handleStart);
+            // canvasDom.addEventListener('touchmove', this.handleMove);
         }
     }
 </script>
