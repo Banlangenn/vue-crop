@@ -4,14 +4,35 @@
         style="position: relative;"
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
-    />
+    >
+        <input style="display:none"
+            @change="uploadImg"
+            type="file"
+            id="file-input"
+            accept="image/jpeg,image/x-icon,image/png"
+        >
+        <div v-show="noImage" @click="inputHandle" class="no-image-file">
+            <span>暂时没有图片,点我点我</span>
+        </div>
+    </div>
 </template>
+<style>
+    .no-image-file {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+</style>
+
 <script>
     export default {
         name: 'progresschart',
         props:['imgaeFile','value'],
         data() {
             return {
+                noImage:true,
                 ctx: null,
                 options: null,
                 arg: null,
@@ -184,7 +205,7 @@
                     }
                 }
                 //蒙层 
-                ctx.fillStyle = 'rgba(0,0,0,0.4)'
+                ctx.fillStyle = 'rgba(0,0,0,0.1)'
                 ctx.fillRect(0, 0, width, height)
                  //蒙层 
                 ctx.restore()
@@ -399,8 +420,8 @@
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
                     this.cCtx = this.canvas.getContext('2d')
-                    // const { mountNode } = this.$refs
-                    // mountNode.appendChild(this.canvas)
+                    const { mountNode } = this.$refs
+                    mountNode.appendChild(this.canvas)
                 }
                 // console.log(this.canvas)
                 this.canvas.width = w
@@ -432,13 +453,32 @@
                 context.oBackingStorePixelRatio ||
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
+            },
+            uploadImg(e) {
+                this.createImage(e.target.files[0])
+                this.noImage = false
+            },
+            createImage(imgfile) {
+                let img = null
+                img = new Image()
+                //  url , imgsrc, 文件  三种情况
+                img.src =  window.URL.createObjectURL(imgfile)
+                img.onload = () => { // 等到图片加载进来之后
+                    this.animation(img)
+                    this.$emit('input', {
+                        getImageBase64: this.getImageBase64,
+                        getImageBlob: this.getImageBlob
+                    })
+                }
+            },
+            inputHandle() {
+                document.getElementById('file-input').click()
             }
         },
         mounted() {
             // 解决 字体模糊
             const { mountNode } = this.$refs
             const { clientWidth, clientHeight } = mountNode
-
             // p可以优化
             this.options = {
                 width: clientWidth,
@@ -454,13 +494,6 @@
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-                let img = null
-                img = new Image()
-                img.src =  window.URL.createObjectURL(this.imgaeFile)
-                img.onload = () => { // 等到图片加载进来之后
-                    this.animation(img)
-                    this.$emit('input', {imgData: this.getImageData})
-                }
         }
     }
 </script>
