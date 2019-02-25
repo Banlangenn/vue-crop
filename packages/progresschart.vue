@@ -95,9 +95,14 @@
                     y: null
                 },
                 image: {},
-                point: {},
+                points: [],
+                lines: [],
                 cropper: {},
-                startPoint: {}
+                startPoint: {},
+                nook: {
+                    w: 25,
+                    h: 25
+                }
             }
         },
         methods: {
@@ -156,8 +161,7 @@
             },
             updatePoint() {
                 const c = this.cropper;
-                let w = 25;
-                let h = 25;
+                let {w, h} =  this.nook
                 this.points = [
                     {
                         x: c.x -    1,
@@ -185,8 +189,8 @@
                     }
                 ]
                 // 寻找四根线
-                w = 20
-                h = 20
+                w = w / 0.8
+                h = h / 0.8
                 this.lines = [
                      {
                         x: c.x,
@@ -285,13 +289,13 @@
                     case 2:
                     // y 不会动
                         newCropper.width = (cropper.x + cropper.width) - x
-                        newCropper.height = y - this.cropper.y
+                        newCropper.height = y - cropper.y
                         newCropper.x = x
                         break;
                     default:
                         break;
                 }
-                if (newCropper.width <= 20 || newCropper.height <= 20) {
+                if (newCropper.width <= this.nook.w * 2 || newCropper.height <= this.nook.h * 2) {
                     return;
                 }
                 this.cropper = {...this.cropper,...newCropper}
@@ -303,7 +307,6 @@
                 this.image.y = y - s.offsetY
                 this.draw()
             },
-<<<<<<< HEAD
             handleLineMove ({ x, y }) {
                 //   console.log('123456')
                 const cropper = this.cropper,
@@ -327,53 +330,11 @@
                     default:
                         break;
                 }
-                if (newCropper.width <= 20 || newCropper.height <= 20) {
+                if (newCropper.width <= 30 || newCropper.height <= 30) {
                     return;
                 }
                 this.cropper = {...this.cropper,...newCropper}
                 this.draw()
-=======
-                // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
-            handleStart(e) {
-                if (e.touches.length > 1) {
-                    this.startTouches = e.touches
-                    this.startPoint.type = null
-                    return;
-                }
-                this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
-            },
-            handleMove (e) {
-                const touches = e.touches
-                if (touches.length > 1 && this.scale) {
-                    e.preventDefault()
-                    const image = this.image
-                    let startTouches = this.startTouches
-                    let width = image.clientWidth
-                    let height = image.clientHeight
-                    let k; // 最终的缩放系数
-                    const scale = this.scale;
-                    // const offset = e.deltaY / 800;
-                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
-                    // k = k < 1 ? k / 10 : k * 10
-                    k = k < 1 ? 1 / (1 + k / 100) : 1 + Math.abs(k) / 100
-                    k = k * scale;
-                    this.scale = k;
-                    // alert(k)
-                    width *= k;
-                    height *= k;
-                    image.x += (image.width - width) / 2;
-                    image.y += (image.height - height) / 2;
-                    image.width = width;
-                    image.height = height;
-                    this.draw();
-                    return
-                }
-                const type = this.startPoint.type
-                if (type) {
-                    this[type](this.getCoordinateByEvent(e));
-                }
-                
->>>>>>> 20b7b56b7e3916dcdf1d1527b7b3b6537ab2dfb4
             },
             handleCropperMove({ x, y }) {
                 const { width, height } = this.options;
