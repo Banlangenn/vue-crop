@@ -150,7 +150,7 @@
                 this.preview()
             },
             fillImage() {
-                 const image = this.image;
+                const image = this.image;
                 const ctx = this.ctx
                 ctx.drawImage(image.element, image.x, image.y, image.width, image.height);
             },
@@ -303,6 +303,7 @@
                 this.image.y = y - s.offsetY
                 this.draw()
             },
+<<<<<<< HEAD
             handleLineMove ({ x, y }) {
                 //   console.log('123456')
                 const cropper = this.cropper,
@@ -331,6 +332,48 @@
                 }
                 this.cropper = {...this.cropper,...newCropper}
                 this.draw()
+=======
+                // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
+            handleStart(e) {
+                if (e.touches.length > 1) {
+                    this.startTouches = e.touches
+                    this.startPoint.type = null
+                    return;
+                }
+                this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
+            },
+            handleMove (e) {
+                const touches = e.touches
+                if (touches.length > 1 && this.scale) {
+                    e.preventDefault()
+                    const image = this.image
+                    let startTouches = this.startTouches
+                    let width = image.clientWidth
+                    let height = image.clientHeight
+                    let k; // 最终的缩放系数
+                    const scale = this.scale;
+                    // const offset = e.deltaY / 800;
+                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+                    // k = k < 1 ? k / 10 : k * 10
+                    k = k < 1 ? 1 / (1 + k / 100) : 1 + Math.abs(k) / 100
+                    k = k * scale;
+                    this.scale = k;
+                    // alert(k)
+                    width *= k;
+                    height *= k;
+                    image.x += (image.width - width) / 2;
+                    image.y += (image.height - height) / 2;
+                    image.width = width;
+                    image.height = height;
+                    this.draw();
+                    return
+                }
+                const type = this.startPoint.type
+                if (type) {
+                    this[type](this.getCoordinateByEvent(e));
+                }
+                
+>>>>>>> 20b7b56b7e3916dcdf1d1527b7b3b6537ab2dfb4
             },
             handleCropperMove({ x, y }) {
                 const { width, height } = this.options;
