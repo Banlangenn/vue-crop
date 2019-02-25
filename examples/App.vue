@@ -8,6 +8,7 @@
       ref = "crop"
       style="width:100%;height:500px; display: inline-block;"
       :imgaeFile = imgae
+      v-model="crop"
     />
     <input type="file" v-if="!imgae" @change="uploadImg"  accept="image/jpeg,image/x-icon,image/png">
   </div>
@@ -18,6 +19,7 @@ export default {
   name: 'app',
   data() {
     return {
+        crop:{},
         imgae:null,
         percent: 100,
         data:[
@@ -33,7 +35,8 @@ export default {
       this.imgae = e.target.files[0]
     },
     getImageData(data) {
-      console.log(this.$refs.crop.getImageData())
+      // 发现新大陆  高级写法
+            console.log(this.crop.imgData())
     }
   }
 }

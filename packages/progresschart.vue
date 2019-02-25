@@ -9,7 +9,7 @@
 <script>
     export default {
         name: 'progresschart',
-        props:['imgaeFile'],
+        props:['imgaeFile','value'],
         data() {
             return {
                 ctx: null,
@@ -306,8 +306,6 @@
                     k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
                     k = k * scale;
                     this.scale = this.limit(k, 0.2, 4)
-                    // if ( this.scale < 0.2 ||  this.scale > 2) return 
-                    // alert(k)
                     width *= k;
                     height *= k;
                     image.x += (image.width - width) / 2;
@@ -390,22 +388,19 @@
                 }
                 return value
             },
-            preview() {
+            preview(quality = 0.75) {
                 const image = this.image;
                 const cropper = this.cropper;
                 const op = this.options;
-                const v = {
-                    zoom: 0.5
-                }
+   
                 // this.previewList.forEach(v => {
-                const w = cropper.width * v.zoom
-                const h = cropper.height * v.zoom
+                const w = cropper.width * quality
+                const h = cropper.height * quality
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
-                    // this.canvas.style.display = 'none'
-                    const { mountNode } = this.$refs
-                    mountNode.appendChild(this.canvas)
                     this.cCtx = this.canvas.getContext('2d')
+                    // const { mountNode } = this.$refs
+                    // mountNode.appendChild(this.canvas)
                 }
                 // console.log(this.canvas)
                 this.canvas.width = w
@@ -415,14 +410,19 @@
                 // -------------
                 this.cCtx.drawImage(
                     image.element,
-                    (image.x - cropper.x) * v.zoom,
-                    (image.y - cropper.y) * v.zoom,
-                    image.width * v.zoom,
-                    image.height * v.zoom
+                    (image.x - cropper.x) * quality,
+                    (image.y - cropper.y) * quality,
+                    image.width * quality,
+                    image.height * quality
                 )
             },
-            getImageData(){
-                return this.canvas.toDataURL('image/jpeg', 1)
+            getImageBase64(mimeType='image/jpeg', quality=0.7){
+                preview(quality)
+                return this.canvas.toDataURL(mimeType)
+            },
+            getImageBlob(cb, mimeType='image/jpeg', quality=0.7){
+                preview(quality)
+                return canvas.toBlob(cb, mimeType)
             },
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
@@ -459,32 +459,8 @@
                 img.src =  window.URL.createObjectURL(this.imgaeFile)
                 img.onload = () => { // 等到图片加载进来之后
                     this.animation(img)
+                    this.$emit('input', {imgData: this.getImageData})
                 }
-            // } else {
-            //     this.animation()
-            // }
-
-              // 缩放
-            // canvasDom.addEventListener('mousewheel', this.handleMouseWheel);
-
-            // canvasDom.addEventListener('touchstart', this.handleStart);
-            // canvasDom.addEventListener('touchmove', this.handleMove);
-
-            // canvasDom.removeEventListener(touchstar,this.handleStart)
-            // canvasDom.removeEventListener(touchmove,this.handleMove)s
-
-        //    let button =  document.createElement('button')
-        //    const downloader = document.createElement('a')
-        //    let downloadCount = 100
-        //    button.innerHTML = '12'
-        //    button.onclick = ()=> {
-        //     const base64 = this.canvas.toDataURL('image/jpeg', 1)
-        //     downloader.href = base64;
-        //     downloader.download = `dingjs-cropper-${++downloadCount}.png`;
-        //     downloader.click();
-        //    }
-        //    mountNode.appendChild(button)
-
         }
     }
 </script>
