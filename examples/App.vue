@@ -1,11 +1,26 @@
 <template>
   <div id="app">
+  <p><button @click="getImageData">点我截图</button>
+  <button @click="crop.changeImage()">点我换图</button></p>
     <progresschart
       style="width:100%;height:500px; display: inline-block;"
-      :imgaeFile = imgae
       v-model="crop"
-    />
-    <!-- <input type="file" v-if="!imgae" @change="uploadImg"  accept="image/jpeg,image/x-icon,image/png"> -->
+      :position="['50%', '50%', 0.8]"
+    >
+      <template #placeholder>
+        <img src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
+      </template>
+      <!-- <template #initial> 
+        <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
+      </template> -->
+      <!-- watermark  暂不可自定义-->
+       <template #watermark>
+         <!-- 你好呀 -->
+        <img src="./assets/cyw.png" />
+        <!-- <span>你好呀</span> -->
+      </template>
+     </progresschart>
+     <img v-if="cropAction" :src="imageData" alt="">
   </div>
 </template>
 
@@ -14,7 +29,9 @@ export default {
   name: 'app',
   data() {
     return {
-        crop:{} 
+        crop:{},
+        cropAction: false,
+        imageData: null
     }
   },
   methods: {
@@ -22,8 +39,8 @@ export default {
       this.imgae = e.target.files[0]
     },
     getImageData(data) {
-      // 发现新大陆  高级写法
-        console.log(this.crop.imgData())
+         this.imageData = this.crop.getImageBase64('image/png')
+         this.cropAction = true
     }
   }
 }
@@ -37,7 +54,7 @@ export default {
   text-align: center;
   color: #2c3e50;
   margin-top: 60px;
-
+width: 100%;
 -webkit-touch-callout: none; /* iOS Safari */
 -webkit-user-select: none; /* Chrome/Safari/Opera */
 -khtml-user-select: none; /* Konqueror */

@@ -5,33 +5,46 @@
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
     >
-        <input style="display:none"
-            @change="uploadImg"
-            type="file"
-            id="file-input"
-            accept="image/jpeg,image/x-icon,image/png"
-        >
+    <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
+        
         <div v-show="noImage" @click="inputHandle" class="no-image-file">
-            <span>暂时没有图片,点我点我</span>
+            <!-- <span>暂时没有图片,请选择图像</span> -->
+            <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
+            <diV style="display:none">
+                <input 
+                    @change="uploadImg"
+                    type="file"
+                    id="file-input"
+                    accept="image/jpeg,image/x-icon,image/png"
+                >
+                <slot name="initial"></slot>
+                <slot name="watermark"></slot>
+            </diV>
         </div>
     </div>
 </template>
 <style>
+    .mount-node {
+        overflow: hidden;
+    }
     .no-image-file {
-        width: 100%;
+        /* width: 100%; */
         height: 100%;
         display: flex;
         justify-content: center;
         align-items: center;
+        background-color: #f1f3f5;
+        flex-wrap: wrap;
     }
 </style>
 
 <script>
     export default {
         name: 'progresschart',
-        props:['imgaeFile','value'],
+        props:['imgaeFile','value','position'],
         data() {
             return {
+                // ready: false,
                 noImage:true,
                 ctx: null,
                 options: null,
@@ -96,7 +109,7 @@
                 this.fillImage()
                 this.updatePoint()
                 this.fillCropper()
-                this.preview()
+                // this.preview()
             },
             fillImage() {
                 const image = this.image;
@@ -304,6 +317,7 @@
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
+                if (this.noImage) return
                 if (e.touches.length > 1) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
@@ -312,6 +326,7 @@
                 this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
             },
             handleMove (e) {
+                if (this.noImage) return
                 const touches = e.touches
                 if (touches.length > 1) {
                     e.preventDefault()
@@ -383,15 +398,15 @@
                 // t.type = 'handleCropperMove'
                 // }
                 else if (
-                image &&
-                x > image.x &&
-                x < image.x + image.width &&
-                y > image.y &&
-                y < image.y + image.height
+                    image &&
+                    x > image.x &&
+                    x < image.x + image.width &&
+                    y > image.y &&
+                    y < image.y + image.height
                 ) {
-                t.offsetX = x - image.x;
-                t.offsetY = y - image.y;
-                t.type = 'handleImageMove'
+                    t.offsetX = x - image.x;
+                    t.offsetY = y - image.y;
+                    t.type = 'handleImageMove'
                 }
                 return t;
             },
@@ -415,13 +430,13 @@
                 const op = this.options;
    
                 // this.previewList.forEach(v => {
-                const w = cropper.width * quality
-                const h = cropper.height * quality
+                const w = cropper.width * quality,
+                    h = cropper.height * quality
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
                     this.cCtx = this.canvas.getContext('2d')
-                    const { mountNode } = this.$refs
-                    mountNode.appendChild(this.canvas)
+                    // const { mountNode } = this.$refs
+                    // mountNode.appendChild(this.canvas)
                 }
                 // console.log(this.canvas)
                 this.canvas.width = w
@@ -436,15 +451,51 @@
                     image.width * quality,
                     image.height * quality
                 )
+                if (this.$slots.watermark) {
+                    const [left = '50%', top = '50%', size = 1] = this.position
+                   let isImg = this.$slots.watermark[0].tag === 'img'
+                   if (!isImg) {
+                        const height = 12 * size
+                        this.cCtx.font = 12 * size + 'px April'
+                        const width = this.cCtx.measureText('text').width
+                        console.log(width)
+                        // (h + height) * parseInt(top) / 100
+                        this.cCtx.fillText('text', (w - width) * parseInt(left) / 100, (h + height / 2) *parseInt(top) / 100)
+                        return
+                    }
+                    let watermarkImg = new Image()
+                    watermarkImg.src = this.$slots.watermark[0].data.attrs.src
+                    watermarkImg.crossOrigin = 'anonymous'
+                    const width = watermarkImg.width * size, height = watermarkImg.height * size
+                    this.cCtx.drawImage(
+                        watermarkImg,
+                        (w - width) * parseInt(left) / 100,
+                        (h - height) * parseInt(top) / 100,
+                        width,
+                        height
+                    )
+                }   
             },
-            getImageBase64(mimeType='image/jpeg', quality=0.7){
-                preview(quality)
+            // 对外
+            getImageBase64(mimeType='image/jpeg', quality=1){
+                if (this.noImage) return
+                this.preview(quality)
                 return this.canvas.toDataURL(mimeType)
             },
             getImageBlob(cb, mimeType='image/jpeg', quality=0.7){
-                preview(quality)
+                if (this.noImage) return
+                this.preview(quality)
                 return canvas.toBlob(cb, mimeType)
             },
+            changeImage(src) {
+                if (this.noImage) return
+                if (src) {
+                    this.createImage(src)
+                    return
+                }
+                this.inputHandle()
+            },
+            // 工具
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
                 context.webkitBackingStorePixelRatio ||
@@ -459,16 +510,16 @@
                 this.noImage = false
             },
             createImage(imgfile) {
-                let img = null
-                img = new Image()
+                let img = new Image()
                 //  url , imgsrc, 文件  三种情况
-                img.src =  window.URL.createObjectURL(imgfile)
+                let src = imgfile
+                if (Object.prototype.toString.call(imgfile) === '[object File]') {
+                   src = window.URL.createObjectURL(imgfile)
+                }
+                img.crossOrigin = 'anonymous'
+                img.src = src
                 img.onload = () => { // 等到图片加载进来之后
                     this.animation(img)
-                    this.$emit('input', {
-                        getImageBase64: this.getImageBase64,
-                        getImageBlob: this.getImageBlob
-                    })
                 }
             },
             inputHandle() {
@@ -494,6 +545,16 @@
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
+            // console.log(this.$slots.initial[0].data.attrs.src)
+            if (this.$slots.initial) {
+                this.createImage(this.$slots.initial[0].data.attrs.src)
+                this.noImage = false
+            }
+            this.$emit('input', {
+                getImageBase64: this.getImageBase64,
+                getImageBlob: this.getImageBlob,
+                changeImage: this.changeImage
+            })
         }
     }
 </script>
