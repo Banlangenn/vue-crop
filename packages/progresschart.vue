@@ -10,7 +10,7 @@
         <div v-show="noImage" @click="inputHandle" class="no-image-file">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
-            <diV style="display:none">
+            <div style="display:none">
                 <input 
                     @change="uploadImg"
                     type="file"
@@ -19,7 +19,7 @@
                 >
                 <slot name="initial"></slot>
                 <slot name="watermark"></slot>
-            </diV>
+            </div>
         </div>
     </div>
 </template>
@@ -341,7 +341,7 @@
                     // k = k < 1 ? k / 10 : k * 10
                     k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
                     k = k * scale;
-                    this.scale = this.limit(k, 0.2, 4)
+                    this.scale = this.limit(k, 0.02, 4)
                     width *= k;
                     height *= k;
                     image.x += (image.width - width) / 2;
@@ -424,7 +424,7 @@
                 }
                 return value
             },
-            preview(quality = 0.75) {
+            preview(quality = 1) {
                 const image = this.image;
                 const cropper = this.cropper;
                 const op = this.options;
@@ -441,7 +441,6 @@
                 // console.log(this.canvas)
                 this.canvas.width = w
                 this.canvas.height = h
-                // console.log(this.canvas)
                 this.cCtx.clearRect(0, 0, w, h)
                 // -------------
                 this.cCtx.drawImage(
@@ -451,24 +450,31 @@
                     image.width * quality,
                     image.height * quality
                 )
+                // 水印
                 if (this.$slots.watermark) {
                     const [left = '50%', top = '50%', size = 1] = this.position
-                   let isImg = this.$slots.watermark[0].tag === 'img'
-                   if (!isImg) {
-                        const height = 12 * size
+                    if (!this.isImg) {
+                        const height = 12 * size,
+                        text = this.$slots.watermark.text  || '请直接放文字',
+                        width = this.cCtx.measureText(text).width,
+                        x = (w - width) * parseInt(left) / 100,
+                        y = (h + height / 2) *parseInt(top) / 100,
+                        colorData = this.cCtx.getImageData(x, y, 1, 1).data
                         this.cCtx.font = 12 * size + 'px April'
-                        const width = this.cCtx.measureText('text').width
-                        console.log(width)
-                        // (h + height) * parseInt(top) / 100
-                        this.cCtx.fillText('text', (w - width) * parseInt(left) / 100, (h + height / 2) *parseInt(top) / 100)
+                        this.cCtx.fillStyle =  `rgba(${255 - colorData[0]}, ${255 - colorData[1]}, ${255 - colorData[2]}, 1)`
+                        // console.log(this.cCtx.fillStyle)
+                        if(this.cCtx.fillStyle === '#ffffff') {
+                            this.cCtx.fillStyle = '#000'
+                        }
+                        
+                        this.cCtx.fillText(text, x, y)
                         return
                     }
-                    let watermarkImg = new Image()
-                    watermarkImg.src = this.$slots.watermark[0].data.attrs.src
-                    watermarkImg.crossOrigin = 'anonymous'
-                    const width = watermarkImg.width * size, height = watermarkImg.height * size
+                    const width = this.watermarkImg.width * size * this.scale,
+                    height = this.watermarkImg.height * size * this.scale
+                    // watermarkImg
                     this.cCtx.drawImage(
-                        watermarkImg,
+                        this.watermarkImg,
                         (w - width) * parseInt(left) / 100,
                         (h - height) * parseInt(top) / 100,
                         width,
@@ -480,9 +486,9 @@
             getImageBase64(mimeType='image/jpeg', quality=1){
                 if (this.noImage) return
                 this.preview(quality)
-                return this.canvas.toDataURL(mimeType)
+                return this.canvas.toDataURL(mimeType, quality)
             },
-            getImageBlob(cb, mimeType='image/jpeg', quality=0.7){
+            getImageBlob(cb, mimeType='image/jpeg', quality=1){
                 if (this.noImage) return
                 this.preview(quality)
                 return canvas.toBlob(cb, mimeType)
@@ -555,6 +561,15 @@
                 getImageBlob: this.getImageBlob,
                 changeImage: this.changeImage
             })
+
+            this.isImage = this.$slots.watermark && this.$slots.watermark[0].tag === 'img'
+            // 提前把水印照片加载出来
+            if (this.isImage) {
+                this.watermarkImg = new Image()
+                this.watermarkImg.src = this.$slots.watermark[0].data.attrs.src
+                this.watermarkImg.crossOrigin = 'anonymous'  
+            }
+           
         }
     }
 </script>
