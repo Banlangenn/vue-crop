@@ -1,13 +1,11 @@
 <template>
     <div ref="mountNode" 
         class="mount-node" 
-        style="position: relative;"
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
     >
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
-        
-        <div v-show="noImage" @click="inputHandle" class="no-image-file">
+        <div v-show="noImage" @click="inputHandle" class="no-image-file"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
             <div style="display:none">
@@ -146,8 +144,8 @@
                     }
                 ]
                 // 寻找四根线
-                w = w / 0.8
-                h = h / 0.8
+                // w = w / 0.8
+                // h = h / 0.8
                 this.lines = [
                      {
                         x: c.x,
@@ -182,6 +180,7 @@
                 points = this.points
                 // ctx.save();
                 ctx.strokeStyle = '#fff'
+                ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
                 ctx.fillStyle = '#fff';
 
@@ -317,7 +316,6 @@
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
-                if (this.noImage) return
                 if (e.touches.length > 1) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
@@ -326,7 +324,6 @@
                 this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
             },
             handleMove (e) {
-                if (this.noImage) return
                 const touches = e.touches
                 if (touches.length > 1) {
                     e.preventDefault()
@@ -424,11 +421,11 @@
                 }
                 return value
             },
-            preview(quality = 1) {
-                const image = this.image;
-                const cropper = this.cropper;
-                const op = this.options;
-   
+            getImage(type='Base64', mimeType='image/jpeg', quality=1) {
+                console.log('获取图片')
+                const image = this.image
+                const cropper = this.cropper
+                const op = this.options
                 // this.previewList.forEach(v => {
                 const w = cropper.width * quality,
                     h = cropper.height * quality
@@ -450,48 +447,61 @@
                     image.width * quality,
                     image.height * quality
                 )
-                // 水印
-                if (this.$slots.watermark) {
-                    const [left = '50%', top = '50%', size = 1] = this.position
-                    if (!this.isImg) {
-                        const height = 12 * size,
-                        text = this.$slots.watermark.text  || '请直接放文字',
-                        width = this.cCtx.measureText(text).width,
-                        x = (w - width) * parseInt(left) / 100,
-                        y = (h + height / 2) *parseInt(top) / 100,
-                        colorData = this.cCtx.getImageData(x, y, 1, 1).data
-                        this.cCtx.font = 12 * size + 'px April'
-                        this.cCtx.fillStyle =  `rgba(${255 - colorData[0]}, ${255 - colorData[1]}, ${255 - colorData[2]}, 1)`
-                        // console.log(this.cCtx.fillStyle)
-                        if(this.cCtx.fillStyle === '#ffffff') {
-                            this.cCtx.fillStyle = '#000'
-                        }
-                        
-                        this.cCtx.fillText(text, x, y)
+                const types = {
+                    Base64(canvas, mimeType, quality, resolve) {
+                        return new Promise((resolve) => {;
+                            resolve(canvas.toDataURL(mimeType, quality))
+                        })
+                    },
+                    Blob(canvas, mimeType, quality){
+                        return new Promise((resolve) => {;
+                            canvas.toBlob((blob)=> {
+                                resolve(blob)
+                            }, mimeType)
+                        })
+                    } 
+                }
+                return new Promise((resolve) => {
+                    if (!this.$slots.watermark) {
+                        resolve(types[type](this.canvas, mimeType, quality, resolve))
                         return
                     }
-                    const width = this.watermarkImg.width * size * this.scale,
-                    height = this.watermarkImg.height * size * this.scale
-                    // watermarkImg
-                    this.cCtx.drawImage(
-                        this.watermarkImg,
-                        (w - width) * parseInt(left) / 100,
-                        (h - height) * parseInt(top) / 100,
-                        width,
-                        height
-                    )
-                }   
-            },
-            // 对外
-            getImageBase64(mimeType='image/jpeg', quality=1){
-                if (this.noImage) return
-                this.preview(quality)
-                return this.canvas.toDataURL(mimeType, quality)
-            },
-            getImageBlob(cb, mimeType='image/jpeg', quality=1){
-                if (this.noImage) return
-                this.preview(quality)
-                return canvas.toBlob(cb, mimeType)
+                    const [left = '50%', top = '50%', size = 1] = this.position
+                    const isImg = this.$slots.watermark && this.$slots.watermark[0].tag === 'img'
+                    if (isImg) {
+                        let watermarkImg = new Image()
+                        watermarkImg.src = this.$slots.watermark[0].data.attrs.src
+                        watermarkImg.crossOrigin = 'anonymous'
+                        const width = watermarkImg.width * size * this.scale,
+                        height = watermarkImg.height * size * this.scale
+                        watermarkImg.onload = () => { // 等到图片加载进来之后
+                            this.cCtx.drawImage(
+                                watermarkImg,
+                                (w - width) * parseInt(left) / 100,
+                                (h - height) * parseInt(top) / 100,
+                                width,
+                                height
+                            )
+                            resolve(types[type](this.canvas, mimeType, quality, resolve))
+                        }
+                        return
+                    }
+                    // console.log(this.$slots.watermark)
+                    const height = 12 * size,
+                    text = this.$slots.watermark[0].text  || '请直接放文字',
+                    width = this.cCtx.measureText(text).width,
+                    x = (w - width) * parseInt(left) / 100,
+                    y = (h + height / 2) *parseInt(top) / 100,
+                    colorData = this.cCtx.getImageData(x, y, 1, 1).data
+                    this.cCtx.font = 12 * size + 'px April'
+                    this.cCtx.fillStyle =  `rgba(${255 - colorData[0]}, ${255 - colorData[1]}, ${255 - colorData[2]}, 1)`
+                    // console.log(this.cCtx.fillStyle)
+                    if(this.cCtx.fillStyle === '#ffffff') {
+                        this.cCtx.fillStyle = '#000'
+                    }
+                    this.cCtx.fillText(text, x, y)
+                    resolve(types[type](this.canvas, mimeType, quality, resolve))
+                })
             },
             changeImage(src) {
                 if (this.noImage) return
@@ -557,19 +567,9 @@
                 this.noImage = false
             }
             this.$emit('input', {
-                getImageBase64: this.getImageBase64,
-                getImageBlob: this.getImageBlob,
+                getImage: this.getImage,
                 changeImage: this.changeImage
-            })
-
-            this.isImage = this.$slots.watermark && this.$slots.watermark[0].tag === 'img'
-            // 提前把水印照片加载出来
-            if (this.isImage) {
-                this.watermarkImg = new Image()
-                this.watermarkImg.src = this.$slots.watermark[0].data.attrs.src
-                this.watermarkImg.crossOrigin = 'anonymous'  
-            }
-           
+            })           
         }
     }
 </script>

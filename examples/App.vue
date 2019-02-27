@@ -3,20 +3,20 @@
   <p><button @click="getImageData">点我截图</button>
   <button @click="crop.changeImage()">点我换图</button></p>
     <progresschart
-      style="width:100%;height:500px; display: inline-block;"
+      style="width:100%;height:500px;"
       v-model="crop"
       :position="['90%', '90%', 1]"
     >
-      <template #placeholder>
+      <template slot="placeholder">
         <img src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
       </template>
       <!-- <template #initial> 
         <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
       </template> -->
       <!-- watermark  暂不可自定义-->
-       <template #watermark>
-         <!-- 刘继伟 -->
-         <span></span>
+       <template slot="watermark">
+         刘继伟
+         <!-- <span></span> -->
         <!-- <img src="./assets/timg.png" /> -->
         <!-- <span>你好呀</span> -->
       </template>
@@ -39,8 +39,9 @@ export default {
     uploadImg(e) {
       this.imgae = e.target.files[0]
     },
-    getImageData(data) {
-         this.imageData = this.crop.getImageBase64('image/png')
+    async getImageData(data) {
+         const imageData = await this.crop.getImage('Base64', 'image/png')
+         this.imageData = imageData
          this.cropAction = true
     }
   }
@@ -48,6 +49,10 @@ export default {
 </script>
 
 <style>
+body,html, #app {
+  width: 100%;
+  height: 100%;
+}
 #app {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
