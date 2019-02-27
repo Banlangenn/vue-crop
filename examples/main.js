@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
-import progresschart from '../packages'
-Vue.use(progresschart)
+import crop from '../lib/vue-cropbalg.umd'
+Vue.use(crop)
 Vue.config.productionTip = false
 
 new Vue({

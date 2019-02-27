@@ -1,5 +1,5 @@
 
-import progresschart from './progresschart.vue';
+import crop from './cropblg.vue';
 
 // const components = [progresschart];
 
@@ -9,7 +9,7 @@ const install = function (Vue) {
     install.installed = true
     // 遍历并注册全局组件
     // components.map(component => {
-        Vue.component(progresschart.name, progresschart)
+        Vue.component(crop.name, crop)
     // })
 }
 
@@ -19,6 +19,6 @@ if (typeof window !== 'undefined' && window.Vue) {
 }
 export default {
     install,
-    progresschart
+    crop
 };
-export { progresschart };
+export { crop };

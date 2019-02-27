@@ -2,10 +2,10 @@
   <div id="app">
   <p><button @click="getImageData">点我截图</button>
   <button @click="crop.changeImage()">点我换图</button></p>
-    <progresschart
+    <crop
       style="width:100%;height:500px;"
       v-model="crop"
-      :position="['90%', '90%', 1]"
+      :position="['90%', '90%', 0.4]"
     >
       <template slot="placeholder">
         <img src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
@@ -15,12 +15,11 @@
       </template> -->
       <!-- watermark  暂不可自定义-->
        <template slot="watermark">
-         刘继伟
-         <!-- <span></span> -->
-        <!-- <img src="./assets/timg.png" /> -->
-        <!-- <span>你好呀</span> -->
+        <!-- 共产主义接班人 -->
+        <img src="./assets/logo.png" />
+
       </template>
-     </progresschart>
+     </crop>
      <img v-if="cropAction" :src="imageData" alt="">
   </div>
 </template>
@@ -39,7 +38,7 @@ export default {
     uploadImg(e) {
       this.imgae = e.target.files[0]
     },
-    async getImageData(data) {
+    async getImageData() {
          const imageData = await this.crop.getImage('Base64', 'image/png')
          this.imageData = imageData
          this.cropAction = true

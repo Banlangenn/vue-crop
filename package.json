@@ -1,13 +1,13 @@
 {
-  "name": "vue-progresschart",
-  "main": "./lib/vue-progresschart.umd.min",
-  "description": "一个vue 裁剪插件",
-  "version": "1.1.5",
+  "name": "vue-cropbalg",
+  "main": "./lib/vue-cropbalg.umd.min",
+  "description": "vue 图片裁剪插件",
+  "version": "1.0.0",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "lib": "vue-cli-service build --target lib --name vue-progresschart --dest lib packages/index.js"
+    "lib": "vue-cli-service build --target lib --name vue-cropbalg --dest lib packages/index.js"
   },
   "author": "https://github.com/Banlangenn",
   "license": "ISC",
@@ -17,7 +17,7 @@
     "vue-progress",
     "progress"
   ],
-  "repository": "https://github.com/Banlangenn/vue-progresschart",
+  "repository": "https://github.com/Banlangenn/vue-crop",
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.4.1",
     "@vue/cli-plugin-eslint": "^3.4.1",

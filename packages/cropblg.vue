@@ -3,9 +3,10 @@
         class="mount-node" 
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
+        style=" overflow: hidden;"
     >
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
-        <div v-show="noImage" @click="inputHandle" class="no-image-file"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
+        <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;background-color: #f1f3f5;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
             <div style="display:none">
@@ -21,24 +22,9 @@
         </div>
     </div>
 </template>
-<style>
-    .mount-node {
-        overflow: hidden;
-    }
-    .no-image-file {
-        /* width: 100%; */
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: #f1f3f5;
-        flex-wrap: wrap;
-    }
-</style>
-
 <script>
     export default {
-        name: 'progresschart',
+        name: 'crop',
         props:['imgaeFile','value','position'],
         data() {
             return {
@@ -55,8 +41,8 @@
                 cropper: {},
                 startPoint: {},
                 nook: {
-                    w: 25,
-                    h: 25
+                    w: 27,
+                    h: 27
                 }
             }
         },
@@ -119,33 +105,33 @@
                 let {w, h} =  this.nook
                 this.points = [
                     {
-                        x: c.x -    1,
-                        y: c.y - 1,
+                        x: c.x - 3,
+                        y: c.y - 3,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x + c.width - w + 1,
-                        y: c.y - 1,
+                        x: c.x + c.width - w + 3,
+                        y: c.y - 3,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x - 1,
-                        y: c.y + c.height - h + 1,
+                        x: c.x - 3,
+                        y: c.y + c.height - h + 3,
                         width: w,
                         height: h
                     },
                     {
-                        x: c.x + c.width - w + 1,
-                        y: c.y + c.height - h + 1,
+                        x: c.x + c.width - w + 3,
+                        y: c.y + c.height - h + 3,
                         width: w,
                         height: h
                     }
                 ]
                 // 寻找四根线
-                // w = w / 0.8
-                // h = h / 0.8
+                w = w / .7
+                h = h / .7
                 this.lines = [
                      {
                         x: c.x,
@@ -176,14 +162,13 @@
             fillCropper() {
                 const ctx = this.ctx,
                 cropper = this.cropper,
-                point = this.point,
+                // point = this.point,
                 points = this.points
-                // ctx.save();
                 ctx.strokeStyle = '#fff'
-                ctx.lineWidth = 2
+                ctx.lineWidth = 3
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
+           
                 ctx.fillStyle = '#fff';
-
                 ctx.fillRect(points[0].x, points[0].y, points[0].width / 4, points[0].height)
                 ctx.fillRect(points[0].x, points[0].y, points[0].width, points[0].height / 4)
 
@@ -355,7 +340,7 @@
             },
             getPointByCoordinate({x, y}) {
                 // const point = this.point;
-                const cropper = this.cropper;
+                // const cropper = this.cropper;
                 const image = this.image;
                 let t = {}
                 let index = 0
@@ -394,6 +379,7 @@
                 // t.offsetY = y - cropper.y;
                 // t.type = 'handleCropperMove'
                 // }
+                // 图片移动
                 else if (
                     image &&
                     x > image.x &&
@@ -401,15 +387,15 @@
                     y > image.y &&
                     y < image.y + image.height
                 ) {
-                    t.offsetX = x - image.x;
-                    t.offsetY = y - image.y;
+                    t.offsetX = x - image.x
+                    t.offsetY = y - image.y
                     t.type = 'handleImageMove'
                 }
-                return t;
+                return t
             },
             getDistance(p1, p2) {
                 const x = p2.pageX - p1.pageX,
-                    y = p2.pageY - p1.pageY;
+                    y = p2.pageY - p1.pageY
                 return Math.sqrt((x * x) + (y * y))
             },
             limit(value, min, max) {
@@ -422,20 +408,32 @@
                 return value
             },
             getImage(type='Base64', mimeType='image/jpeg', quality=1) {
-                console.log('获取图片')
-                const image = this.image
-                const cropper = this.cropper
-                const op = this.options
-                // this.previewList.forEach(v => {
-                const w = cropper.width * quality,
-                    h = cropper.height * quality
+                if (this.noImage) return
+                const image = this.image,
+                cropper = this.cropper,
+                types = {
+                    Base64(canvas, mimeType) {
+                        return new Promise((resolve) => {
+                            resolve(canvas.toDataURL(mimeType))
+                        })
+                    },
+                    Blob(canvas, mimeType){
+                        return new Promise((resolve) => {
+                            canvas.toBlob((blob)=> {
+                                resolve(blob)
+                            }, mimeType)
+                        })
+                    } 
+                },
+                w = cropper.width * quality,
+                h = cropper.height * quality
+                // 变量申请
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
                     this.cCtx = this.canvas.getContext('2d')
                     // const { mountNode } = this.$refs
                     // mountNode.appendChild(this.canvas)
                 }
-                // console.log(this.canvas)
                 this.canvas.width = w
                 this.canvas.height = h
                 this.cCtx.clearRect(0, 0, w, h)
@@ -447,23 +445,13 @@
                     image.width * quality,
                     image.height * quality
                 )
-                const types = {
-                    Base64(canvas, mimeType, quality, resolve) {
-                        return new Promise((resolve) => {;
-                            resolve(canvas.toDataURL(mimeType, quality))
-                        })
-                    },
-                    Blob(canvas, mimeType, quality){
-                        return new Promise((resolve) => {;
-                            canvas.toBlob((blob)=> {
-                                resolve(blob)
-                            }, mimeType)
-                        })
+                return new Promise((resolve, reject) => {
+                    if(!types[type]) {
+                        reject('type= Blob || Base64')
+                        return  
                     } 
-                }
-                return new Promise((resolve) => {
                     if (!this.$slots.watermark) {
-                        resolve(types[type](this.canvas, mimeType, quality, resolve))
+                        resolve(types[type](this.canvas, mimeType))
                         return
                     }
                     const [left = '50%', top = '50%', size = 1] = this.position
@@ -472,9 +460,9 @@
                         let watermarkImg = new Image()
                         watermarkImg.src = this.$slots.watermark[0].data.attrs.src
                         watermarkImg.crossOrigin = 'anonymous'
-                        const width = watermarkImg.width * size * this.scale,
-                        height = watermarkImg.height * size * this.scale
                         watermarkImg.onload = () => { // 等到图片加载进来之后
+                            const width = watermarkImg.width * size * this.scale,
+                            height = watermarkImg.height * size * this.scale;
                             this.cCtx.drawImage(
                                 watermarkImg,
                                 (w - width) * parseInt(left) / 100,
@@ -482,31 +470,32 @@
                                 width,
                                 height
                             )
-                            resolve(types[type](this.canvas, mimeType, quality, resolve))
+                            resolve(types[type](this.canvas, mimeType))
                         }
                         return
                     }
                     // console.log(this.$slots.watermark)
                     const height = 12 * size,
-                    text = this.$slots.watermark[0].text  || '请直接放文字',
+                    text = this.$slots.watermark[0].text.trim()  || '请直接放文字',
                     width = this.cCtx.measureText(text).width,
-                    x = (w - width) * parseInt(left) / 100,
+                    x = (w - width * 2) * parseInt(left) / 100,
                     y = (h + height / 2) *parseInt(top) / 100,
                     colorData = this.cCtx.getImageData(x, y, 1, 1).data
-                    this.cCtx.font = 12 * size + 'px April'
+                    // 变量申请
+                    this.cCtx.font = 12 * size + 'px Georgia'
                     this.cCtx.fillStyle =  `rgba(${255 - colorData[0]}, ${255 - colorData[1]}, ${255 - colorData[2]}, 1)`
                     // console.log(this.cCtx.fillStyle)
                     if(this.cCtx.fillStyle === '#ffffff') {
                         this.cCtx.fillStyle = '#000'
                     }
                     this.cCtx.fillText(text, x, y)
-                    resolve(types[type](this.canvas, mimeType, quality, resolve))
+                    resolve(types[type](this.canvas, mimeType))
                 })
             },
-            changeImage(src) {
+            changeImage(imgAddress) {
                 if (this.noImage) return
-                if (src) {
-                    this.createImage(src)
+                if (imgAddress) {
+                    this.createImage(imgAddress)
                     return
                 }
                 this.inputHandle()
