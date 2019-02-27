@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
-import crop from '../lib/vue-cropbalg.umd'
+import crop from '../lib/vue-cropblg.umd'
 Vue.use(crop)
 Vue.config.productionTip = false
 

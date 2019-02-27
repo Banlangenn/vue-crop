@@ -32,7 +32,7 @@
                 noImage:true,
                 ctx: null,
                 options: null,
-                arg: null,
+                pixelRatio: null,
                 scale:1,
                 canvas: null,
                 image: {},
@@ -41,8 +41,8 @@
                 cropper: {},
                 startPoint: {},
                 nook: {
-                    w: 27,
-                    h: 27
+                    w: 24,
+                    h: 24
                 }
             }
         },
@@ -165,7 +165,7 @@
                 // point = this.point,
                 points = this.points
                 ctx.strokeStyle = '#fff'
-                ctx.lineWidth = 3
+                ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
            
                 ctx.fillStyle = '#fff';
@@ -411,6 +411,7 @@
                 if (this.noImage) return
                 const image = this.image,
                 cropper = this.cropper,
+                pixelRatio = this.pixelRatio,
                 types = {
                     Base64(canvas, mimeType) {
                         return new Promise((resolve) => {
@@ -433,9 +434,10 @@
                     this.cCtx = this.canvas.getContext('2d')
                     // const { mountNode } = this.$refs
                     // mountNode.appendChild(this.canvas)
-                }
-                this.canvas.width = w
-                this.canvas.height = h
+                }            
+                this.canvas.width = w * pixelRatio
+                this.canvas.height = h * pixelRatio
+                this.cCtx.scale(pixelRatio, pixelRatio)
                 this.cCtx.clearRect(0, 0, w, h)
                 // -------------
                 this.cCtx.drawImage(
@@ -546,7 +548,7 @@
             canvasDom.style.height = clientHeight + 'px'
             mountNode.appendChild(canvasDom)
             this.ctx = canvasDom.getContext('2d')
-            const pixelRatio = this.getPixelRatio(this.ctx)
+            const pixelRatio = this.pixelRatio = this.getPixelRatio(this.ctx)
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)

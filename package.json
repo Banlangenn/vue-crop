@@ -1,13 +1,13 @@
 {
-  "name": "vue-cropbalg",
-  "main": "./lib/vue-cropbalg.umd.min",
+  "name": "vue-cropblg",
+  "main": "./lib/vue-cropblg.umd.min",
   "description": "vue 图片裁剪插件",
   "version": "1.0.0",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
-    "lib": "vue-cli-service build --target lib --name vue-cropbalg --dest lib packages/index.js"
+    "lib": "vue-cli-service build --target lib --name vue-cropblg --dest lib packages/index.js"
   },
   "author": "https://github.com/Banlangenn",
   "license": "ISC",
