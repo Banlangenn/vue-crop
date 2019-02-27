@@ -426,8 +426,8 @@
                         })
                     } 
                 },
-                w = cropper.width * quality,
-                h = cropper.height * quality
+                w = cropper.width,
+                h = cropper.height
                 // 变量申请
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')

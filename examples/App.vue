@@ -39,7 +39,7 @@ export default {
       this.imgae = e.target.files[0]
     },
     async getImageData() {
-         const imageData = await this.crop.getImage('Base64', 'image/png', 0.4)
+         const imageData = await this.crop.getImage('Base64', 'image/png', 1)
          this.imageData = imageData
          this.cropAction = true
     }
