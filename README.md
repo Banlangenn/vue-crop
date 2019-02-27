@@ -48,7 +48,7 @@ Vue.use(crop)
 | name   |  说明  | 
 |--------|:-------:|
 | placeholder | 没有图片时占位图 | 
-| initial | | 默认处理图片 | 
+| initial |  默认处理图片 | 
 | watermark | 水印（图片或者文字）|
 
 
