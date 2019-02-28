@@ -6,7 +6,7 @@
         style=" overflow: hidden;"
     >
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
-        <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;background-color: #f1f3f5;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
+        <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
             <div style="display:none">
@@ -66,6 +66,19 @@
                         k = currentH / clientH
                         currentW = k * clientW
                     }
+                    // 针对小图片
+                    const minNum = 100
+                    if (clientW < minNum) {
+                        currentW = minNum
+                        k = currentW / clientW
+                        currentH = k * clientH
+                    }
+                    if (currentH < minNum) {
+                        currentH = minNum;
+                        k = currentH / clientH
+                        currentW = k * clientW
+                    }
+                    // 针对小图片
                     this.image = {
                         element: img,
                         width: currentW,
@@ -91,6 +104,9 @@
                 this.ctx.clearRect(0, 0, width, height)     
                 this.fillBackground()
                 this.fillImage()
+                if (!this.averageColor) {
+                   this.averageColor = this.getImageColor(this.ctx.getImageData( this.cropper.x,  this.cropper.y, 50, 50).data)
+                }
                 this.updatePoint()
                 this.fillCropper()
                 // this.preview()
@@ -101,6 +117,7 @@
                 ctx.drawImage(image.element, image.x, image.y, image.width, image.height);
             },
             updatePoint() {
+                // 点中点和线 不用 执行 
                 const c = this.cropper;
                 let {w, h} =  this.nook
                 this.points = [
@@ -162,13 +179,13 @@
             fillCropper() {
                 const ctx = this.ctx,
                 cropper = this.cropper,
-                // point = this.point,
-                points = this.points
-                ctx.strokeStyle = '#fff'
+                points = this.points,
+                color = this.averageColor
+                ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
            
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = color
                 ctx.fillRect(points[0].x, points[0].y, points[0].width / 4, points[0].height)
                 ctx.fillRect(points[0].x, points[0].y, points[0].width, points[0].height / 4)
 
@@ -255,11 +272,11 @@
                 switch (this.index) {
                     case 3:
                         newCropper.width = (cropper.x + cropper.width) - x
-                        newCropper.x = x
+                        newCropper.x = x // 限制
                         break;
                     case 0:
                         newCropper.height =  (cropper.y + cropper.height) - y
-                        newCropper.y = y
+                        newCropper.y = y // 限制
                         break;
                     case 1:
                         newCropper.width =  x - cropper.x
@@ -292,12 +309,15 @@
                 this.draw()
             },
             getCoordinateByEvent(e){
-                const rect = e.target.getBoundingClientRect()
-                const touch = e.touches[0]
-                return {
+                const rect = e.target.getBoundingClientRect(),
+                touch = e.touches[0],
+                coordinate = {
                     x: touch.clientX - rect.left,
                     y: touch.clientY - rect.top
-                }
+                },
+                { width, height } = this.options
+                if (coordinate.x <= 2 || coordinate.y <= 2 || coordinate.x >= width - 2 || coordinate.y >= height - 2) return 
+                return coordinate
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
@@ -334,8 +354,8 @@
                     return
                 }
                 const type = this.startPoint.type
-                if (type) {
-                    this[type](this.getCoordinateByEvent(e));
+                if (type && this.getCoordinateByEvent(e)) {
+                    this[type](this.getCoordinateByEvent(e))
                 }
             },
             getPointByCoordinate({x, y}) {
@@ -426,15 +446,15 @@
                         })
                     } 
                 },
-                w = cropper.width,
-                h = cropper.height
+                w = cropper.width * quality ,
+                h = cropper.height * quality 
                 // 变量申请
                 if (!this.canvas) {
                     this.canvas = document.createElement('canvas')
                     this.cCtx = this.canvas.getContext('2d')
                     // const { mountNode } = this.$refs
                     // mountNode.appendChild(this.canvas)
-                }            
+                }
                 this.canvas.width = w * pixelRatio
                 this.canvas.height = h * pixelRatio
                 this.cCtx.scale(pixelRatio, pixelRatio)
@@ -442,14 +462,14 @@
                 // -------------
                 this.cCtx.drawImage(
                     image.element,
-                    (image.x - cropper.x) * quality,
-                    (image.y - cropper.y) * quality,
-                    image.width * quality,
+                    (image.x - cropper.x)  * quality , //  是负数
+                    (image.y - cropper.y)  * quality, // 负数
+                    image.width * quality ,
                     image.height * quality
                 )
                 return new Promise((resolve, reject) => {
                     if(!types[type]) {
-                        reject('type= Blob || Base64')
+                        reject('type = Blob || Base64')
                         return  
                     } 
                     if (!this.$slots.watermark) {
@@ -463,8 +483,8 @@
                         watermarkImg.src = this.$slots.watermark[0].data.attrs.src
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size * this.scale,
-                            height = watermarkImg.height * size * this.scale;
+                            const width = watermarkImg.width * size * quality,
+                            height = watermarkImg.height * size * quality
                             this.cCtx.drawImage(
                                 watermarkImg,
                                 (w - width) * parseInt(left) / 100,
@@ -476,26 +496,27 @@
                         }
                         return
                     }
-                    // console.log(this.$slots.watermark)
-                    const height = 12 * size,
-                    text = this.$slots.watermark[0].text.trim()  || '请直接放文字',
+                    // console.log(this.$slots.watermark)                   
+                    const height = this.limit(12 * size, 12, 30)
+                    this.cCtx.font = height + 'px Georgia'
+                    const text = this.$slots.watermark[0].text.trim()  || '请直接放文字',
                     width = this.cCtx.measureText(text).width,
-                    x = (w - width * 2) * parseInt(left) / 100,
-                    y = (h + height / 2) *parseInt(top) / 100,
-                    colorData = this.cCtx.getImageData(x, y, 1, 1).data
+                    x = (w - width)  * parseInt(left) / 100,
+                    y = (h + height / 2)  * parseInt(top) / 100
                     // 变量申请
-                    this.cCtx.font = 12 * size + 'px Georgia'
-                    this.cCtx.fillStyle =  `rgba(${255 - colorData[0]}, ${255 - colorData[1]}, ${255 - colorData[2]}, 1)`
+                    this.cCtx.fillStyle =  this.averageColor
                     // console.log(this.cCtx.fillStyle)
                     if(this.cCtx.fillStyle === '#ffffff') {
                         this.cCtx.fillStyle = '#000'
                     }
-                    this.cCtx.fillText(text, x, y)
+                    // console.log(w) // x ： 234
+                    this.cCtx.fillText(text, x , y)
                     resolve(types[type](this.canvas, mimeType))
                 })
             },
             changeImage(imgAddress) {
                 if (this.noImage) return
+                this.averageColor = null
                 if (imgAddress) {
                     this.createImage(imgAddress)
                     return
@@ -531,6 +552,27 @@
             },
             inputHandle() {
                 document.getElementById('file-input').click()
+            },
+            getImageColor(data) {
+                let r=0, g=0, b=0
+                // 取所有像素的平均值
+                const num = 50
+                for (var row = 0; row < num; row++) {
+                    for (var col = 0; col < num; col++) {
+                        r += data[((num * row) + col) * 4];
+                        g += data[((num * row) + col) * 4 + 1];
+                        b += data[((num * row) + col) * 4 + 2];
+                    }
+                }
+                // 求取平均值
+                r /= (num * num);
+                g /= (num * num);
+                b /= (num * num);
+                // 将最终的值取整
+                r = Math.round(r);
+                g = Math.round(g);
+                b = Math.round(b);
+                return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
             }
         },
         mounted() {
