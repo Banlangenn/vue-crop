@@ -16,8 +16,7 @@
                     id="file-input"
                     accept="image/jpeg,image/x-icon,image/png"
                 >
-                <slot name="initial"></slot>
-                <slot name="watermark"></slot>
+                <slot name="defaultImgUrl"></slot>
             </div>
         </div>
     </div>
@@ -25,7 +24,7 @@
 <script>
     export default {
         name: 'crop',
-        props:['imgaeFile','value','position'],
+        props:['value', 'position', 'textWatermark', 'imgWatermark', 'defaultImgUrl'],
         data() {
             return {
                 // ready: false,
@@ -471,16 +470,11 @@
                     if(!types[type]) {
                         reject('type = Blob || Base64')
                         return  
-                    } 
-                    if (!this.$slots.watermark) {
-                        resolve(types[type](this.canvas, mimeType))
-                        return
                     }
                     const [left = '50%', top = '50%', size = 1] = this.position
-                    const isImg = this.$slots.watermark && this.$slots.watermark[0].tag === 'img'
-                    if (isImg) {
+                    if (this.imgWatermark) {
                         let watermarkImg = new Image()
-                        watermarkImg.src = this.$slots.watermark[0].data.attrs.src
+                        watermarkImg.src = this.getFileSrc(this.imgWatermark)
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
                             const width = watermarkImg.width * size * quality,
@@ -495,23 +489,24 @@
                             resolve(types[type](this.canvas, mimeType))
                         }
                         return
+                    }             
+                    if (this.textWatermark) {
+                        const height = this.limit(12 * size, 12, 30)
+                        this.cCtx.font = height + 'px Georgia'
+                        const text = this.textWatermark,
+                        width = this.cCtx.measureText(text).width,
+                        x = (w - width)  * parseInt(left) / 100,
+                        y = (h + height / 2)  * parseInt(top) / 100
+                        // 变量申请
+                        this.cCtx.fillStyle =  this.averageColor
+                        // console.log(this.cCtx.fillStyle)
+                        if(this.cCtx.fillStyle === '#ffffff') {
+                            this.cCtx.fillStyle = '#000'
+                        }
+                        // console.log(w) // x ： 234
+                        this.cCtx.fillText(text, x , y)
+                        resolve(types[type](this.canvas, mimeType))
                     }
-                    // console.log(this.$slots.watermark)                   
-                    const height = this.limit(12 * size, 12, 30)
-                    this.cCtx.font = height + 'px Georgia'
-                    const text = this.$slots.watermark[0].text.trim()  || '请直接放文字',
-                    width = this.cCtx.measureText(text).width,
-                    x = (w - width)  * parseInt(left) / 100,
-                    y = (h + height / 2)  * parseInt(top) / 100
-                    // 变量申请
-                    this.cCtx.fillStyle =  this.averageColor
-                    // console.log(this.cCtx.fillStyle)
-                    if(this.cCtx.fillStyle === '#ffffff') {
-                        this.cCtx.fillStyle = '#000'
-                    }
-                    // console.log(w) // x ： 234
-                    this.cCtx.fillText(text, x , y)
-                    resolve(types[type](this.canvas, mimeType))
                 })
             },
             changeImage(imgAddress) {
@@ -537,15 +532,17 @@
                 this.createImage(e.target.files[0])
                 this.noImage = false
             },
+            getFileSrc(src) {
+                if (Object.prototype.toString.call(src) === '[object File]') {
+                   src = window.URL.createObjectURL(src)
+                }
+                return src
+            },
             createImage(imgfile) {
                 let img = new Image()
                 //  url , imgsrc, 文件  三种情况
-                let src = imgfile
-                if (Object.prototype.toString.call(imgfile) === '[object File]') {
-                   src = window.URL.createObjectURL(imgfile)
-                }
                 img.crossOrigin = 'anonymous'
-                img.src = src
+                img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
                     this.animation(img)
                 }
@@ -595,8 +592,9 @@
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
             // console.log(this.$slots.initial[0].data.attrs.src)
-            if (this.$slots.initial) {
-                this.createImage(this.$slots.initial[0].data.attrs.src)
+            if (this.defaultImgUrl || this.$slots.defaultImgUrl) {
+                const src = this.defaultImgUrl ? this.defaultImgUrl : this.$slots.defaultImgUrl[0].data.attrs.src
+                this.createImage(src)
                 this.noImage = false
             }
             this.$emit('input', {
