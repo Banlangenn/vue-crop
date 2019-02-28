@@ -21,7 +21,8 @@
         <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
       </template> -->
      </crop>
-    <div style="text-align:center">
+    <div style="text-align:center" v-if="cropAction">
+          <p>长按保存图片</p>
           <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
     </div>
   </div>
