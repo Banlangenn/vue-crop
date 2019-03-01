@@ -1,27 +1,29 @@
 <template>
   <div id="app">
-  <p><button @click="getImageData">点我截图</button>
+  <p class="operation"><button @click="getImageData">点我截图</button>
   <button @click="crop.changeImage()">点我换图</button></p>
-    <crop
-      style="width:100%;height:260px;background-color: #f1f3f5;"
-      v-model="crop"
-      :position="['90%', '90%', 0.14]"
-      color="red"
+  <p class="watermark">输入水印文字：
+      <input type="text" placeholder="可以输入水印" v-model="textWatermark" 
     >
+   </p>
+    <crop
+      style="width:100%;height:360px;background-color: #f1f3f5;"
+      v-model="crop"
+      :position="['90%', '90%', 2]"
+      :textWatermark = "textWatermark"
+    >
+          <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
+    <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
-        <img src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" style="widht:40%" />
+        <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-      <!-- <template #initial> 
+      <!-- <template slot="defaultImgUrl"> 
         <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
       </template> -->
-      <!-- watermark  暂不可自定义-->
-       <template slot="watermark">
-        大鱼
-        <!-- <img src="./assets/logo.png" /> -->
-
-      </template>
      </crop>
-     <img v-if="cropAction" :src="imageData" alt="">
+    <div style="text-align:center">
+          <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
+    </div>
   </div>
 </template>
 
@@ -30,6 +32,8 @@ export default {
   name: 'app',
   data() {
     return {
+        imgWatermark: '',
+        textWatermark: '水印',
         crop:{},
         cropAction: false,
         imageData: null
@@ -37,12 +41,17 @@ export default {
   },
   methods: {
     uploadImg(e) {
-      this.imgae = e.target.files[0]
+      this.imgwatermark = this.imgae = e.target.files[0]
+    },
+    changeImg(e) {
+      console.log('---')
+      this.isimg = true 
+      this.imgwatermark  = e.target.files[0]
     },
     async getImageData() {
-        const imageData = await this.crop.getImage('Base64', 'image/png', 1)
-        this.imageData = imageData
-        this.cropAction = true
+         const imageData = await this.crop.getImage('Base64', 'image/png', 2)
+         this.imageData = imageData
+         this.cropAction = true
     }
   }
 }
@@ -71,5 +80,58 @@ export default {
     -moz-user-select: none; /* Firefox */
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently not supported by any browser */
+  }
+  .operation button {
+    position: relative;
+    display: inline-block;
+    font-weight: 400;
+    white-space: nowrap;
+    text-align: center;
+    background-image: none;
+    border: 1px solid transparent;
+    -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.015);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.015);
+    cursor: pointer;
+    -webkit-transition: all .3s cubic-bezier(.645, .045, .355, 1);
+    transition: all .3s cubic-bezier(.645, .045, .355, 1);
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -ms-touch-action: manipulation;
+    touch-action: manipulation;
+    height: 32px;
+    padding: 0 15px;
+    font-size: 14px;
+    border-radius: 4px;
+     color: #fff;
+    background-color: #1890ff;
+    border-color: #1890ff;
+    text-shadow: 0 -1px 0 rgba(0,0,0,0.12);
+    -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.045);
+    line-height: 1.499;
+    margin: 20px;
+  }
+  .watermark input {
+    /* -webkit-appearance: none; */
+    /* width：180px; */
+    position: relative;
+    font-size: 14px;
+    display: inline-block;
+    background-color: #fff;
+    background-image: none;
+    border-radius: 4px;
+    border: 1px solid #dcdfe6;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: none;
+    padding: 0 15px;
+    transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+    margin-bottom: 20px;
   }
 </style>
