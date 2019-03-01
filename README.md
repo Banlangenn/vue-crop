@@ -41,6 +41,7 @@ Vue.use(crop)
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|
 | defaultImgUrl | 默认图片  | File / String|--|--|
+| color | 水印和编辑框颜色  | String|16进制颜色| 反差最大颜色|
 ### Methods
 | 方法名   |  说明  | 参数 |
 |--------|:-------:|------:|
