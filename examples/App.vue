@@ -5,7 +5,8 @@
     <crop
       style="width:100%;height:260px;background-color: #f1f3f5;"
       v-model="crop"
-      :position="['90%', '90%', 1.2]"
+      :position="['90%', '90%', 0.14]"
+      color="red"
     >
       <template slot="placeholder">
         <img src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" style="widht:40%" />
@@ -39,9 +40,9 @@ export default {
       this.imgae = e.target.files[0]
     },
     async getImageData() {
-         const imageData = await this.crop.getImage('Base64', 'image/png', 1.5)
-         this.imageData = imageData
-         this.cropAction = true
+        const imageData = await this.crop.getImage('Base64', 'image/png', 1)
+        this.imageData = imageData
+        this.cropAction = true
     }
   }
 }

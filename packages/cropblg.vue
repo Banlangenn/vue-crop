@@ -25,7 +25,7 @@
 <script>
     export default {
         name: 'crop',
-        props:['imgaeFile','value','position'],
+        props:['imgaeFile','value','position', 'color'],
         data() {
             return {
                 // ready: false,
@@ -554,6 +554,9 @@
                 document.getElementById('file-input').click()
             },
             getImageColor(data) {
+                if (this.color) {
+                    return this.color
+                }
                 let r=0, g=0, b=0
                 // 取所有像素的平均值
                 const num = 50
