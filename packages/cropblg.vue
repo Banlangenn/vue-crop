@@ -39,7 +39,7 @@
                 lines: [],
                 cropper: {},
                 startPoint: {},
-                nookSide: 24
+                nookSide: 50
             }
         },
         methods: {
@@ -345,8 +345,6 @@
                 if (touches.length > 1) {
                     const image = this.image
                     let startTouches = this.startTouches
-                    let width = image.clientWidth
-                    let height = image.clientHeight
                     let k; // 最终的缩放系数
                     const scale = this.scale;
                     // const offset = e.deltaY / 800;
@@ -355,12 +353,12 @@
                     k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
                     k = k * scale;
                     this.scale = this.limit(k, 0.02, 4)
-                    width *= k;
-                    height *= k;
-                    image.x += (image.width - width) / 2;
-                    image.y += (image.height - height) / 2;
-                    image.width = width;
-                    image.height = height;
+                    const width = image.clientWidth * this.scale,
+                    height = image.clientHeight * this.scale
+                    this.image.x += (image.width - width) / 2
+                    this.image.y += (image.height - height) / 2
+                    this.image.width = width;
+                    this.image.height = height;
                     this.draw();
                     return
                 }
