@@ -24,7 +24,7 @@
 <script>
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imgWatermark', 'defaultImgUrl'],
+        props:['value', 'position', 'textWatermark', 'imageWatermark', 'rotateAngle', 'defaultImgUrl', 'color'],
         data() {
             return {
                 // ready: false,
@@ -39,10 +39,7 @@
                 lines: [],
                 cropper: {},
                 startPoint: {},
-                nook: {
-                    w: 24,
-                    h: 24
-                }
+                nookSide: 24
             }
         },
         methods: {
@@ -113,64 +110,76 @@
             fillImage() {
                 const image = this.image;
                 const ctx = this.ctx
-                ctx.drawImage(image.element, image.x, image.y, image.width, image.height);
+                // const halfHeight = image.height / 2,
+                // halfWidth = image.width / 2
+                // ctx.save()
+                // ctx.translate(image.x + halfWidth, image.y + halfHeight)
+                // ctx.rotate(Math.PI / 180 * 90)
+                // ctx.drawImage(image.element, -halfWidth, -halfHeight, image.width, image.height)
+                // ctx.restore()
+                const rotateAngle = this.rotateAngle || 0
+                this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
+                // ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
             },
             updatePoint() {
                 // 点中点和线 不用 执行 
                 const c = this.cropper;
-                let {w, h} =  this.nook
+                const nookSide =  this.nookSide
                 this.points = [
                     {
-                        x: c.x - 3,
-                        y: c.y - 3,
-                        width: w,
-                        height: h
+                        x: c.x,
+                        y: c.y,
+                        nookSide,
+                        diffX: 0,
+                        diffY: 0
                     },
                     {
-                        x: c.x + c.width - w + 3,
-                        y: c.y - 3,
-                        width: w,
-                        height: h
+                        x: c.x + c.width - nookSide ,
+                        y: c.y,
+                        nookSide,
+                        diffX: nookSide,
+                        diffY: 0
                     },
                     {
-                        x: c.x - 3,
-                        y: c.y + c.height - h + 3,
-                        width: w,
-                        height: h
+                        x: c.x + c.width - nookSide ,
+                        y: c.y + c.height - nookSide,
+                        nookSide,
+                        diffX: nookSide,
+                        diffY: nookSide
                     },
                     {
-                        x: c.x + c.width - w + 3,
-                        y: c.y + c.height - h + 3,
-                        width: w,
-                        height: h
+                        x: c.x,
+                        y: c.y + c.height - nookSide,
+                        nookSide,
+                        diffX: 0,
+                        diffY: nookSide
                     }
                 ]
                 // 寻找四根线
-                w = w / .7
-                h = h / .7
+                const lineHeight = nookSide / .7 / 2
                 this.lines = [
                      {
                         x: c.x,
-                        y: c.y - w / 2,
+                        y: c.y - lineHeight / 2,
                         width: c.width,
-                        height: h
+                        height: lineHeight
                     },
                     {
-                        x: c.x + c.width - w +  w / 2,
+                        x: c.x + c.width - lineHeight / 2,
                         y: c.y,
-                        width: w,
+                        width: lineHeight,
                         height: c.height
                     },
                     {
                         x: c.x,
-                        y: c.y + c.height - h + w / 2,
+                        y: c.y + c.height - lineHeight / 2,
                         width: c.width,
-                        height: h
+                        height: lineHeight
                     },
                     {
-                        x: c.x - w / 2 ,
+                        x: c.x - lineHeight / 2 ,
                         y: c.y,
-                        width: w,
+                        width: lineHeight,
                         height: c.height
                     }
                 ]
@@ -183,20 +192,23 @@
                 ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
-           
                 ctx.fillStyle = color
-                ctx.fillRect(points[0].x, points[0].y, points[0].width / 4, points[0].height)
-                ctx.fillRect(points[0].x, points[0].y, points[0].width, points[0].height / 4)
+                const nookSide = this.nookSide / 8
+                points.forEach((element, index) => {
+                    ctx.save()
+                    ctx.translate(element.x + element.diffX, element.y + element.diffY)
+                    ctx.rotate(index * 90 * (Math.PI/180))
+                    ctx.fillRect(-nookSide, -nookSide, element.nookSide, nookSide * 2)
+                    ctx.fillRect(-nookSide, -nookSide, nookSide * 2, element.nookSide)
+                    // if(index % 2 === 0){
+                    //     ctx.fillRect(-nookSide, cropper.height / 2 - element.nookSide , element.nookSide / 4, element.nookSide * 2)
+                    // } else {
+                    //     ctx.fillRect(-nookSide, cropper.width / 2 - element.nookSide, element.nookSide / 4, element.nookSide * 2)
+                    // }
+                    ctx.restore()
+                });
+               
 
-                ctx.fillRect(points[1].x + points[1].width / 4 * 3 , points[1].y, points[1].width / 4, points[1].height)
-                ctx.fillRect(points[1].x, points[1].y, points[1].width, points[1].height / 4)
-
-                 ctx.fillRect(points[2].x , points[2].y, points[2].width / 4, points[2].height)
-                ctx.fillRect(points[2].x, points[2].y  + points[2].width / 4 * 3, points[2].width, points[2].height / 4)
-
-                ctx.fillRect(points[3].x + points[3].width / 4 * 3 , points[3].y, points[3].width / 4, points[3].height)
-                ctx.fillRect(points[3].x, points[3].y + points[3].width / 4 * 3, points[3].width, points[3].height / 4)
-                
             },
            // 填充背景
             fillBackground() {
@@ -218,7 +230,7 @@
                     }
                 }
                 //蒙层 
-                ctx.fillStyle = 'rgba(0,0,0,0.1)'
+                ctx.fillStyle = 'rgba(0, 0, 0, .1)'
                 ctx.fillRect(0, 0, width, height)
                  //蒙层 
                 ctx.restore()
@@ -227,10 +239,6 @@
                 const cropper = this.cropper,
                 newCropper = {}
                 switch (this.index) {
-                    case 3:
-                        newCropper.width = x - cropper.x
-                        newCropper.height = y - cropper.y
-                        break;
                     case 0:
                         newCropper.width =  (cropper.x + cropper.width) - x
                         newCropper.height =  (cropper.y + cropper.height) - y
@@ -243,16 +251,20 @@
                         newCropper.height =  (cropper.y + cropper.height) - y
                         newCropper.y = y
                         break;
-                    case 2:
+                    case 3:
                     // y 不会动
                         newCropper.width = (cropper.x + cropper.width) - x
                         newCropper.height = y - cropper.y
                         newCropper.x = x
                         break;
+                    case 2:
+                        newCropper.width = x - cropper.x
+                        newCropper.height = y - cropper.y
+                        break;
                     default:
                         break;
                 }
-                if (newCropper.width <= this.nook.w * 2 || newCropper.height <= this.nook.h * 2) {
+                if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
                     return;
                 }
                 this.cropper = {...this.cropper,...newCropper}
@@ -265,7 +277,6 @@
                 this.draw()
             },
             handleLineMove ({ x, y }) {
-                //   console.log('123456')
                 const cropper = this.cropper,
                 newCropper = {}
                 switch (this.index) {
@@ -287,8 +298,8 @@
                     default:
                         break;
                 }
-                if (newCropper.width <= 30 || newCropper.height <= 30) {
-                    return;
+                if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
+                    return
                 }
                 this.cropper = {...this.cropper,...newCropper}
                 this.draw()
@@ -320,6 +331,7 @@
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
+                e.preventDefault()
                 if (e.touches.length > 1) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
@@ -328,9 +340,9 @@
                 this.startPoint = this.getPointByCoordinate(this.getCoordinateByEvent(e))
             },
             handleMove (e) {
+                e.preventDefault()
                 const touches = e.touches
                 if (touches.length > 1) {
-                    e.preventDefault()
                     const image = this.image
                     let startTouches = this.startTouches
                     let width = image.clientWidth
@@ -367,9 +379,9 @@
                 if (this.points.some((point,i) => {
                     index = i
                     return x > point.x &&
-                    x < point.x + point.width &&
+                    x < point.x + point.nookSide &&
                     y > point.y &&
-                    y < point.y + point.height
+                    y < point.y + point.nookSide
                 })
                 ) {
                     t.type = 'handlePointMove'
@@ -454,60 +466,86 @@
                     // const { mountNode } = this.$refs
                     // mountNode.appendChild(this.canvas)
                 }
+                const cCtx = this.cCtx
                 this.canvas.width = w * pixelRatio
                 this.canvas.height = h * pixelRatio
-                this.cCtx.scale(pixelRatio, pixelRatio)
-                this.cCtx.clearRect(0, 0, w, h)
-                // -------------
-                this.cCtx.drawImage(
-                    image.element,
-                    (image.x - cropper.x)  * quality , //  是负数
-                    (image.y - cropper.y)  * quality, // 负数
-                    image.width * quality ,
-                    image.height * quality
+                cCtx.scale(pixelRatio, pixelRatio)
+                cCtx.clearRect(0, 0, w, h)
+                const rotateAngle = this.rotateAngle || 0
+                this.canvasRotate('img', cCtx, image.element,
+                    rotateAngle,
+                    (image.x - cropper.x)  * quality,
+                    (image.y - cropper.y)  * quality,
+                    image.width* quality,
+                    image.height* quality
                 )
+                // -------------
+                // cCtx.drawImage(
+                //     image.element,
+                //     (image.x - cropper.x)  * quality , //  是负数
+                //     (image.y - cropper.y)  * quality, // 负数
+                //     image.width * quality ,
+                //     image.height * quality
+                // )
                 return new Promise((resolve, reject) => {
                     if(!types[type]) {
                         reject('type = Blob || Base64')
                         return  
                     }
-                    const [left = '50%', top = '50%', size = 1] = this.position
-                    if (this.imgWatermark) {
+                    const [left = '50%', top = '50%', size = 1, angle = 0] = this.position
+                    // angle = this.angle || 0
+                    if (this.imageWatermark) {
                         let watermarkImg = new Image()
-                        watermarkImg.src = this.getFileSrc(this.imgWatermark)
+                        watermarkImg.src = this.getFileSrc(this.imageWatermark)
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size * quality,
-                            height = watermarkImg.height * size * quality
-                            this.cCtx.drawImage(
-                                watermarkImg,
-                                (w - width) * parseInt(left) / 100,
-                                (h - height) * parseInt(top) / 100,
-                                width,
-                                height
-                            )
+                            const width = watermarkImg.width * size,
+                            height = watermarkImg.height * size,
+                            imgX  = ( w - width ) * parseInt(left) / 100 ,
+                            imgY =  (h - height) * parseInt(top) / 100
+                            this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)
                             resolve(types[type](this.canvas, mimeType))
                         }
                         return
                     }             
                     if (this.textWatermark) {
-                        const height = this.limit(12 * size, 12, 30)
-                        this.cCtx.font = height + 'px Georgia'
+                        const height = this.limit(12 * size, 12, 100)
+                        cCtx.font = height + 'px Georgia'
                         const text = this.textWatermark,
-                        width = this.cCtx.measureText(text).width,
-                        x = (w - width)  * parseInt(left) / 100,
-                        y = (h + height / 2)  * parseInt(top) / 100
+                        width = cCtx.measureText(text).width,
+                        textX = (w - width * 1.031 )  * parseInt(left) / 100,
+                        textY = (h - height * 2.82)  * parseInt(top) / 100
                         // 变量申请
-                        this.cCtx.fillStyle =  this.averageColor
+                        cCtx.fillStyle =  this.averageColor
                         // console.log(this.cCtx.fillStyle)
-                        if(this.cCtx.fillStyle === '#ffffff') {
-                            this.cCtx.fillStyle = '#000'
+                        if(cCtx.fillStyle === '#ffffff') {
+                            cCtx.fillStyle = '#000'
                         }
-                        // console.log(w) // x ： 234
-                        this.cCtx.fillText(text, x , y)
+                        this.canvasRotate('text', cCtx, text, angle, textX, textY, width, height)
                         resolve(types[type](this.canvas, mimeType))
+                        return
                     }
+                    resolve(types[type](this.canvas, mimeType))
                 })
+            },
+            canvasRotate(type, ctx, target, angle, x, y, width,height) {
+                ctx.save()
+                const halfHeight = height / 2,
+                halfWidth = width / 2
+                ctx.translate(x + halfWidth, y + halfHeight)
+                ctx.rotate(Math.PI / 180 * angle)
+                if (type === 'img') {
+                    ctx.drawImage(
+                        target,
+                        -halfWidth,
+                        -halfHeight,
+                        width,
+                        height
+                    )
+                } else {
+                    ctx.fillText(target, -halfWidth , -halfHeight)
+                }
+                ctx.restore()
             },
             changeImage(imgAddress) {
                 if (this.noImage) return
@@ -550,7 +588,10 @@
             inputHandle() {
                 document.getElementById('file-input').click()
             },
-            getImageColor(data) {
+            getImageColor(data) { 
+                if (this.color) {
+                    return this.color
+                }
                 let r=0, g=0, b=0
                 // 取所有像素的平均值
                 const num = 50

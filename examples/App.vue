@@ -3,23 +3,29 @@
   <p class="operation"><button @click="getImageData">点我截图</button>
   <button @click="crop.changeImage()">点我换图</button></p>
   <p class="watermark">输入水印文字：
-      <input type="text" placeholder="可以输入水印" v-model="textWatermark" 
-    >
+      <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
+   </p>
+    <p class="watermark">颜色
+      <input type="text" placeholder="16进制颜色" v-model="color" >
    </p>
     <crop
-      style="width:100%;height:360px;background-color: #f1f3f5;"
+      style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
-      :position="['90%', '90%', 2]"
-      :textWatermark = "textWatermark"
+      :position="['70%', '70%', .2, 12]"
+      :imageWatermark = "require('./assets/logo.png')"
+      :rotateAngle= 180
+      :color="color"
     >
           <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-      <!-- <template slot="defaultImgUrl"> 
-        <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
-      </template> -->
+
+      <template slot="defaultImgUrl"> 
+        <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
+      </template>
+
      </crop>
     <div style="text-align:center" v-if="cropAction">
           <p>长按保存图片</p>
@@ -33,8 +39,9 @@ export default {
   name: 'app',
   data() {
     return {
-        imgWatermark: '',
-        textWatermark: '水印',
+        color:'#f60',
+        imgWatermark: require('./../../fbox/ios/Magicbox/Images.xcassets/home/fjsj.imageset/fjsj.png'),
+        textWatermark: '刘继伟&&宋珍',
         crop:{},
         cropAction: false,
         imageData: null
@@ -45,7 +52,6 @@ export default {
       this.imgwatermark = this.imgae = e.target.files[0]
     },
     changeImg(e) {
-      console.log('---')
       this.isimg = true 
       this.imgwatermark  = e.target.files[0]
     },
