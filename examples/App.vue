@@ -3,28 +3,32 @@
   <p class="operation"><button @click="getImageData">点我截图</button>
   <button @click="crop.changeImage()">点我换图</button></p>
   <p class="watermark">输入水印文字：
-      <input type="text" placeholder="可以输入水印" v-model="textWatermark" >
+      <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
    </p>
     <p class="watermark">颜色
       <input type="text" placeholder="16进制颜色" v-model="color" >
    </p>
     <crop
-      style="width:100%;height:360px;background-color: #f1f3f5;"
+      style="width:100%;height:260px;background-color: #f1f3f5;"
       v-model="crop"
-      :position="['90%', '90%', 2]"
+      :position="['70%', '70%', 3, 12]"
       :textWatermark = "textWatermark"
-      :color="color"
+      :angle=45
+      :color=color
     >
           <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
+
       <!-- <template slot="defaultImgUrl"> 
-        <img  src="http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" />
+        <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
       </template> -->
+
      </crop>
-    <div style="text-align:center">
+    <div style="text-align:center" v-if="cropAction">
+          <p>长按保存图片</p>
           <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
     </div>
   </div>
@@ -35,9 +39,9 @@ export default {
   name: 'app',
   data() {
     return {
-        color:'',
-        imgWatermark: '',
-        textWatermark: '水印',
+        color:'#f60',
+        // imgWatermark: require('、、'),
+        textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
         imageData: null
