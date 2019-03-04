@@ -40,7 +40,7 @@
                 cropper: {},
                 startPoint: {},
                 touchBar: {},
-                nookSide: 50,
+                nookSide: 24,
                 rotateAngle: 0
             }
         },
@@ -93,10 +93,10 @@
                         height: currentH / 2
                     }
                     this.touchBar = {
-                        x: width - 100-20,
-                        y: 20,
-                        width: 100,
-                        height: 100
+                        x: width - 60-14,
+                        y: 14,
+                        width: 60,
+                        height: 60
                     }
                     this.scale = k
                     this.draw()
