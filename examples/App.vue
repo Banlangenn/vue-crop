@@ -9,7 +9,7 @@
       <input type="text" placeholder="16进制颜色" v-model="color" >
    </p>
     <crop
-      style="width:100%;height:260px;background-color: #f1f3f5;"
+      style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
       :position="['70%', '70%', 3, 12]"
       :textWatermark = "textWatermark"
