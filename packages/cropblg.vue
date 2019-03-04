@@ -24,7 +24,7 @@
 <script>
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imageWatermark', 'rotateAngle', 'defaultImgUrl', 'color'],
+        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle'],
         data() {
             return {
                 // ready: false,
@@ -39,7 +39,9 @@
                 lines: [],
                 cropper: {},
                 startPoint: {},
-                nookSide: 50
+                touchBar: {},
+                nookSide: 50,
+                rotateAngle: 0
             }
         },
         methods: {
@@ -90,6 +92,12 @@
                         width: currentW  / 2,
                         height: currentH / 2
                     }
+                    this.touchBar = {
+                        x: width - 100-20,
+                        y: 20,
+                        width: 100,
+                        height: 100
+                    }
                     this.scale = k
                     this.draw()
                 }
@@ -97,26 +105,65 @@
             draw() {
                 const { width, height } = this.options
                 // 避免预览到背景
-                this.ctx.clearRect(0, 0, width, height)     
+                this.ctx.clearRect(0, 0, width, height)
+                // console.time('fillBackground')  
                 this.fillBackground()
+                // console.timeEnd('fillBackground')
+                // console.time('fillImage')
                 this.fillImage()
                 if (!this.averageColor) {
                    this.averageColor = this.getImageColor(this.ctx.getImageData( this.cropper.x,  this.cropper.y, 50, 50).data)
                 }
+                // console.timeEnd('fillImage')
+                // console.time('updatePoint')
                 this.updatePoint()
+                // console.timeEnd('updatePoint')
+                //  console.time('fillCropper')
                 this.fillCropper()
+                // console.timeEnd('fillCropper')
+                //  console.time('drawTouchBar')
+                 if (this.angle) {
+                     this.drawTouchBar()
+                 }
+                // console.timeEnd('drawTouchBar')
                 // this.preview()
+            },
+            drawTouchBar() {
+                const ctx = this.ctx,
+                touchBar = this.touchBar,
+                color = this.averageColor,
+                x = touchBar.x + touchBar.width * 0.7,
+                y =  touchBar.y + touchBar.height * 0.64,
+                r = touchBar.width / 3,
+                alpha = 6,
+                h1 =10,
+                h2=15
+                ctx.lineWidth = 4
+                // ctx.fillStyle = '#000';
+                // ctx.fillRect(touchBar.x, touchBar.y, touchBar.width, touchBar.height)
+                ctx.fillStyle = color
+                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width / 3, touchBar.height / 3)
+                ctx.strokeStyle = color
+                ctx.beginPath()
+                ctx.arc(x, y, r, Math.PI/180 * 170, -Math.PI/2 + alpha, false)
+                ctx.stroke()
+                if(alpha < 2*Math.PI) {
+                    const x1 = x + (r - h1) * Math.sin(alpha),
+                    y1 = y - (r - h1) * Math.cos(alpha),
+                    x2 = x + (r + h1) * Math.sin(alpha),
+                    y2 = y - (r + h1) * Math.cos(alpha),
+                    x0 = (x1 + x2) / 2 + h2 * Math.sin(alpha + Math.PI/2),
+                    y0 = (y1 + y2) / 2 - h2 * Math.cos(alpha + Math.PI/2)
+                    ctx.beginPath()
+                    ctx.moveTo(x0, y0)
+                    ctx.lineTo(x1, y1)
+                    ctx.lineTo(x2, y2)
+                    ctx.fill()
+                }
             },
             fillImage() {
                 const image = this.image;
                 const ctx = this.ctx
-                // const halfHeight = image.height / 2,
-                // halfWidth = image.width / 2
-                // ctx.save()
-                // ctx.translate(image.x + halfWidth, image.y + halfHeight)
-                // ctx.rotate(Math.PI / 180 * 90)
-                // ctx.drawImage(image.element, -halfWidth, -halfHeight, image.width, image.height)
-                // ctx.restore()
                 const rotateAngle = this.rotateAngle || 0
                 this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
                 // ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
@@ -124,60 +171,69 @@
             updatePoint() {
                 // 点中点和线 不用 执行 
                 const c = this.cropper;
-                const nookSide =  this.nookSide
+                const nookSide =  this.nookSide,
+                cWidth = c.x + c.width,
+                cHeight = c.y + c.height,
+                forecastX = cWidth - nookSide,
+                forecastY = cHeight - nookSide
                 this.points = [
                     {
                         x: c.x,
                         y: c.y,
-                        nookSide,
+                        width:nookSide,
+                        height:nookSide,
                         diffX: 0,
                         diffY: 0
                     },
                     {
-                        x: c.x + c.width - nookSide ,
+                        x: forecastX ,
                         y: c.y,
-                        nookSide,
+                        width:nookSide,
+                        height:nookSide,
                         diffX: nookSide,
                         diffY: 0
                     },
                     {
-                        x: c.x + c.width - nookSide ,
-                        y: c.y + c.height - nookSide,
-                        nookSide,
+                        x: forecastX ,
+                        y: forecastY,
+                        width:nookSide,
+                        height:nookSide,
                         diffX: nookSide,
                         diffY: nookSide
                     },
                     {
                         x: c.x,
-                        y: c.y + c.height - nookSide,
-                        nookSide,
+                        y: forecastY,
+                        width:nookSide,
+                        height:nookSide,
                         diffX: 0,
                         diffY: nookSide
                     }
                 ]
                 // 寻找四根线
-                const lineHeight = nookSide / .7 / 2
+                const lineHeight = nookSide / .7 / 2,
+                halfLineHeight = lineHeight / 2
                 this.lines = [
                      {
                         x: c.x,
-                        y: c.y - lineHeight / 2,
+                        y: c.y - halfLineHeight,
                         width: c.width,
                         height: lineHeight
                     },
                     {
-                        x: c.x + c.width - lineHeight / 2,
+                        x: cWidth - halfLineHeight,
                         y: c.y,
                         width: lineHeight,
                         height: c.height
                     },
                     {
                         x: c.x,
-                        y: c.y + c.height - lineHeight / 2,
+                        y: cHeight - halfLineHeight,
                         width: c.width,
                         height: lineHeight
                     },
                     {
-                        x: c.x - lineHeight / 2 ,
+                        x: c.x - halfLineHeight,
                         y: c.y,
                         width: lineHeight,
                         height: c.height
@@ -198,8 +254,8 @@
                     ctx.save()
                     ctx.translate(element.x + element.diffX, element.y + element.diffY)
                     ctx.rotate(index * 90 * (Math.PI/180))
-                    ctx.fillRect(-nookSide, -nookSide, element.nookSide, nookSide * 2)
-                    ctx.fillRect(-nookSide, -nookSide, nookSide * 2, element.nookSide)
+                    ctx.fillRect(-nookSide, -nookSide, element.height, nookSide * 2)
+                    ctx.fillRect(-nookSide, -nookSide, nookSide * 2, element.width)
                     // if(index % 2 === 0){
                     //     ctx.fillRect(-nookSide, cropper.height / 2 - element.nookSide , element.nookSide / 4, element.nookSide * 2)
                     // } else {
@@ -215,7 +271,7 @@
                 // 多个变量可以用逗号 一次赋值
                 const { width, height } = this.options
                 const ctx = this.ctx,
-                side = 15 ,//width / 80,
+                side = 30 ,//width / 80,
                 x = Math.ceil(width / side),
                 y = Math.ceil(height / side)
                 // Math.ceil 向上取整
@@ -235,37 +291,74 @@
                  //蒙层 
                 ctx.restore()
             },
+            getNewCropper(touchX, touchY ,cropper) {
+               return {
+                    cropperWidth:(cropper.x + cropper.width) - touchX,
+                    cropperHeight: (cropper.y + cropper.height) - touchY,
+                    cropperX: touchX - cropper.x,
+                    cropperY: touchY - cropper.y
+               }
+            },
             handlePointMove({ x, y }) {
                 const cropper = this.cropper,
-                newCropper = {}
+                newCropper = {},
+                { cropperWidth, cropperHeight, cropperX, cropperY } = this.getNewCropper(x, y, cropper)
                 switch (this.index) {
                     case 0:
-                        newCropper.width =  (cropper.x + cropper.width) - x
-                        newCropper.height =  (cropper.y + cropper.height) - y
+                        newCropper.width =  cropperWidth
+                        newCropper.height = cropperHeight
                         newCropper.x = x
                         newCropper.y = y
                         break;
                     case 1:
                     // x  不会动
-                        newCropper.width =  x - cropper.x
-                        newCropper.height =  (cropper.y + cropper.height) - y
+                        newCropper.width =  cropperX
+                        newCropper.height =  cropperHeight
                         newCropper.y = y
                         break;
                     case 3:
                     // y 不会动
-                        newCropper.width = (cropper.x + cropper.width) - x
-                        newCropper.height = y - cropper.y
+                        newCropper.width = cropperWidth
+                        newCropper.height = cropperY
                         newCropper.x = x
                         break;
                     case 2:
-                        newCropper.width = x - cropper.x
-                        newCropper.height = y - cropper.y
+                        newCropper.width = cropperX
+                        newCropper.height = cropperY
                         break;
                     default:
                         break;
                 }
-                if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
-                    return;
+                this.renderCropper(newCropper)
+            },
+            handleLineMove ({ x, y }) {
+                const cropper = this.cropper,
+                newCropper = {},
+                { cropperWidth, cropperHeight, cropperX, cropperY } = this.getNewCropper(x, y, cropper)
+                switch (this.index) {
+                    case 3:
+                        newCropper.width = cropperWidth
+                        newCropper.x = x // 限制
+                        break;
+                    case 0:
+                        newCropper.height = cropperHeight
+                        newCropper.y = y // 限制
+                        break;
+                    case 1:
+                        newCropper.width = cropperX
+                        break;
+                    case 2:
+                    // y 不会动
+                        newCropper.height = cropperY
+                        break;
+                    default:
+                        break;
+                }
+                this.renderCropper(newCropper)
+            },
+            renderCropper(newCropper) {
+                 if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
+                    return
                 }
                 this.cropper = {...this.cropper,...newCropper}
                 this.draw()
@@ -276,48 +369,20 @@
                 this.image.y = y - s.offsetY
                 this.draw()
             },
-            handleLineMove ({ x, y }) {
-                const cropper = this.cropper,
-                newCropper = {}
-                switch (this.index) {
-                    case 3:
-                        newCropper.width = (cropper.x + cropper.width) - x
-                        newCropper.x = x // 限制
-                        break;
-                    case 0:
-                        newCropper.height =  (cropper.y + cropper.height) - y
-                        newCropper.y = y // 限制
-                        break;
-                    case 1:
-                        newCropper.width =  x - cropper.x
-                        break;
-                    case 2:
-                    // y 不会动
-                        newCropper.height = y - cropper.y
-                        break;
-                    default:
-                        break;
-                }
-                if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
-                    return
-                }
-                this.cropper = {...this.cropper,...newCropper}
-                this.draw()
-            },
-            handleCropperMove({ x, y }) {
-                const { width, height } = this.options;
-                const s = this.startPoint;
-                const oX = s.offsetX;
-                const oY = s.offsetY;
-                const maxX = width - this.cropper.width;
-                const maxY = height - this.cropper.height;
-                let currentX = x - oX,
-                currentY = y - oY;
-                // 判断边界
-                this.cropper.x = this.limit(currentX, 0, maxX)
-                this.cropper.y = this.limit(currentY, 0, maxY)
-                this.draw()
-            },
+            // handleCropperMove({ x, y }) {
+            //     const { width, height } = this.options;
+            //     const s = this.startPoint;
+            //     const oX = s.offsetX;
+            //     const oY = s.offsetY;
+            //     const maxX = width - this.cropper.width;
+            //     const maxY = height - this.cropper.height;
+            //     let currentX = x - oX,
+            //     currentY = y - oY;
+            //     // 判断边界
+            //     this.cropper.x = this.limit(currentX, 0, maxX)
+            //     this.cropper.y = this.limit(currentY, 0, maxY)
+            //     this.draw()
+            // },
             getCoordinateByEvent(e){
                 const rect = e.target.getBoundingClientRect(),
                 touch = e.touches[0],
@@ -326,7 +391,8 @@
                     y: touch.clientY - rect.top
                 },
                 { width, height } = this.options
-                if (coordinate.x <= 2 || coordinate.y <= 2 || coordinate.x >= width - 2 || coordinate.y >= height - 2) return 
+                // move 到边
+                if (coordinate.x <= 2 || coordinate.y <= 2 || coordinate.x >= width - 2 || coordinate.y >= height - 2) return
                 return coordinate
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
@@ -357,9 +423,9 @@
                     height = image.clientHeight * this.scale
                     this.image.x += (image.width - width) / 2
                     this.image.y += (image.height - height) / 2
-                    this.image.width = width;
-                    this.image.height = height;
-                    this.draw();
+                    this.image.width = width
+                    this.image.height = height
+                    this.draw()
                     return
                 }
                 const type = this.startPoint.type
@@ -367,19 +433,25 @@
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
+            checkRegion(x,y,target) {
+                return x > target.x &&
+                    x < target.x + target.width &&
+                    y > target.y &&
+                    y < target.y + target.height
+            },
             getPointByCoordinate({x, y}) {
-                // const point = this.point;
-                // const cropper = this.cropper;
-                const image = this.image;
+                const image = this.image,
+                touchBar = this.touchBar
                 let t = {}
                 let index = 0
+                if (this.checkRegion(x,y,touchBar)) {
+                    this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
+                    this.draw()
+                }  
                 // 四个角移动         
-                if (this.points.some((point,i) => {
+                else if (this.points.some((point,i) => {
                     index = i
-                    return x > point.x &&
-                    x < point.x + point.nookSide &&
-                    y > point.y &&
-                    y < point.y + point.nookSide
+                    return this.checkRegion(x,y,point)
                 })
                 ) {
                     t.type = 'handlePointMove'
@@ -388,10 +460,7 @@
                 // 四根线移动
                 else if (this.lines.some((line,i) => {
                     index = i
-                    return x > line.x &&
-                    x < line.x + line.width &&
-                    y > line.y &&
-                    y < line.y + line.height
+                    return this.checkRegion(x,y,line)
                 }) 
                 ) {
                     t.type = 'handleLineMove'
@@ -409,13 +478,7 @@
                 // t.type = 'handleCropperMove'
                 // }
                 // 图片移动
-                else if (
-                    image &&
-                    x > image.x &&
-                    x < image.x + image.width &&
-                    y > image.y &&
-                    y < image.y + image.height
-                ) {
+                else if (this.checkRegion(x,y,image)) {
                     t.offsetX = x - image.x
                     t.offsetY = y - image.y
                     t.type = 'handleImageMove'
@@ -497,8 +560,8 @@
                         watermarkImg.src = this.getFileSrc(this.imageWatermark)
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size,
-                            height = watermarkImg.height * size,
+                            const width = watermarkImg.width * size * quality,
+                            height = watermarkImg.height * size * quality,
                             imgX  = ( w - width ) * parseInt(left) / 100 ,
                             imgY =  (h - height) * parseInt(top) / 100
                             this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)

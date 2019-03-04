@@ -13,8 +13,7 @@
       v-model="crop"
       :position="['70%', '70%', .2, 12]"
       :imageWatermark = "require('./assets/logo.png')"
-      :rotateAngle= 180
-      :color="color"
+      :angle= 30
     >
           <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
@@ -40,8 +39,8 @@ export default {
   data() {
     return {
         color:'#f60',
-        imgWatermark: require('./../../fbox/ios/Magicbox/Images.xcassets/home/fjsj.imageset/fjsj.png'),
-        textWatermark: '刘继伟&&宋珍',
+        // imgWatermark: require('、、'),
+        textWatermark: '水印是谁？',
         crop:{},
         cropAction: false,
         imageData: null

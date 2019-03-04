@@ -37,11 +37,12 @@ Vue.use(crop)
 | 参数   |  说明  |  类型 |   可选值 |默认值 |
 |--------|:-------:|------:|------:|------:|
 | v-model |  组件 | Object|-- | --|
-| position | 水印位置大小[x,y,size]  | Array|--| ['90%', '90%',1]|
+| position | 水印位置大小角度[x,y,size,angle]  | Array|--| ['90%', '90%',1,0]|
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|
 | defaultImgUrl | 默认图片  | File / String|--|--|
-| color | 水印和编辑框颜色  | String|16进制颜色| 反差最大颜色|
+| angle | 控制按钮旋转角度  | Number|--| 反差最大颜色|
+| color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
 ### Methods
 | 方法名   |  说明  | 参数 |
 |--------|:-------:|------:|
