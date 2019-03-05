@@ -93,8 +93,8 @@
                         height: currentH / 2
                     }
                     this.touchBar = {
-                        x: width - 60-14,
-                        y: 14,
+                        x: width - 60 - 14,
+                        y: 10,
                         width: 60,
                         height: 60
                     }
@@ -132,20 +132,20 @@
                 const ctx = this.ctx,
                 touchBar = this.touchBar,
                 color = this.averageColor,
-                x = touchBar.x + touchBar.width * 0.7,
+                x = touchBar.x + touchBar.width * 0.6,
                 y =  touchBar.y + touchBar.height * 0.64,
-                r = touchBar.width / 3,
+                r = touchBar.width * 0.41,
                 alpha = 6,
-                h1 =10,
-                h2=15
-                ctx.lineWidth = 4
+                h1 = touchBar.width * 0.1,
+                h2 =  touchBar.width * 0.18
+                ctx.lineWidth = 2
                 // ctx.fillStyle = '#000';
                 // ctx.fillRect(touchBar.x, touchBar.y, touchBar.width, touchBar.height)
                 ctx.fillStyle = color
-                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width / 3, touchBar.height / 3)
+                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width * 0.43, touchBar.height * 0.43)
                 ctx.strokeStyle = color
                 ctx.beginPath()
-                ctx.arc(x, y, r, Math.PI/180 * 170, -Math.PI/2 + alpha, false)
+                ctx.arc(x, y, r, Math.PI/180 * 180, -Math.PI/2 + alpha, false)
                 ctx.stroke()
                 if(alpha < 2*Math.PI) {
                     const x1 = x + (r - h1) * Math.sin(alpha),
