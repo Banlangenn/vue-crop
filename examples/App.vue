@@ -5,14 +5,27 @@
   <p class="watermark">输入水印文字：
       <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
    </p>
-    <p class="watermark">颜色
-      <input type="text" placeholder="16进制颜色" v-model="color" >
+    <!-- <p class="watermark">水印图片
+      <input type="file" placeholder="点击产选择水印图片"  @change="uploadImg">
    </p>
+   <p class="watermark">水印X轴百分比
+      <input type="text" placeholder="x" v-model="option[0]">
+   </p>
+    <p class="watermark">水印Y轴百分比
+      <input type="text" placeholder="x" v-model="option[1]">
+   </p>
+    <p class="watermark">水印大小
+      <input type="text" placeholder="x" v-model="option[2]">
+   </p>
+    <p class="watermark">水印旋转角度
+      <input type="text" placeholder="x" v-model="option[3]">
+   </p> -->
     <crop
       style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
-      :position="['70%', '70%', 3, 12]"
+      :position="option"
       :textWatermark = "textWatermark"
+      :imageWatermark="imgWatermark"
       :angle=45
       :color=color
     >
@@ -21,10 +34,10 @@
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-
+<!-- 
       <template slot="defaultImgUrl"> 
         <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
-      </template>
+      </template> -->
 
      </crop>
     <div style="text-align:center" v-if="cropAction">
@@ -39,8 +52,9 @@ export default {
   name: 'app',
   data() {
     return {
+        option: ['70%', '70%', 0.2, 12],
         color:'#f60',
-        // imgWatermark: require('、、'),
+        imgWatermark: '',
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
@@ -49,11 +63,7 @@ export default {
   },
   methods: {
     uploadImg(e) {
-      this.imgwatermark = this.imgae = e.target.files[0]
-    },
-    changeImg(e) {
-      this.isimg = true 
-      this.imgwatermark  = e.target.files[0]
+      this.imgWatermark = e.target.files[0]
     },
     async getImageData() {
          const imageData = await this.crop.getImage('Base64', 'image/png', 2)

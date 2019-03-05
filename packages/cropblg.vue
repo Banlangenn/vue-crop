@@ -46,10 +46,9 @@
         },
         methods: {
             animation(img){
-                if (img) {
                     const clientW = img.width,
-                    clientH = img.height;
-                    const { width, height } = this.options
+                    clientH = img.height,
+                    { width, height } = this.options
                     let currentW = clientW,
                         currentH = clientH,
                         k = 1; // contain 时的缩放比
@@ -100,7 +99,6 @@
                     }
                     this.scale = k
                     this.draw()
-                }
             },
             draw() {
                 const { width, height } = this.options
@@ -164,7 +162,7 @@
             fillImage() {
                 const image = this.image;
                 const ctx = this.ctx
-                const rotateAngle = this.rotateAngle || 0
+                const rotateAngle = this.rotateAngle
                 this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
                 // ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
             },
@@ -269,8 +267,8 @@
            // 填充背景
             fillBackground() {
                 // 多个变量可以用逗号 一次赋值
-                const { width, height } = this.options
-                const ctx = this.ctx,
+                const { width, height } = this.options, 
+                ctx = this.ctx,
                 side = 30 ,//width / 80,
                 x = Math.ceil(width / side),
                 y = Math.ceil(height / side)
@@ -532,7 +530,7 @@
                 this.canvas.height = h * pixelRatio
                 cCtx.scale(pixelRatio, pixelRatio)
                 cCtx.clearRect(0, 0, w, h)
-                const rotateAngle = this.rotateAngle || 0
+                const rotateAngle = this.rotateAngle
                 this.canvasRotate('img', cCtx, image.element,
                     rotateAngle,
                     (image.x - cropper.x)  * quality,
