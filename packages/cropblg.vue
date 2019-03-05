@@ -28,7 +28,7 @@
         data() {
             return {
                 // ready: false,
-                noImage:true,
+                noImage: true,
                 ctx: null,
                 options: null,
                 pixelRatio: null,
@@ -40,7 +40,7 @@
                 cropper: {},
                 startPoint: {},
                 touchBar: {},
-                nookSide: 24,
+                nookSide: 30,
                 rotateAngle: 0
             }
         },
@@ -112,7 +112,7 @@
                 // console.time('fillImage')
                 this.fillImage()
                 if (!this.averageColor) {
-                   this.averageColor = this.getImageColor(this.ctx.getImageData( this.cropper.x,  this.cropper.y, 50, 50).data)
+                   this.averageColor = this.getImageColor(this.ctx.getImageData(this.cropper.x,  this.cropper.y, 50, 50).data)
                 }
                 // console.timeEnd('fillImage')
                 // console.time('updatePoint')
@@ -131,7 +131,7 @@
             drawTouchBar() {
                 const ctx = this.ctx,
                 touchBar = this.touchBar,
-                color = this.averageColor,
+                color = this.color || this.averageColor,
                 x = touchBar.x + touchBar.width * 0.6,
                 y =  touchBar.y + touchBar.height * 0.64,
                 r = touchBar.width * 0.41,
@@ -244,7 +244,7 @@
                 const ctx = this.ctx,
                 cropper = this.cropper,
                 points = this.points,
-                color = this.averageColor
+                color = this.color || this.averageColor
                 ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
@@ -577,7 +577,7 @@
                         textX = (w - width * 1.031 )  * parseInt(left) / 100,
                         textY = (h - height * 2.82)  * parseInt(top) / 100
                         // 变量申请
-                        cCtx.fillStyle =  this.averageColor
+                        cCtx.fillStyle = this.color || this.averageColor
                         // console.log(this.cCtx.fillStyle)
                         if(cCtx.fillStyle === '#ffffff') {
                             cCtx.fillStyle = '#000'
