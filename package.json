@@ -2,7 +2,7 @@
   "name": "vue-cropblg",
   "main": "./lib/vue-cropblg.umd.min",
   "description": "vue 图片裁剪插件",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
