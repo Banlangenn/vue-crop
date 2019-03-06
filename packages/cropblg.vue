@@ -85,6 +85,7 @@
                         k = currentH / clientH
                         currentW = k * clientW
                     }
+                    this.scale = k
                     // 针对小图片
                     this.image = {
                         element: img,
