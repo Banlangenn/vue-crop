@@ -1,33 +1,26 @@
 <template>
   <div id="app">
-  <p class="operation"><button @click="getImageData">点我截图</button>
-  <button @click="crop.changeImage()">点我换图</button></p>
+  <p class="operation"><button class="blue" @click="getImageData">点我截图</button>
+  <button class="blue" @click="crop.changeImage()">点我换图</button></p>
   <p class="watermark">输入水印文字：
       <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
    </p>
-    <!-- <p class="watermark">水印图片
-      <input type="file" placeholder="点击产选择水印图片"  @change="uploadImg">
+    <p class="watermark">输入水印颜色：
+      <input type="text" placeholder="可以输入水印" v-model="color" >      
    </p>
-   <p class="watermark">水印X轴百分比
-      <input type="text" placeholder="x" v-model="option[0]">
-   </p>
-    <p class="watermark">水印Y轴百分比
-      <input type="text" placeholder="x" v-model="option[1]">
-   </p>
-    <p class="watermark">水印大小
-      <input type="text" placeholder="x" v-model="option[2]">
-   </p>
-    <p class="watermark">水印旋转角度
-      <input type="text" placeholder="x" v-model="option[3]">
-   </p> -->
+    <p class="operation">
+      <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形截图</button>
+      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形换图</button>
+    </p>
     <crop
       style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
       :position="option"
       :textWatermark = "textWatermark"
       :imageWatermark="imgWatermark"
-      :angle=45
+      :angle=15
       :color=color
+      :shape=shape
     >
           <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
@@ -58,7 +51,8 @@ export default {
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
-        imageData: null
+        imageData: null,
+        shape: 'arc'
     }
   },
   methods: {
@@ -98,6 +92,14 @@ export default {
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently not supported by any browser */
   }
+  .operation .blue {
+    border-radius: 4px;
+    color: #fff;
+    background-color: #1890ff;
+    border-color: #1890ff;
+    border-style: solid;
+    
+  }
   .operation button {
     position: relative;
     display: inline-block;
@@ -120,10 +122,10 @@ export default {
     height: 32px;
     padding: 0 15px;
     font-size: 14px;
-    border-radius: 4px;
-     color: #fff;
-    background-color: #1890ff;
+    color: rgba(0,0,0,0.65);
+    background-color: #fff;
     border-color: #1890ff;
+    border-style: dashed;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.12);
     -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     box-shadow: 0 2px 0 rgba(0,0,0,0.045);
