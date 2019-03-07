@@ -1,17 +1,58 @@
 <template>
   <div id="app">
-  <p class="operation"><button class="blue" @click="getImageData">点我截图</button>
-  <button class="blue" @click="crop.changeImage()">点我换图</button></p>
   <p class="watermark">输入水印文字：
       <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
    </p>
     <p class="watermark">输入水印颜色：
       <input type="text" placeholder="可以输入水印" v-model="color" >      
    </p>
+       <p class="range">
+     <span>水印X方位：{{option[0]}}%</span>
+      <range
+        v-model="option[0]"
+        :min="0"
+        :max="100"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+    <p class="range">
+     <span>水印Y方位：{{option[1]}}%</span>
+      <range
+        v-model="option[1]"
+        :min="0"
+        :max="100"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+       <p class="range">
+     <span>水印大小：{{option[2]}}</span>
+      <range
+        v-model="option[2]"
+        :min="0.1"
+        :max="30"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+     <p class="range">
+     <span>水印旋转角度：{{option[3]}}°</span>
+      <range
+        v-model="option[3]"
+        :min="0"
+        :max="360"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
     <p class="operation">
       <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形截图</button>
-      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形换图</button>
+      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形截图</button>
+      <button class="blue" @click="crop.changeImage()">点我换图</button>
+      <button class="blue operationButton" @click="getImageData" >点我截图</button>
     </p>
+
     <crop
       style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
@@ -41,19 +82,24 @@
 </template>
 
 <script>
+import range from './Range'
 export default {
   name: 'app',
   data() {
     return {
-        option: ['70%', '70%', 0.2, 12],
+        option: [70, 70, 0.2, 12],
         color:'#f60',
         imgWatermark: '',
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
         imageData: null,
-        shape: 'arc'
+        shape: 'arc',
+        rangeValue: 50
     }
+  },
+  components: {
+    range
   },
   methods: {
     uploadImg(e) {
@@ -100,6 +146,7 @@ export default {
     border-style: solid;
     
   }
+  
   .operation button {
     position: relative;
     display: inline-block;
@@ -131,6 +178,23 @@ export default {
     box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     line-height: 1.499;
     margin: 20px;
+  }
+  .operation .operationButton {
+    height: 40px;
+    padding: 0 25px;
+    font-size: 20px;
+    /* line-height: 42px; */
+  }
+  .range {
+    display: flex;
+    padding: 10px 10%
+
+  }
+  .range> span {
+    flex: 1
+  }
+  .range > div {
+    flex: 2.5
   }
   .watermark input {
     /* -webkit-appearance: none; */
