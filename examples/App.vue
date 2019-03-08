@@ -30,8 +30,8 @@
      <span>水印大小：{{option[2]}}</span>
       <range
         v-model="option[2]"
-        :min="0.1"
-        :max="30"
+        :min="0"
+        :max="100"
         :step="1"
         :bar-height="5">
       </range>
@@ -58,8 +58,8 @@
       v-model="crop"
       :position="option"
       :textWatermark = "textWatermark"
-      :imageWatermark="imgWatermark"
       :angle=15
+      :imageWatermark="imgWatermark"
       :color=color
       :shape=shape
     >
@@ -87,9 +87,9 @@ export default {
   name: 'app',
   data() {
     return {
-        option: [70, 70, 0.2, 12],
+        option: [50, 50, 2, 0],
         color:'#f60',
-        imgWatermark: '',
+        imgWatermark: require('./assets/logo.png'),
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,

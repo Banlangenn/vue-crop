@@ -556,17 +556,13 @@
                 } : this.cropper,
                 pixelRatio = this.pixelRatio,
                 types = {
-                    Base64(canvas, mimeType) {
-                        return new Promise((resolve) => {
-                            resolve(canvas.toDataURL(mimeType))
-                        })
+                    Base64(canvas, mimeType, resolve) {
+                        resolve(canvas.toDataURL(mimeType))
                     },
-                    Blob(canvas, mimeType){
-                        return new Promise((resolve) => {
-                            canvas.toBlob((blob)=> {
-                                resolve(blob)
-                            }, mimeType)
-                        })
+                    Blob(canvas, mimeType, resolve){
+                        canvas.toBlob((blob)=> {
+                            resolve(blob)
+                        }, mimeType)
                     } 
                 },
                 w = cropper.width * quality ,
@@ -612,18 +608,17 @@
                         return  
                     }
                     const [left = '50%', top = '50%', size = 1, angle = 0] = this.position
-                    // angle = this.angle || 0
                     if (this.imageWatermark) {
                         let watermarkImg = new Image()
                         watermarkImg.src = this.getFileSrc(this.imageWatermark)
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size * quality,
-                            height = watermarkImg.height * size * quality,
+                            const width = watermarkImg.width * size * quality / 100,
+                            height = watermarkImg.height * size * quality / 100,
                             imgX  = ( w - width ) * parseInt(left) / 100 ,
                             imgY =  (h - height) * parseInt(top) / 100
                             this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)
-                            resolve(types[type](this.canvas, mimeType))
+                            types[type](this.canvas, mimeType, resolve)
                         }
                         return
                     }             
@@ -641,10 +636,10 @@
                             cCtx.fillStyle = '#000'
                         }
                         this.canvasRotate('text', cCtx, text, angle, textX, textY, width, height)
-                        resolve(types[type](this.canvas, mimeType))
+                        types[type](this.canvas, mimeType, resolve)
                         return
                     }
-                    resolve(types[type](this.canvas, mimeType))
+                    types[type](this.canvas, mimeType, resolve)
                 })
             },
             canvasRotate(type, ctx, target, angle, x, y, width,height) {
@@ -711,21 +706,21 @@
                 let r=0, g=0, b=0
                 // 取所有像素的平均值
                 const num = 50
-                for (var row = 0; row < num; row++) {
-                    for (var col = 0; col < num; col++) {
-                        r += data[((num * row) + col) * 4];
-                        g += data[((num * row) + col) * 4 + 1];
-                        b += data[((num * row) + col) * 4 + 2];
+                for (let row = 0; row < num; row++) {
+                    for (let col = 0; col < num; col++) {
+                        r += data[((num * row) + col) * 4]
+                        g += data[((num * row) + col) * 4 + 1]
+                        b += data[((num * row) + col) * 4 + 2]
                     }
                 }
                 // 求取平均值
-                r /= (num * num);
-                g /= (num * num);
-                b /= (num * num);
+                r /= (num * num)
+                g /= (num * num)
+                b /= (num * num)
                 // 将最终的值取整
-                r = Math.round(r);
-                g = Math.round(g);
-                b = Math.round(b);
+                r = Math.round(r)
+                g = Math.round(g)
+                b = Math.round(b)
                 return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
             }
         },
