@@ -1,7 +1,7 @@
 
 ## vue-cropblg
 ```
-vue 图片裁剪插件
+vue 图片裁剪插件  http://www.wwwwxy.top/html/blg/
 ``` 
 
 ## Installation
