@@ -88,7 +88,7 @@ export default {
   data() {
     return {
         option: [50, 50, 2, 0],
-        color:'#f60',
+        color:'',
         imgWatermark: require('./assets/logo.png'),
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
@@ -99,11 +99,19 @@ export default {
     }
   },
   components: {
-    range
+      range
+  },
+  created(){
+    if(!this.isMobile()){
+      alert('暂不支持pc')
+    }
   },
   methods: {
     uploadImg(e) {
       this.imgWatermark = e.target.files[0]
+    },
+    isMobile() {
+        return (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))
     },
     async getImageData() {
          const imageData = await this.crop.getImage('Base64', 'image/png', 2)

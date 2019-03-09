@@ -36,6 +36,7 @@ Vue.use(crop)
 | 参数   |  说明  |  类型 |   可选值 |默认值 |
 |--------|:-------:|------:|------:|------:|
 | v-model |  组件 | Object|-- | --|
+|shape |  截图形状 |  String  |rect/arc | rect|
 | position | 水印位置大小角度[x,y,size,angle]  | Array|--| ['90%', '90%',1,0]|
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|

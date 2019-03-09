@@ -4,7 +4,6 @@
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
         style=" overflow: hidden;"
-   
     >
          <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
@@ -55,7 +54,7 @@
             }
         },
         methods: {
-            animation(img){
+            init(img){
                     const clientW = img.width,
                     clientH = img.height,
                     { width, height } = this.options
@@ -119,7 +118,8 @@
                     this.draw()
             },
             draw() {
-                const { width, height } = this.options
+                const { width, height } = this.options,
+                shape = this.shape || 'rect'
                 // 避免预览到背景
                 this.ctx.clearRect(0, 0, width, height)
                 // console.time('fillBackground')  
@@ -131,7 +131,7 @@
                 if (!this.averageColor) {
                         this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
                 }
-                if (this.shape === 'arc') {
+                if (shape === 'arc') {
                     this.fillArcCropper()
                 } else {
                     this.updatePoint()
@@ -186,8 +186,8 @@
             },
             updatePoint() {
                 // 点中点和线 不用 执行 
-                const c = this.cropper;
-                const nookSide =  this.nookSide,
+                const c = this.cropper,
+                nookSide =  this.nookSide,
                 cWidth = c.x + c.width,
                 cHeight = c.y + c.height,
                 forecastX = cWidth - nookSide,
@@ -481,7 +481,8 @@
             },
             getPointByCoordinate({x, y}) {
                 const image = this.image,
-                touchBar = this.touchBar
+                touchBar = this.touchBar,
+                shape = this.shape || 'rect'
                 let t = {}
                 let index = 0
                 if (this.checkRegion(x,y,touchBar)) {
@@ -490,11 +491,11 @@
                     return
                 }
                 // 圆移动
-                else if (this.shape === 'arc' && this.checkArc(x, y)) {
+                else if (shape === 'arc' && this.checkArc(x, y)) {
                     t.type = 'handleArcMove'
                 }
                 // 四个角移动         
-                else if (this.shape !== 'arc' && this.points.some((point,i) => {
+                else if (shape !== 'arc' && this.points.some((point,i) => {
                     index = i
                     return this.checkRegion(x,y,point)
                 })
@@ -503,7 +504,7 @@
                     this.index = index
                 }
                 // 四根线移动
-                else if (this.shape !== 'arc' && this.lines.some((line,i) => {
+                else if (shape !== 'arc' && this.lines.some((line,i) => {
                     index = i
                     return this.checkRegion(x,y,line)
                 }) 
@@ -547,8 +548,9 @@
             getImage(type='Base64', mimeType='image/jpeg', quality=1) {
                 if (this.noImage) return
                 const image = this.image,
+                shape = this.shape || 'rect',
                 // cropper = this.cropper,
-                cropper = this.shape === 'arc' ? {
+                cropper = shape === 'arc' ? {
                     x: this.arc.x - this.arc.r,
                     y: this.arc.y - this.arc.r,
                     width:  this.arc.r * 2 ,
@@ -580,7 +582,7 @@
                 cCtx.scale(pixelRatio, pixelRatio)
                 cCtx.clearRect(0, 0, w, h)
                 const rotateAngle = this.rotateAngle
-                if (this.shape === 'arc') {
+                if (shape === 'arc') {
                     const radius = cropper.width
                     cCtx.beginPath()
                     cCtx.lineWidth = 10
@@ -696,7 +698,7 @@
                 img.crossOrigin = 'anonymous'
                 img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
-                    this.animation(img)
+                    this.init(img)
                 }
             },
             inputHandle() {
