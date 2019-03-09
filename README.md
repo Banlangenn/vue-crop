@@ -1,7 +1,7 @@
 
 ## vue-cropblg
 vue 图片裁剪插件  
-## [演示链接](http://www.wwwwxy.top/html/blg/)
+## [演示链接（戳我直达）](http://www.wwwwxy.top/html/blg/)
 
 ## Installation
 
