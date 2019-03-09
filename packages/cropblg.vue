@@ -4,7 +4,9 @@
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
         style=" overflow: hidden;"
+   
     >
+         <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
         <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
@@ -24,11 +26,11 @@
 <script>
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle'],
+        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'shape'],
         data() {
             return {
                 // ready: false,
-                noImage:true,
+                noImage: true,
                 ctx: null,
                 options: null,
                 pixelRatio: null,
@@ -38,21 +40,28 @@
                 points: [],
                 lines: [],
                 cropper: {},
+                corePoint: {},
                 startPoint: {},
                 touchBar: {},
-                nookSide: 24,
+                nookSide: 30,
                 rotateAngle: 0
+            }
+        },
+        watch: {
+            shape() {
+                if (!this.noImage) {
+                    this.draw()
+                }
             }
         },
         methods: {
             animation(img){
-                if (img) {
                     const clientW = img.width,
-                    clientH = img.height;
-                    const { width, height } = this.options
+                    clientH = img.height,
+                    { width, height } = this.options
                     let currentW = clientW,
                         currentH = clientH,
-                        k = 1; // contain 时的缩放比
+                        k = 1 // contain 时的缩放比
                     // contain 图片
                     if (clientW > width) {
                         currentW = width
@@ -60,7 +69,7 @@
                         currentH = k * clientH
                     }
                     if (currentH > height) {
-                        currentH = height;
+                        currentH = height
                         k = currentH / clientH
                         currentW = k * clientW
                     }
@@ -76,6 +85,7 @@
                         k = currentH / clientH
                         currentW = k * clientW
                     }
+                    this.scale = k
                     // 针对小图片
                     this.image = {
                         element: img,
@@ -86,6 +96,14 @@
                         clientWidth: clientW,
                         clientHeight: clientH
                     }
+
+                    const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
+                    this.maxRadius = Math.min(width, height) / 2
+                    this.arc = {
+                        x: corePoint.x,
+                        y: corePoint.y,
+                        r: this.maxRadius  / 2
+                    }
                     this.cropper = {
                         x: (width - currentW / 2) / 2,
                         y: (height - currentH / 2) / 2,
@@ -93,14 +111,12 @@
                         height: currentH / 2
                     }
                     this.touchBar = {
-                        x: width - 60-14,
-                        y: 14,
+                        x: width - 60 - 14,
+                        y: 10,
                         width: 60,
                         height: 60
                     }
-                    this.scale = k
                     this.draw()
-                }
             },
             draw() {
                 const { width, height } = this.options
@@ -111,41 +127,41 @@
                 // console.timeEnd('fillBackground')
                 // console.time('fillImage')
                 this.fillImage()
-                if (!this.averageColor) {
-                   this.averageColor = this.getImageColor(this.ctx.getImageData( this.cropper.x,  this.cropper.y, 50, 50).data)
-                }
                 // console.timeEnd('fillImage')
-                // console.time('updatePoint')
-                this.updatePoint()
-                // console.timeEnd('updatePoint')
-                //  console.time('fillCropper')
-                this.fillCropper()
-                // console.timeEnd('fillCropper')
+                if (!this.averageColor) {
+                        this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
+                }
+                if (this.shape === 'arc') {
+                    this.fillArcCropper()
+                } else {
+                    this.updatePoint()
+                    this.fillRectCropper()
+                }
                 //  console.time('drawTouchBar')
-                 if (this.angle) {
-                     this.drawTouchBar()
-                 }
+                if (this.angle) {
+                    this.drawTouchBar()
+                }
                 // console.timeEnd('drawTouchBar')
                 // this.preview()
             },
             drawTouchBar() {
                 const ctx = this.ctx,
                 touchBar = this.touchBar,
-                color = this.averageColor,
-                x = touchBar.x + touchBar.width * 0.7,
+                color = this.color || this.averageColor,
+                x = touchBar.x + touchBar.width * 0.6,
                 y =  touchBar.y + touchBar.height * 0.64,
-                r = touchBar.width / 3,
+                r = touchBar.width * 0.41,
                 alpha = 6,
-                h1 =10,
-                h2=15
-                ctx.lineWidth = 4
+                h1 = touchBar.width * 0.1,
+                h2 =  touchBar.width * 0.18
+                ctx.lineWidth = 2
                 // ctx.fillStyle = '#000';
                 // ctx.fillRect(touchBar.x, touchBar.y, touchBar.width, touchBar.height)
                 ctx.fillStyle = color
-                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width / 3, touchBar.height / 3)
+                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width * 0.43, touchBar.height * 0.43)
                 ctx.strokeStyle = color
                 ctx.beginPath()
-                ctx.arc(x, y, r, Math.PI/180 * 170, -Math.PI/2 + alpha, false)
+                ctx.arc(x, y, r, Math.PI/180 * 180, -Math.PI/2 + alpha, false)
                 ctx.stroke()
                 if(alpha < 2*Math.PI) {
                     const x1 = x + (r - h1) * Math.sin(alpha),
@@ -164,7 +180,7 @@
             fillImage() {
                 const image = this.image;
                 const ctx = this.ctx
-                const rotateAngle = this.rotateAngle || 0
+                const rotateAngle = this.rotateAngle
                 this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
                 // ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
             },
@@ -211,7 +227,7 @@
                     }
                 ]
                 // 寻找四根线
-                const lineHeight = nookSide / .7 / 2,
+                const lineHeight = nookSide / .7,
                 halfLineHeight = lineHeight / 2
                 this.lines = [
                      {
@@ -240,11 +256,11 @@
                     }
                 ]
             },
-            fillCropper() {
+            fillRectCropper() {
                 const ctx = this.ctx,
                 cropper = this.cropper,
                 points = this.points,
-                color = this.averageColor
+                color = this.color || this.averageColor
                 ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
@@ -263,14 +279,28 @@
                     // }
                     ctx.restore()
                 });
-               
+                // console.log(this.arc.r)
+                // 圆
 
+                
+            },
+            fillArcCropper() {
+                const ctx = this.ctx
+                ctx.beginPath()
+                ctx.strokeStyle = this.color || this.averageColor
+                ctx.lineWidth =  2 // this.nookSide / 0.7
+                ctx.arc(this.arc.x, this.arc.y, this.arc.r, 0, Math.PI * 2)
+                ctx.stroke();
+            },
+            handleArcMove({x, y}) {
+                this.arc.r = this.limit(this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}), this.nookSide * 2, this.maxRadius)
+                this.draw()
             },
            // 填充背景
             fillBackground() {
                 // 多个变量可以用逗号 一次赋值
-                const { width, height } = this.options
-                const ctx = this.ctx,
+                const { width, height } = this.options, 
+                ctx = this.ctx,
                 side = 30 ,//width / 80,
                 x = Math.ceil(width / side),
                 y = Math.ceil(height / side)
@@ -439,6 +469,16 @@
                     y > target.y &&
                     y < target.y + target.height
             },
+            checkArc(x, y) {
+                const ctx  = this.ctx
+                ctx.beginPath()
+                // ctx.strokeStyle = 'red'//'transparent'
+                ctx.lineWidth = this.nookSide / 0.7
+                ctx.arc(this.arc.x, this.arc.y, this.arc.r + ctx.lineWidth , 0, Math.PI * 2)
+                // ctx.stroke() 
+                return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
+                 && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
+            },
             getPointByCoordinate({x, y}) {
                 const image = this.image,
                 touchBar = this.touchBar
@@ -447,9 +487,14 @@
                 if (this.checkRegion(x,y,touchBar)) {
                     this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
                     this.draw()
-                }  
+                    return
+                }
+                // 圆移动
+                else if (this.shape === 'arc' && this.checkArc(x, y)) {
+                    t.type = 'handleArcMove'
+                }
                 // 四个角移动         
-                else if (this.points.some((point,i) => {
+                else if (this.shape !== 'arc' && this.points.some((point,i) => {
                     index = i
                     return this.checkRegion(x,y,point)
                 })
@@ -458,7 +503,7 @@
                     this.index = index
                 }
                 // 四根线移动
-                else if (this.lines.some((line,i) => {
+                else if (this.shape !== 'arc' && this.lines.some((line,i) => {
                     index = i
                     return this.checkRegion(x,y,line)
                 }) 
@@ -502,20 +547,22 @@
             getImage(type='Base64', mimeType='image/jpeg', quality=1) {
                 if (this.noImage) return
                 const image = this.image,
-                cropper = this.cropper,
+                // cropper = this.cropper,
+                cropper = this.shape === 'arc' ? {
+                    x: this.arc.x - this.arc.r,
+                    y: this.arc.y - this.arc.r,
+                    width:  this.arc.r * 2 ,
+                    height:  this.arc.r * 2
+                } : this.cropper,
                 pixelRatio = this.pixelRatio,
                 types = {
-                    Base64(canvas, mimeType) {
-                        return new Promise((resolve) => {
-                            resolve(canvas.toDataURL(mimeType))
-                        })
+                    Base64(canvas, mimeType, resolve) {
+                        resolve(canvas.toDataURL(mimeType))
                     },
-                    Blob(canvas, mimeType){
-                        return new Promise((resolve) => {
-                            canvas.toBlob((blob)=> {
-                                resolve(blob)
-                            }, mimeType)
-                        })
+                    Blob(canvas, mimeType, resolve){
+                        canvas.toBlob((blob)=> {
+                            resolve(blob)
+                        }, mimeType)
                     } 
                 },
                 w = cropper.width * quality ,
@@ -532,7 +579,14 @@
                 this.canvas.height = h * pixelRatio
                 cCtx.scale(pixelRatio, pixelRatio)
                 cCtx.clearRect(0, 0, w, h)
-                const rotateAngle = this.rotateAngle || 0
+                const rotateAngle = this.rotateAngle
+                if (this.shape === 'arc') {
+                    const radius = cropper.width
+                    cCtx.beginPath()
+                    cCtx.lineWidth = 10
+                    cCtx.arc(radius, radius, radius, 0, Math.PI * 2, false)
+                    cCtx.clip()
+                }
                 this.canvasRotate('img', cCtx, image.element,
                     rotateAngle,
                     (image.x - cropper.x)  * quality,
@@ -554,18 +608,17 @@
                         return  
                     }
                     const [left = '50%', top = '50%', size = 1, angle = 0] = this.position
-                    // angle = this.angle || 0
                     if (this.imageWatermark) {
                         let watermarkImg = new Image()
                         watermarkImg.src = this.getFileSrc(this.imageWatermark)
                         watermarkImg.crossOrigin = 'anonymous'
                         watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size * quality,
-                            height = watermarkImg.height * size * quality,
+                            const width = watermarkImg.width * size * quality / 100,
+                            height = watermarkImg.height * size * quality / 100,
                             imgX  = ( w - width ) * parseInt(left) / 100 ,
                             imgY =  (h - height) * parseInt(top) / 100
                             this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)
-                            resolve(types[type](this.canvas, mimeType))
+                            types[type](this.canvas, mimeType, resolve)
                         }
                         return
                     }             
@@ -577,16 +630,16 @@
                         textX = (w - width * 1.031 )  * parseInt(left) / 100,
                         textY = (h - height * 2.82)  * parseInt(top) / 100
                         // 变量申请
-                        cCtx.fillStyle =  this.averageColor
+                        cCtx.fillStyle = this.color || this.averageColor
                         // console.log(this.cCtx.fillStyle)
                         if(cCtx.fillStyle === '#ffffff') {
                             cCtx.fillStyle = '#000'
                         }
                         this.canvasRotate('text', cCtx, text, angle, textX, textY, width, height)
-                        resolve(types[type](this.canvas, mimeType))
+                        types[type](this.canvas, mimeType, resolve)
                         return
                     }
-                    resolve(types[type](this.canvas, mimeType))
+                    types[type](this.canvas, mimeType, resolve)
                 })
             },
             canvasRotate(type, ctx, target, angle, x, y, width,height) {
@@ -650,27 +703,24 @@
                 document.getElementById('file-input').click()
             },
             getImageColor(data) { 
-                if (this.color) {
-                    return this.color
-                }
                 let r=0, g=0, b=0
                 // 取所有像素的平均值
                 const num = 50
-                for (var row = 0; row < num; row++) {
-                    for (var col = 0; col < num; col++) {
-                        r += data[((num * row) + col) * 4];
-                        g += data[((num * row) + col) * 4 + 1];
-                        b += data[((num * row) + col) * 4 + 2];
+                for (let row = 0; row < num; row++) {
+                    for (let col = 0; col < num; col++) {
+                        r += data[((num * row) + col) * 4]
+                        g += data[((num * row) + col) * 4 + 1]
+                        b += data[((num * row) + col) * 4 + 2]
                     }
                 }
                 // 求取平均值
-                r /= (num * num);
-                g /= (num * num);
-                b /= (num * num);
+                r /= (num * num)
+                g /= (num * num)
+                b /= (num * num)
                 // 将最终的值取整
-                r = Math.round(r);
-                g = Math.round(g);
-                b = Math.round(b);
+                r = Math.round(r)
+                g = Math.round(g)
+                b = Math.round(b)
                 return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
             }
         },

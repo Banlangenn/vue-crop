@@ -1,30 +1,77 @@
 <template>
   <div id="app">
-  <p class="operation"><button @click="getImageData">点我截图</button>
-  <button @click="crop.changeImage()">点我换图</button></p>
   <p class="watermark">输入水印文字：
       <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
    </p>
-    <p class="watermark">颜色
-      <input type="text" placeholder="16进制颜色" v-model="color" >
+    <p class="watermark">输入水印颜色：
+      <input type="text" placeholder="可以输入水印" v-model="color" >      
    </p>
+       <p class="range">
+     <span>水印X方位：{{option[0]}}%</span>
+      <range
+        v-model="option[0]"
+        :min="0"
+        :max="100"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+    <p class="range">
+     <span>水印Y方位：{{option[1]}}%</span>
+      <range
+        v-model="option[1]"
+        :min="0"
+        :max="100"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+       <p class="range">
+     <span>水印大小：{{option[2]}}</span>
+      <range
+        v-model="option[2]"
+        :min="0"
+        :max="100"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+     <p class="range">
+     <span>水印旋转角度：{{option[3]}}°</span>
+      <range
+        v-model="option[3]"
+        :min="0"
+        :max="360"
+        :step="1"
+        :bar-height="5">
+      </range>
+    </p>
+    <p class="operation">
+      <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形截图</button>
+      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形截图</button>
+      <button class="blue" @click="crop.changeImage()">点我换图</button>
+      <button class="blue operationButton" @click="getImageData" >点我截图</button>
+    </p>
+
     <crop
       style="width:100%;height:560px;background-color: #f1f3f5;"
       v-model="crop"
-      :position="['70%', '70%', 3, 12]"
+      :position="option"
       :textWatermark = "textWatermark"
-      :angle=45
+      :angle=15
+      :imageWatermark="imgWatermark"
       :color=color
+      :shape=shape
     >
           <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-
+<!-- 
       <template slot="defaultImgUrl"> 
         <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
-      </template>
+      </template> -->
 
      </crop>
     <div style="text-align:center" v-if="cropAction">
@@ -35,25 +82,28 @@
 </template>
 
 <script>
+import range from './Range'
 export default {
   name: 'app',
   data() {
     return {
+        option: [50, 50, 2, 0],
         color:'#f60',
-        // imgWatermark: require('、、'),
+        imgWatermark: require('./assets/logo.png'),
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
-        imageData: null
+        imageData: null,
+        shape: 'arc',
+        rangeValue: 50
     }
+  },
+  components: {
+    range
   },
   methods: {
     uploadImg(e) {
-      this.imgwatermark = this.imgae = e.target.files[0]
-    },
-    changeImg(e) {
-      this.isimg = true 
-      this.imgwatermark  = e.target.files[0]
+      this.imgWatermark = e.target.files[0]
     },
     async getImageData() {
          const imageData = await this.crop.getImage('Base64', 'image/png', 2)
@@ -88,6 +138,15 @@ export default {
     -ms-user-select: none; /* Internet Explorer/Edge */
     user-select: none; /* Non-prefixed version, currently not supported by any browser */
   }
+  .operation .blue {
+    border-radius: 4px;
+    color: #fff;
+    background-color: #1890ff;
+    border-color: #1890ff;
+    border-style: solid;
+    
+  }
+  
   .operation button {
     position: relative;
     display: inline-block;
@@ -110,15 +169,32 @@ export default {
     height: 32px;
     padding: 0 15px;
     font-size: 14px;
-    border-radius: 4px;
-     color: #fff;
-    background-color: #1890ff;
+    color: rgba(0,0,0,0.65);
+    background-color: #fff;
     border-color: #1890ff;
+    border-style: dashed;
     text-shadow: 0 -1px 0 rgba(0,0,0,0.12);
     -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     line-height: 1.499;
     margin: 20px;
+  }
+  .operation .operationButton {
+    height: 40px;
+    padding: 0 25px;
+    font-size: 20px;
+    /* line-height: 42px; */
+  }
+  .range {
+    display: flex;
+    padding: 10px 10%
+
+  }
+  .range> span {
+    flex: 1
+  }
+  .range > div {
+    flex: 2.5
   }
   .watermark input {
     /* -webkit-appearance: none; */
