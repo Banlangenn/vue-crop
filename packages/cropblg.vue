@@ -630,7 +630,7 @@
                         const text = this.textWatermark,
                         width = cCtx.measureText(text).width,
                         textX = (w - width * 1.031 )  * parseInt(left) / 100,
-                        textY = (h - height * 2.82)  * parseInt(top) / 100
+                        textY = (h + height * 0.72)  * parseInt(top) / 100
                         // 变量申请
                         cCtx.fillStyle = this.color || this.averageColor
                         // console.log(this.cCtx.fillStyle)
