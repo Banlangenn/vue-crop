@@ -68,16 +68,16 @@
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-
+<!-- 
       <template slot="defaultImgUrl"> 
         <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
-      </template>
+      </template> -->
 
      </crop>
-    <!-- <div style="text-align:center" v-if="cropAction">
+    <div style="text-align:center" v-if="cropAction">
           <p>长按保存图片</p>
           <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -108,15 +108,15 @@ export default {
   },
   methods: {
     uploadImg(e) {
-      this.imgWatermark = e.target.files[0]
+        this.imgWatermark = e.target.files[0]
     },
     isMobile() {
         return (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))
     },
     async getImageData() {
-         const imageData = await this.crop.getImage('Base64', 'image/png', 2)
-         this.imageData = imageData
-         this.cropAction = true
+        const imageData = await this.crop.getImage('Base64', 'image/png', 2)
+        this.imageData = imageData
+        this.cropAction = true
     }
   }
 }
