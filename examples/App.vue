@@ -74,10 +74,10 @@
       </template>
 
      </crop>
-    <div style="text-align:center" v-if="cropAction">
+    <!-- <div style="text-align:center" v-if="cropAction">
           <p>长按保存图片</p>
           <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
-    </div>
+    </div> -->
   </div>
 </template>
 
