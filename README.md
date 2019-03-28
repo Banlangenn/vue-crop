@@ -41,7 +41,7 @@ Vue.use(crop)
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|
 | defaultImgUrl | 默认图片  | File / String|--|--|
-| angle | 控制按钮旋转角度  | Number|--| 反差最大颜色|
+| angle | 控制按钮旋转角度  | Number|--| 0|
 | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
 ### Methods
 | 方法名   |  说明  | 参数 |
