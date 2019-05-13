@@ -19,8 +19,8 @@
     .mt-range {
       position: relative;
       display: flex;
-      height: 40px;
-      line-height: 40px;
+      height: 15px;
+      line-height: 15px;
     }
       .mt-range > * {
         display: flex;
@@ -35,14 +35,14 @@
       .mt-range-content {
         position: relative;
         flex: 1;
-        margin-right: 40px;
+        margin-right: 15px;
       }
       .mt-range-runway {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
         left: 0;
-        right: -40px;
+        right: -15px;
         border-top-color: #a9acb1;
         border-top-style: solid;
       }
@@ -51,8 +51,8 @@
         position: absolute;
         left: 0;
         top: 0;
-        width: 40px;
-        height: 40px;
+        width: 15px;
+        height: 15px;
         border-radius: 100%;
         cursor: move;
         box-shadow: 0 1px 3px rgba(0,0,0,.4);

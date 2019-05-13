@@ -1,20 +1,23 @@
 <template>
   <div id="app">
-  <p class="watermark">输入水印文字：
-      <input type="text" placeholder="可以输入水印" v-model="textWatermark" >      
-   </p>
-    <p class="watermark">输入水印颜色：
-      <input type="text" placeholder="可以输入水印" v-model="color" >      
-   </p>
-       <p class="range">
-     <span>水印X方位：{{option[0]}}%</span>
-      <range
-        v-model="option[0]"
-        :min="0"
-        :max="100"
-        :step="1"
-        :bar-height="5">
-      </range>
+   <span  style="color:#4ec973">（顶部小提示：UI只是掩饰功能）</span>
+      <p class="watermark">
+          <span>输入水印文字：</span>
+          <input type="text" placeholder="可以输入水印" v-model="textWatermark"  :style="{color}">
+      </p>
+    <p class="watermark">
+        <span>输入水印颜色：</span>
+        <input type="text" placeholder="可以输入水印" :style="{color}" v-model="color" >      
+    </p>
+    <p class="range">
+        <span>水印X方位：{{option[0]}}%</span>
+        <range
+          v-model="option[0]"
+          :min="0"
+          :max="100"
+          :step="1"
+          :bar-height="2">
+        </range>
     </p>
     <p class="range">
      <span>水印Y方位：{{option[1]}}%</span>
@@ -23,7 +26,7 @@
         :min="0"
         :max="100"
         :step="1"
-        :bar-height="5">
+        :bar-height="2">
       </range>
     </p>
        <p class="range">
@@ -33,7 +36,7 @@
         :min="0"
         :max="100"
         :step="1"
-        :bar-height="5">
+        :bar-height="2">
       </range>
     </p>
      <p class="range">
@@ -43,18 +46,20 @@
         :min="0"
         :max="360"
         :step="1"
-        :bar-height="5">
+        :bar-height="2">
       </range>
     </p>
     <p class="operation">
-      <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形截图</button>
-      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形截图</button>
+      <button @click="shape='imgage'" :class="{blue: shape == 'imgage'}" >整图片裁剪</button>
+      <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形裁剪框</button>
+      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形裁剪框</button>
+      <br/>
       <button class="blue" @click="crop.changeImage()">点我换图</button>
-      <button class="blue operationButton" @click="getImageData" >点我截图</button>
+      <button class="blue operationButton"  @click="getImageData" >生成图片</button>
     </p>
 
     <crop
-      style="width:100%;height:560px;background-color: #f1f3f5;"
+      style="width:100%;height:300px;background-color: #f1f3f5;"
       v-model="crop"
       :position="option"
       :textWatermark = "textWatermark"
@@ -63,47 +68,56 @@
       :color=color
       :shape=shape
     >
-          <!-- defaultImgUrl = "http://img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
+          <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
-<!-- 
-      <template slot="defaultImgUrl"> 
+
+      <!-- <template slot="defaultImgUrl"> 
         <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
       </template> -->
 
      </crop>
-    <div style="text-align:center" v-if="cropAction">
+    <!-- <div style="text-align:center" v-if="cropAction">
           <p>长按保存图片</p>
           <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
-    </div>
+    </div> -->
+
+      <v-dialog  :visible.sync= "cropAction">
+            <img :src="imageData" alt="小程序码">
+            <p slot="desc">
+                <span>长按保存分享图片哦~</span>
+            </p>
+        </v-dialog>
   </div>
 </template>
 
 <script>
 import range from './Range'
+import dialog from './signDialog'
 export default {
   name: 'app',
   data() {
     return {
-        option: [50, 50, 2, 0],
-        color:'',
+        option: [50, 50, 20, 0],
+        color:'#f14864',
         imgWatermark: '', // require('./assets/logo.png')
         textWatermark: '板蓝根出品，必属精品',
         crop:{},
         cropAction: false,
         imageData: null,
-        shape: 'arc',
+        shape: 'rect',
         rangeValue: 50
     }
   },
   components: {
-      range
+    range,
+    'v-dialog': dialog
   },
   created(){
     if(!this.isMobile()){
-      alert('暂不支持pc')
+      alert('手机上才能图片缩放，保存')
     }
   },
   methods: {
@@ -114,9 +128,15 @@ export default {
         return (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))
     },
     async getImageData() {
-        const imageData = await this.crop.getImage('Base64', 'image/png', 2)
-        this.imageData = imageData
-        this.cropAction = true
+        let imageData = await this.crop.getImage('Base64', 'image/jpg', 2)
+        if (imageData) {
+          if (Object.prototype.toString.call(imageData) === '[object Blob]') {
+              imageData =  window.URL.createObjectURL(imageData)
+          }
+          this.imageData = imageData
+          this.cropAction = true
+        }
+        
     }
   }
 }
@@ -133,6 +153,7 @@ export default {
     margin: 0;
   }
   #app {
+    font-size: 10px;
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -154,7 +175,9 @@ export default {
     border-style: solid;
     
   }
-  
+  .operation {
+    padding: 5px 0;
+  }
   .operation button {
     position: relative;
     display: inline-block;
@@ -174,9 +197,9 @@ export default {
     user-select: none;
     -ms-touch-action: manipulation;
     touch-action: manipulation;
-    height: 32px;
-    padding: 0 15px;
-    font-size: 14px;
+    height: 27px;
+    padding: 0 10px;
+    font-size: 12px;
     color: rgba(0,0,0,0.65);
     background-color: #fff;
     border-color: #1890ff;
@@ -185,28 +208,37 @@ export default {
     -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     box-shadow: 0 2px 0 rgba(0,0,0,0.045);
     line-height: 1.499;
-    margin: 20px;
-  }
-  .operation .operationButton {
-    height: 40px;
-    padding: 0 25px;
-    font-size: 20px;
-    /* line-height: 42px; */
+    margin: 5px;
   }
   .range {
     display: flex;
-    padding: 10px 10%
+    padding: 7px 0;
+    border-bottom: 1px solid #eee;
+    margin: 0 5%;
 
   }
-  .range> span {
+  .watermark {
+    display: flex;
+    margin: 0 5%;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding: 5px 0;
+  }
+  /* .watermark input {
+     flex: 1.2;
+    
+  } */
+  .range > span,.watermark > span{
     flex: 1
   }
   .range > div {
     flex: 2.5
   }
   .watermark input {
+    
     /* -webkit-appearance: none; */
     /* width：180px; */
+    flex: 2.5;
     position: relative;
     font-size: 14px;
     display: inline-block;
@@ -218,11 +250,11 @@ export default {
     color: #606266;
     display: inline-block;
     font-size: inherit;
-    height: 40px;
-    line-height: 40px;
+    height: 25px;
+    line-height: 30px;
     outline: none;
-    padding: 0 15px;
+    padding: 0 12px;
     transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-    margin-bottom: 20px;
+    /* margin-bottom: 10px; */
   }
 </style>
