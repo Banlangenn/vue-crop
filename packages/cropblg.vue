@@ -591,7 +591,7 @@
                 e.preventDefault()
                 const touches = e.touches
                 const image = this.image
-                if (touches.length > 1) {
+                if (touches.length > 1 && !this.drawAction) {
                     let startTouches = this.startTouches
                     let k; // 最终的缩放系数
                     const scale = this.scale;
