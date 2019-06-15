@@ -36,13 +36,17 @@ Vue.use(crop)
 | 参数   |  说明  |  类型 |   可选值 |默认值 |
 |--------|:-------:|------:|------:|------:|
 | v-model |  组件 | Object|-- | --|
-|shape |  截图形状 |  String  |rect/arc | rect|
+|shape |  截图形状 |  String  |rect/arc/imgage | rect|
 | position | 水印位置大小角度[x,y,size,angle]  | Array|--| ['90%', '90%',1,0]|
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|
 | defaultImgUrl | 默认图片  | File / String|--|--|
 | angle | 控制按钮旋转角度  | Number|--| 0|
 | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
+
+
+***补充说明***
+ > 画布自身,是带有缩放手势的, 用来编辑图片在画布上的大小， （画笔激活状态下手势会被禁掉）
 ### Methods
 | 方法名   |  说明  | 参数 |
 |--------|:-------:|------:|
@@ -55,5 +59,8 @@ Vue.use(crop)
 |--------|:-------:|
 | placeholder | 没有图片时占位图 | 
 | defaultImgUrl |  默认处理图片 |
+
+
+
 
 
