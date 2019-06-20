@@ -130,7 +130,7 @@ import { getImageDirection, correctImage } from './util'
                     width: 30,
                     height: 30
                 }
-                    this.revokeBar = {
+                this.revokeBar = {
                     x: width - 30 - 7,
                     y: 10 + (30  + interval ) * 2,
                     width: 30,
@@ -167,13 +167,13 @@ import { getImageDirection, correctImage } from './util'
                 // console.timeEnd('drawTouchBar')
                 // this.preview()
             },
-            rotatePoint({ pageX, pageY }, r, angle){
-                angle = Math.PI / 180 * angle
-                return { 
-                    x: pageX + Math.cos(angle) * r,
-                    y: pageY + Math.sin(angle) * r
-                }
-            },
+            // rotatePoint({ pageX, pageY }, r, angle){
+            //     angle = Math.PI / 180 * angle
+            //     return { 
+            //         x: pageX + Math.cos(angle) * r,
+            //         y: pageY + Math.sin(angle) * r
+            //     }
+            // },
             drawPointFn(ctx, quality = null, cropper = this.image, image = this.image){
                 const pointList = this.pointList
                 // const image = this.image
@@ -513,8 +513,40 @@ import { getImageDirection, correctImage } from './util'
             },
             handleImageMove ({ x, y }) {
                 const s = this.startPoint
-                this.image.x = x - s.offsetX
-                this.image.y = y - s.offsetY
+                // 限制图片移动的范围
+                // 三种情况 
+                // 1. 图片
+                // 2. 框
+                // 3. 圆圈
+               
+                // this.image.x = x - s.offsetX
+                // this.image.y = y - s.offsetY
+                /**     
+                    let cropper = this.cropper
+                    const shape = this.shape || 'rect'
+                    if (shape == 'imgage') {
+                        // this.options
+                        cropper = {
+                            x: 0,
+                            y: 0,
+                            width: this.options.width,
+                            height: this.options.height
+                        }
+                    } else if (shape === 'arc') {
+                        cropper = {
+                            x: this.arc.x - this.arc.r,
+                            y: this.arc.y - this.arc.r,
+                            width: this.arc.r * 2,
+                            height: this.arc.r * 2
+                        }
+                    }
+                    const left = cropper.x,
+                    right = cropper.x + cropper.width,
+                    bottom = cropper.y + cropper.height,
+                    top = cropper.y
+                    this.image.x = this.limit(x - s.offsetX, right - this.image.width, left)
+                    this.image.y = this.limit(y - s.offsetY, bottom - this.image.height, top)
+                */
                 this.draw()
             },
             // handleCropperMove({ x, y }) {
@@ -945,6 +977,9 @@ import { getImageDirection, correctImage } from './util'
             // canvasDom.style.backgroundSize = '50px 50px'
             // canvasDom.style.backgroundPosition = '0 0, 25px 25px'
             mountNode.appendChild(canvasDom)
+            // this.options = canvasDom.getBoundingClientRect()
+           
+
             this.ctx = canvasDom.getContext('2d')
             const pixelRatio = this.pixelRatio = this.getPixelRatio(this.ctx)
             canvasDom.width = clientWidth * pixelRatio
