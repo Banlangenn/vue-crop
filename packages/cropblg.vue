@@ -15,6 +15,7 @@
                 <input 
                     @change="uploadImg"
                     type="file"
+                    :multiple="false"
                     id="file-input"
                     accept="image/jpeg,image/x-icon,image/png"
                 >
@@ -24,6 +25,7 @@
     </div>
 </template>
 <script>
+import { getImageDirection, correctImage } from './util'
     export default {
         name: 'crop',
         props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'shape'],
@@ -43,7 +45,7 @@
                 corePoint: {},
                 startPoint: {},
                 touchBar: {},
-                nookSide: 15,
+                nookSide: 20,
                 rotateAngle: 0,
                 bgOpacity: 0.1
             }
@@ -53,83 +55,87 @@
                 if (!this.noImage) {
                     this.draw()
                 }
+            },
+            angle() {
+                if (!this.noImage) {
+                    this.draw()
+                }
             }
         },
         methods: {
             init(img){
-                    this.pointList = []
-                    const clientW = img.width,
-                    clientH = img.height,
-                    { width, height } = this.options
-                    let currentW = clientW,
-                        currentH = clientH,
-                        k = 1 // contain 时的缩放比
-                    // contain 图片
-                    if (clientW > width) {
-                        // alert('12123')
-                        currentW = width
-                        k = currentW / clientW
-                        currentH = k * clientH
-                    }
-                    if (currentH > height) {
-                        currentH = height
-                        k = currentH / clientH
-                        currentW = k * clientW
-                    }
-                    // 针对小图片
-                    const minNum = 120
-                    if (clientW < minNum && currentH < minNum) {
-                        currentW = minNum
-                        k = currentW / clientW
-                        currentH = k * clientH
-                    }
-                    this.scale = k
-                    // 针对小图片
-                    this.image = {
-                        element: img,
-                        width: currentW, // 显示宽度
-                        height: currentH, // 真是 宽度
-                        x: (width - currentW) / 2,
-                        y: (height - currentH) / 2,
-                        clientWidth: clientW,
-                        clientHeight: clientH
-                    }
+                this.pointList = []
+                const clientW = img.width,
+                clientH = img.height,
+                { width, height } = this.options
+                let currentW = clientW,
+                    currentH = clientH,
+                    k = 1 // contain 时的缩放比
+                // contain 图片
+                if (clientW > width) {
+                    // alert('12123')
+                    currentW = width
+                    k = currentW / clientW
+                    currentH = k * clientH
+                }
+                if (currentH > height) {
+                    currentH = height
+                    k = currentH / clientH
+                    currentW = k * clientW
+                }
+                // 针对小图片
+                const minNum = 120
+                if (clientW < minNum && currentH < minNum) {
+                    currentW = minNum
+                    k = currentW / clientW
+                    currentH = k * clientH
+                }
+                this.scale = k
+                // 针对小图片
+                this.image = {
+                    element: img,
+                    width: currentW, // 显示宽度
+                    height: currentH, // 真是 宽度
+                    x: (width - currentW) / 2,
+                    y: (height - currentH) / 2,
+                    clientWidth: clientW,
+                    clientHeight: clientH
+                }
 
-                    const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
-                    this.maxRadius = Math.min(width, height) / 2
-                    this.arc = {
-                        x: corePoint.x,
-                        y: corePoint.y,
-                        r: this.maxRadius  / 2
-                    }
-                    this.cropper = {
-                        x: (width - currentW / 2) / 2,
-                        y: (height - currentH / 2) / 2,
-                        width: currentW  / 2,
-                        height: currentH / 2
-                    }
+                const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
+                this.maxRadius = Math.min(width, height) / 2
+                this.arc = {
+                    x: corePoint.x,
+                    y: corePoint.y,
+                    r: this.maxRadius  / 2
+                }
+                this.cropper = {
+                    x: (width - currentW / 2) / 2,
+                    y: (height - currentH / 2) / 2,
+                    width: currentW  / 2,
+                    height: currentH / 2
+                }
 
-                    const interval = 8
-                    this.touchBar = {
-                        x: width - 30 - 7,
-                        y: 10,
-                        width: 30,
-                        height: 30
-                    }
-                    // width  画布宽度
-                    this.paintBrush = {
-                        x: width - 30 - 7,
-                        y: 10 + ( 30 + interval),
-                        width: 30,
-                        height: 30
-                    }
-                     this.revokeBar = {
-                        x: width - 30 - 7,
-                        y: 10 + (30  + interval ) * 2,
-                        width: 30,
-                        height: 30
-                    }
-                    this.draw()
+                const interval = 8
+                this.touchBar = {
+                    x: width - 30 - 7,
+                    y: 10,
+                    width: 30,
+                    height: 30
+                }
+                // width  画布宽度
+                this.paintBrush = {
+                    x: width - 30 - 7,
+                    y: 10 + ( 30 + interval),
+                    width: 30,
+                    height: 30
+                }
+                    this.revokeBar = {
+                    x: width - 30 - 7,
+                    y: 10 + (30  + interval ) * 2,
+                    width: 30,
+                    height: 30
+                }
             },
             draw() {
                 const { width, height } = this.options,
@@ -883,7 +889,17 @@
                 img.crossOrigin = 'anonymous'
                 img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
-                    this.init(img)
+                    getImageDirection(img).then(res => {
+                        // if (res === 1) {
+                        //     this.init(img)
+                        //     this.draw()
+                        //     return
+                        // }
+                        this.init(correctImage(img, res))
+                        this.draw()
+                    }).catch( err =>{
+                        console.error(err)
+                    })
                 }
             },
             inputHandle() {
