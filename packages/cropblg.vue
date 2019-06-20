@@ -17,7 +17,7 @@
                     type="file"
                     :multiple="false"
                     id="file-input"
-                    accept="image/jpeg,image/x-icon,image/png"
+                    accept="image/*"
                 >
                 <slot name="defaultImgUrl"></slot>
             </div>
@@ -513,14 +513,13 @@ import { getImageDirection, correctImage } from './util'
             },
             handleImageMove ({ x, y }) {
                 const s = this.startPoint
+                this.image.x = x - s.offsetX
+                this.image.y = y - s.offsetY
                 // 限制图片移动的范围
                 // 三种情况 
                 // 1. 图片
                 // 2. 框
                 // 3. 圆圈
-               
-                // this.image.x = x - s.offsetX
-                // this.image.y = y - s.offsetY
                 /**     
                     let cropper = this.cropper
                     const shape = this.shape || 'rect'
