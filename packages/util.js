@@ -125,9 +125,8 @@ function getOrientation(arrayBuffer) {
   }
 // canvas-exif-orientation  https://github.com/koba04/canvas-exif-orientation/blob/master/index.js
 //   
-  export function correctImage(img, orientation, x, y, width, height) {
+  export function correctImage(img, orientation, type, x, y, width, height) {
     if (!/^[1-8]$/.test(orientation)) throw new Error('orientation should be [1-8]')
-
     if (x == null) x = 0
     if (y == null) y = 0
     if (width == null) width = img.width
@@ -196,6 +195,22 @@ function getOrientation(arrayBuffer) {
 
     ctx.drawImage(img, x, y, width, height)
     ctx.restore()
-    return canvas
-  }
+  
+    // return canvas
+    return  new Promise((reslove) => {
+        if (!type) {
+            reslove(canvas)
+            return
+        }
+        canvas.toBlob(function(blob) {
+            const newImg = new Image()
+            const url =  window.URL.createObjectURL(blob)
+            newImg.src = url
+            newImg.onload = function() {
+            // 手机上有严重的性能问题
+                reslove(newImg)
+            }
+        })
+    })
+}
   

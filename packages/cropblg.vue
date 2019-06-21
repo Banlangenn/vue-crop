@@ -803,17 +803,19 @@ import { getImageDirection, correctImage } from './util'
                     } 
                 },
                 w = cropper.width * quality ,
-                h = cropper.height * quality 
+                h = cropper.height * quality,
                 // 变量申请
-                if (!this.canvas) {
-                    this.canvas = document.createElement('canvas')
-                    this.cCtx = this.canvas.getContext('2d')
+                canvasDom =  document.createElement('canvas'),
+                cCtx = canvasDom.getContext('2d')
+                // if (!this.canvas) {
+                //     this.canvas = document.createElement('canvas')
+                //     this.cCtx = this.canvas.getContext('2d')
                     // const { mountNode } = this.$refs
                     // mountNode.appendChild(this.canvas)
-                }
-                const cCtx = this.cCtx
-                this.canvas.width = w * pixelRatio
-                this.canvas.height = h * pixelRatio
+                // }
+                // const cCtx = this.cCtx
+                canvasDom.width = w * pixelRatio
+                canvasDom.height = h * pixelRatio
                 cCtx.scale(pixelRatio, pixelRatio)
                 cCtx.clearRect(0, 0, w, h)
                 const rotateAngle = this.rotateAngle
@@ -834,7 +836,7 @@ import { getImageDirection, correctImage } from './util'
                     image.height * quality
                 )
                 // 在整个图片上 写写画画  再要框了--- 就是说框是---img
-                this.drawPointFn(this.cCtx, quality, cropper)
+                this.drawPointFn(cCtx, quality, cropper)
                 return new Promise((resolve, reject) => {
                     if(!types[type]) {
                         reject('type = Blob || Base64')
@@ -851,7 +853,7 @@ import { getImageDirection, correctImage } from './util'
                             imgX  = ( w - width ) * parseInt(left) / 100 ,
                             imgY =  (h - height) * parseInt(top) / 100
                             this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)
-                            types[type](this.canvas, mimeType, resolve)
+                            types[type](canvasDom, mimeType, resolve)
                         }
                         return
                     }             
@@ -869,10 +871,10 @@ import { getImageDirection, correctImage } from './util'
                             cCtx.fillStyle = '#000'
                         }
                         this.canvasRotate('text', cCtx, text, angle, textX, textY, width, height)
-                        types[type](this.canvas, mimeType, resolve)
+                        types[type](canvasDom, mimeType, resolve)
                         return
                     }
-                    types[type](this.canvas, mimeType, resolve)
+                    types[type](canvasDom, mimeType, resolve)
                 })
             },
             canvasRotate(type, ctx, target, angle, x, y, width,height) {
@@ -913,6 +915,14 @@ import { getImageDirection, correctImage } from './util'
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
             },
+        //    isWeiXin() {
+        //         const ua = window.navigator.userAgent.toLowerCase();
+        //         if (ua.match(/MicroMessenger/i) == 'micromessenger') {
+        //             return true
+        //         } else {
+        //             return false
+        //         }
+        //     },
             uploadImg(e) {
                 this.createImage(e.target.files[0])
                 this.noImage = false
@@ -923,7 +933,7 @@ import { getImageDirection, correctImage } from './util'
                 }
                 return src
             },
-            createImage(imgfile) {
+            createImage(imgfile, type) {
                 let img = new Image()
                 //  url , imgsrc, 文件  三种情况
                 img.crossOrigin = 'anonymous'
@@ -934,9 +944,12 @@ import { getImageDirection, correctImage } from './util'
                             this.init(img)
                             return
                         }
-                        // alert(1)
                         //  只有钉钉  会莫名其妙 卡顿- =>   把图片 画在canvas 背景上了
-                        this.init(correctImage(img, res))
+                        this.init(img)
+                        correctImage(img, res).then(Img => {
+                            // alert('123')
+                            this.init(Img)
+                        })
                     }).catch( err =>{
                         // eslint-disable-next-line
                         console.error(err)
