@@ -54,18 +54,6 @@ import { getImageDirection, correctImage } from './util'
                 revokeBar: null
             }
         },
-        computed: {
-            rotationAngle() {
-                if (condition) {
-                    // 三个角度===
-                    // 1. 按钮旋转角度
-                    // 
-                    // 
-                    return this.angle + rotation + rotateAngle
-                }
-                return this.angle + rotateAngle
-            }
-        },
         watch: {
             shape() {
                 if (!this.noImage) {
@@ -73,7 +61,8 @@ import { getImageDirection, correctImage } from './util'
                 }
             },
             rotation() {
-                if (!this.noImage) {
+                if (!this.noImage && !this.rotateBtn && !this.drawAction) {
+                    this.rotateAngle = this.rotation
                     this.draw()
                 }
             }
@@ -136,7 +125,7 @@ import { getImageDirection, correctImage } from './util'
                 let number = 0  //  按钮数量
 
                 //  三个 if  更好 内聚 --
-                if (this.rotateBtn) {
+                if (this.rotateBtn && !/\d/.test(this.rotation)) {
                     this.touchBar = {
                         x: width - 30 - 7,
                         y: 10,
@@ -586,11 +575,11 @@ import { getImageDirection, correctImage } from './util'
                 if (this.changeDrawAction) {
                     if (this.drawAction) {
                         this.drawAction = false
-                        this.bgOpacity = .1
+                        this.bgOpacity = .3
                         this.draw()
                     } else {
                         this.drawAction = true
-                        this.bgOpacity = .7
+                        this.bgOpacity = .4
                         this.draw()
                     }
                     this.changeDrawAction = false
@@ -933,7 +922,7 @@ import { getImageDirection, correctImage } from './util'
                 }
                 return src
             },
-            createImage(imgfile, type) {
+            createImage(imgfile) {
                 let img = new Image()
                 //  url , imgsrc, 文件  三种情况
                 img.crossOrigin = 'anonymous'

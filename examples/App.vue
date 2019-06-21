@@ -78,10 +78,11 @@
       :color=color
       :shape=shape
       :revokeBtn="true"
+      :penBtn="true"
+      :rotation="rotation"
     >
+      <!-- :rotateBtn="true" -->
       <!-- :rotation = "rotation" -->
-      <!-- :penBtn="true"
-      :rotateBtn="true" -->
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
