@@ -79,94 +79,86 @@ function getOrientation(arrayBuffer) {
     var i;
     // Only handle JPEG image (start by 0xFFD8)
     if (dataView.getUint8(0) === 0xFF && dataView.getUint8(1) === 0xD8) {
-      offset = 2;
-      while (offset < length) {
-        if (dataView.getUint8(offset) === 0xFF && dataView.getUint8(offset + 1) === 0xE1) {
-          app1Start = offset;
-          break;
+        offset = 2;
+        while (offset < length) {
+            if (dataView.getUint8(offset) === 0xFF && dataView.getUint8(offset + 1) === 0xE1) {
+                app1Start = offset;
+                break
+            }
+            offset++
         }
-        offset++;
-      }
     }
     if (app1Start) {
-      exifIDCode = app1Start + 4;
-      tiffOffset = app1Start + 10;
-      if (getStringFromCharCode(dataView, exifIDCode, 4) === 'Exif') {
-        endianness = dataView.getUint16(tiffOffset);
-        littleEndian = endianness === 0x4949;
-  
-        if (littleEndian || endianness === 0x4D4D /* bigEndian */) {
-          if (dataView.getUint16(tiffOffset + 2, littleEndian) === 0x002A) {
-            firstIFDOffset = dataView.getUint32(tiffOffset + 4, littleEndian);
-  
-            if (firstIFDOffset >= 0x00000008) {
-              ifdStart = tiffOffset + firstIFDOffset;
+        exifIDCode = app1Start + 4;
+        tiffOffset = app1Start + 10;
+          if (getStringFromCharCode(dataView, exifIDCode, 4) === 'Exif') {
+            endianness = dataView.getUint16(tiffOffset);
+            littleEndian = endianness === 0x4949;
+            if (littleEndian || endianness === 0x4D4D /* bigEndian */) {
+                if (dataView.getUint16(tiffOffset + 2, littleEndian) === 0x002A) {
+                    firstIFDOffset = dataView.getUint32(tiffOffset + 4, littleEndian);
+                    if (firstIFDOffset >= 0x00000008) {
+                        ifdStart = tiffOffset + firstIFDOffset;
+                    }
+                }
             }
-          }
         }
-      }
     }
     if (ifdStart) {
-      length = dataView.getUint16(ifdStart, littleEndian);
-  
-      for (i = 0; i < length; i++) {
-        offset = ifdStart + i * 12 + 2;
-        if (dataView.getUint16(offset, littleEndian) === 0x0112 /* Orientation */) {
-  
-          // 8 is the offset of the current tag's value
-          offset += 8;
-  
-          // Get the original orientation value
-          orientation = dataView.getUint16(offset, littleEndian);
-  
-          // Override the orientation with its default value for Safari (#120)
-          // if (IS_SAFARI_OR_UIWEBVIEW) {
-          //   dataView.setUint16(offset, 1, littleEndian);
-          // }
-          break;
+        length = dataView.getUint16(ifdStart, littleEndian);
+        for (i = 0; i < length; i++) {
+            offset = ifdStart + i * 12 + 2;
+            if (dataView.getUint16(offset, littleEndian) === 0x0112 /* Orientation */) {
+                // 8 is the offset of the current tag's value
+                offset += 8
+                // Get the original orientation value
+                orientation = dataView.getUint16(offset, littleEndian)
+                // Override the orientation with its default value for Safari (#120)
+                // if (IS_SAFARI_OR_UIWEBVIEW) {
+                //   dataView.setUint16(offset, 1, littleEndian);
+                // }
+                break
+            }
         }
-      }
     }
     return orientation;
   }
-  
-  
 // canvas-exif-orientation  https://github.com/koba04/canvas-exif-orientation/blob/master/index.js
 //   
   export function correctImage(img, orientation, x, y, width, height) {
-    if (!/^[1-8]$/.test(orientation)) throw new Error('orientation should be [1-8]');
+    if (!/^[1-8]$/.test(orientation)) throw new Error('orientation should be [1-8]')
 
-    if (x == null) x = 0;
-    if (y == null) y = 0;
-    if (width == null) width = img.width;
-    if (height == null) height = img.height;
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
-    canvas.width = width;
-    canvas.height = height;
-    ctx.save();
+    if (x == null) x = 0
+    if (y == null) y = 0
+    if (width == null) width = img.width
+    if (height == null) height = img.height
+    var canvas = document.createElement('canvas')
+    var ctx = canvas.getContext('2d')
+    canvas.width = width
+    canvas.height = height
+    ctx.save()
     switch (+orientation) {
       // 1 = The 0th row is at the visual top of the image, and the 0th column is the visual left-hand side.
       case 1:
-          break;
+          break
 
       // 2 = The 0th row is at the visual top of the image, and the 0th column is the visual right-hand side.
       case 2:
          ctx.translate(width, 0);
          ctx.scale(-1, 1);
-         break;
+         break
 
       // 3 = The 0th row is at the visual bottom of the image, and the 0th column is the visual right-hand side.
       case 3:
           ctx.translate(width, height);
           ctx.rotate(180 / 180 * Math.PI);
-          break;
+          break
 
       // 4 = The 0th row is at the visual bottom of the image, and the 0th column is the visual left-hand side.
       case 4:
           ctx.translate(0, height);
           ctx.scale(1, -1);
-          break;
+          break
 
       // 5 = The 0th row is the visual left-hand side of the image, and the 0th column is the visual top.
       case 5:
@@ -174,7 +166,7 @@ function getOrientation(arrayBuffer) {
           canvas.height = width;
           ctx.rotate(90 / 180 * Math.PI);
           ctx.scale(1, -1);
-          break;
+          break
 
       // 6 = The 0th row is the visual right-hand side of the image, and the 0th column is the visual top.
       case 6:
@@ -182,7 +174,7 @@ function getOrientation(arrayBuffer) {
           canvas.height = width;
           ctx.rotate(90 / 180 * Math.PI);
           ctx.translate(0, -height);
-          break;
+          break
 
       // 7 = The 0th row is the visual right-hand side of the image, and the 0th column is the visual bottom.
       case 7:
@@ -191,7 +183,7 @@ function getOrientation(arrayBuffer) {
           ctx.rotate(270 / 180 * Math.PI);
           ctx.translate(-width, height);
           ctx.scale(1, -1);
-          break;
+          break
 
       // 8 = The 0th row is the visual left-hand side of the image, and the 0th column is the visual bottom.
       case 8:
@@ -199,12 +191,11 @@ function getOrientation(arrayBuffer) {
           canvas.height = width;
           ctx.translate(0, width);
           ctx.rotate(270 / 180 * Math.PI);
-          break;
+          break
     }
 
     ctx.drawImage(img, x, y, width, height)
     ctx.restore()
-
     return canvas
   }
   

@@ -43,6 +43,8 @@ Vue.use(crop)
 | defaultImgUrl | 默认图片  | File / String|--|--|
 | angle | 控制按钮旋转角度  | Number|--| 0|
 | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
+<!-- | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色| -->
+rotateBtn
 
 
 ***补充说明***

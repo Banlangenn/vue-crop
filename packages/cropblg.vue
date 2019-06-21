@@ -4,7 +4,8 @@
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
         @touchend="handleEnd($event)"
-        style=" overflow: hidden;"
+        style="
+        overflow: hidden;"
     >
          <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
@@ -28,7 +29,7 @@
 import { getImageDirection, correctImage } from './util'
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'shape'],
+        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'rotation', 'shape', 'penBtn', 'revokeBtn', 'rotateBtn'],
         data() {
             return {
                 // ready: false,
@@ -44,10 +45,25 @@ import { getImageDirection, correctImage } from './util'
                 cropper: {},
                 corePoint: {},
                 startPoint: {},
-                touchBar: {},
                 nookSide: 20,
                 rotateAngle: 0,
-                bgOpacity: 0.1
+                bgOpacity: 0.1,
+                // 三个操作按钮  默认不显示的
+                touchBar: null,
+                paintBrush: null,
+                revokeBar: null
+            }
+        },
+        computed: {
+            rotationAngle() {
+                if (condition) {
+                    // 三个角度===
+                    // 1. 按钮旋转角度
+                    // 
+                    // 
+                    return this.angle + rotation + rotateAngle
+                }
+                return this.angle + rotateAngle
             }
         },
         watch: {
@@ -56,7 +72,7 @@ import { getImageDirection, correctImage } from './util'
                     this.draw()
                 }
             },
-            angle() {
+            rotation() {
                 if (!this.noImage) {
                     this.draw()
                 }
@@ -116,33 +132,46 @@ import { getImageDirection, correctImage } from './util'
                     height: currentH / 2
                 }
 
-                const interval = 8
-                this.touchBar = {
-                    x: width - 30 - 7,
-                    y: 10,
-                    width: 30,
-                    height: 30
+                const interval = 8 // 间隔
+                let number = 0  //  按钮数量
+
+                //  三个 if  更好 内聚 --
+                if (this.rotateBtn) {
+                    this.touchBar = {
+                        x: width - 30 - 7,
+                        y: 10,
+                        width: 30,
+                        height: 30
+                    }
+                    number ++ 
                 }
                 // width  画布宽度
-                this.paintBrush = {
-                    x: width - 30 - 7,
-                    y: 10 + ( 30 + interval),
-                    width: 30,
-                    height: 30
+                if (this.penBtn) {
+                    this.paintBrush = {
+                        x: width - 30 - 7,
+                        y: 10 + ( 30 + interval) * number,
+                        width: 30,
+                        height: 30
+                    }
+                    number ++ 
                 }
-                this.revokeBar = {
-                    x: width - 30 - 7,
-                    y: 10 + (30  + interval ) * 2,
-                    width: 30,
-                    height: 30
+                if (this.revokeBtn) {
+                    this.revokeBar = {
+                        x: width - 30 - 7,
+                        y: 10 + (30  + interval ) * number,
+                        width: 30,
+                        height: 30
+                    }
+                    number ++ 
                 }
+                this.draw()
             },
             draw() {
                 const { width, height } = this.options,
                 shape = this.shape || 'rect'
                 // 避免预览到背景
                 this.ctx.clearRect(0, 0, width, height)
-                // 背景 // 考虑用css 实现
+                // // 背景 // 考虑用css 实现
                 this.fillBackground()
                 //  处理出片
                 this.fillImage()
@@ -158,11 +187,9 @@ import { getImageDirection, correctImage } from './util'
                     this.fillRectCropper()
                 }
                 //  console.time('drawTouchBar')
-                if (this.angle) {
-                    this.drawTouchBar(this.touchBar)
-                    this.drawPaintBrush(this.paintBrush)
-                    this.drawRevokeBar(this.revokeBar)
-                }
+                this.drawTouchBar(this.touchBar)
+                this.drawPaintBrush(this.paintBrush)
+                this.drawRevokeBar(this.revokeBar)
                 // 写的 线
                 // console.timeEnd('drawTouchBar')
                 // this.preview()
@@ -207,14 +234,7 @@ import { getImageDirection, correctImage } from './util'
                 //  ctx.lineWidth = 5
             },
             drawPaintBrush(touchBar) {
-                //   this.revokeBar = {
-                //         x: width - 30 - 7,
-                //         y: 40,
-                //         width: 30,
-                //         height: 30
-                //     }
-                // 怎么把 宽高用起来
-                // width
+                if (!touchBar) return
                 const {x, y} = touchBar 
                 const ctx = this.ctx,
                 // touchBar = touchBar,
@@ -239,6 +259,7 @@ import { getImageDirection, correctImage } from './util'
                  ctx.stroke()
             },
             drawRevokeBar(touchBar) {
+                if (!touchBar) return
                 const {x, y} = touchBar
                 //  const {x, y, width} = touchBar   //  用宽 算个比例
                 const ctx = this.ctx,
@@ -264,6 +285,7 @@ import { getImageDirection, correctImage } from './util'
                 ctx.fill()
             },
             drawTouchBar(touchBar) {
+                if (!touchBar) return
                 const ctx = this.ctx,
                 color = this.color || this.averageColor,
                 x = touchBar.x + touchBar.width * 0.6,
@@ -417,23 +439,9 @@ import { getImageDirection, correctImage } from './util'
             fillBackground() {
                 // 多个变量可以用逗号 一次赋值
                 const { width, height } = this.options, 
-                ctx = this.ctx,
-                side = 15 ,//width / 80,
-                x = Math.ceil(width / side),
-                y = Math.ceil(height / side)
-                // Math.ceil 向上取整
+                ctx = this.ctx
                 ctx.save()
-                ctx.fillStyle = '#ccc'
-                // y方向
-                for (let i = 0; i < y; i++) {//  铺满每一行
-                    for (let j = 0; j < x; j++) { // 一行的小方格
-                        if ((j + i) % 2 === 0) {
-                            ctx.fillRect(j * side, i * side, side, side)
-                        }
-                    }
-                }
-                //蒙层
-                // const bgOpacity = 0.1
+                ctx.fillStyle = '#fff'
                 ctx.fillStyle = `rgba(0, 0, 0, ${this.bgOpacity})`
                 ctx.fillRect(0, 0, width, height)
                  //蒙层 
@@ -582,7 +590,7 @@ import { getImageDirection, correctImage } from './util'
                         this.draw()
                     } else {
                         this.drawAction = true
-                        this.bgOpacity = .5
+                        this.bgOpacity = .7
                         this.draw()
                     }
                     this.changeDrawAction = false
@@ -695,17 +703,18 @@ import { getImageDirection, correctImage } from './util'
                 let t = {}
                 let index = 0
                 //  旋转
-                if (this.checkRegion(x, y, this.paintBrush)) {
+                if ( this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
                     this.changeDrawAction = true
                     return
-                }else if (this.checkRegion(x, y, this.revokeBar)) {
+                }else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar)) {
                     // t.type = 'draw'
                     // 接下来 是draw 动作
                     //  再次进来  保存 起始点 坐标
                     this.pointList.pop()
                     this.draw()
                     return
-                } else if (this.checkRegion(x, y, this.touchBar)) {
+                } else if (this.touchBar && this.checkRegion(x, y, this.touchBar)) {
+                    // 旋转后的角度 每次
                     this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
                     this.draw()
                     return
@@ -921,14 +930,15 @@ import { getImageDirection, correctImage } from './util'
                 img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
                     getImageDirection(img).then(res => {
-                        // if (res === 1) {
-                        //     this.init(img)
-                        //     this.draw()
-                        //     return
-                        // }
+                        if (res === 1) {
+                            this.init(img)
+                            return
+                        }
+                        // alert(1)
+                        //  只有钉钉  会莫名其妙 卡顿- =>   把图片 画在canvas 背景上了
                         this.init(correctImage(img, res))
-                        this.draw()
                     }).catch( err =>{
+                        // eslint-disable-next-line
                         console.error(err)
                     })
                 }
@@ -939,7 +949,7 @@ import { getImageDirection, correctImage } from './util'
             getImageColor(data) { 
                 let r=0, g=0, b=0
                 // 取所有像素的平均值
-                const num = this.limit(data.length, 1, 50)
+                const num = this.limit(data.length, 1, 20)
                 for (let row = 0; row < num; row++) {
                     for (let col = 0; col < num; col++) {
                         r += data[((num * row) + col) * 4]
@@ -971,10 +981,11 @@ import { getImageDirection, correctImage } from './util'
             let canvasDom =  document.createElement('canvas')
             canvasDom.style.width =  clientWidth + 'px'
             canvasDom.style.height = clientHeight + 'px'
-            // canvasDom.style.backgroundColor = 'rgba(0,0,0,.4)'
-            // canvasDom.style.backgroundImage =  'linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%), linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%)'
-            // canvasDom.style.backgroundSize = '50px 50px'
-            // canvasDom.style.backgroundPosition = '0 0, 25px 25px'
+            //  小方格背景
+            canvasDom.style.backgroundColor = '#fff'
+            canvasDom.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
+            canvasDom.style.backgroundSize = '29px 29px'
+            canvasDom.style.backgroundPosition = '0 0, 15px 15px'
             mountNode.appendChild(canvasDom)
             // this.options = canvasDom.getBoundingClientRect()
            

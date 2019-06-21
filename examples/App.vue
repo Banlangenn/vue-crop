@@ -40,9 +40,19 @@
       </range>
     </p>
      <p class="range">
-     <span>水印旋转角度：{{option[3]}}°</span>
+     <span>水印角度：{{option[3]}}°</span>
       <range
         v-model="option[3]"
+        :min="0"
+        :max="360"
+        :step="1"
+        :bar-height="2">
+      </range>
+    </p>
+    <p class="range">
+      <span>图片角度：{{rotation}}°</span>
+      <range
+        v-model="rotation"
         :min="0"
         :max="360"
         :step="1"
@@ -63,12 +73,16 @@
       v-model="crop"
       :position="option"
       :textWatermark = "textWatermark"
-      :angle=15
+      :angle="15"
       :imageWatermark="imgWatermark"
       :color=color
       :shape=shape
-      defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg"
+      :revokeBtn="true"
     >
+      <!-- :rotation = "rotation" -->
+      <!-- :penBtn="true"
+      :rotateBtn="true" -->
+      <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
@@ -108,7 +122,8 @@ export default {
         cropAction: false,
         imageData: null,
         shape: 'rect',
-        rangeValue: 50
+        rangeValue: 50,
+        rotation: 0
     }
   },
   components: {

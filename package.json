@@ -25,9 +25,23 @@
     "eslint": "^5.14.1",
     "eslint-plugin-vue": "^5.2.2",
     "node-sass": "^4.12.0",
+    "pre-commit": "^1.2.2",
     "sass-loader": "^7.1.0",
     "vue": "^2.6.7",
     "vue-template-compiler": "^2.6.7"
+  },
+  "pre-commit": [
+    "lint"
+  ],
+  "rules": {
+    "no-console": 0,
+    "indent": ["error", 4],
+    "no-useless-escape": 0,
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "double"],
+    "semi": ["error", "always"],
+    "comma-dangle": ["error", "always"],
+    "no-cond-assign": ["error", "always"]
   },
   "eslintConfig": {
     "root": true,
