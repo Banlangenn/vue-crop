@@ -47,7 +47,7 @@ import { getImageDirection, correctImage } from './util'
                 startPoint: {},
                 nookSide: 20,
                 rotateAngle: 0,
-                bgOpacity: 0.1,
+                bgOpacity: 0,
                 // 三个操作按钮  默认不显示的
                 touchBar: null,
                 paintBrush: null,
@@ -61,6 +61,7 @@ import { getImageDirection, correctImage } from './util'
                 }
             },
             rotation() {
+                //  内旋转 外旋转 只能有一个
                 if (!this.noImage && !this.rotateBtn && !this.drawAction) {
                     this.rotateAngle = this.rotation
                     this.draw()
@@ -575,7 +576,7 @@ import { getImageDirection, correctImage } from './util'
                 if (this.changeDrawAction) {
                     if (this.drawAction) {
                         this.drawAction = false
-                        this.bgOpacity = .3
+                        this.bgOpacity = 0
                         this.draw()
                     } else {
                         this.drawAction = true
