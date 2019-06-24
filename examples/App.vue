@@ -77,13 +77,11 @@
       :imageWatermark="imgWatermark"
       :color=color
       :shape=shape
+      @imgLoaded="imgLoaded"
       :revokeBtn="true"
       :penBtn="true"
-      @imgLoaded="imgLoaded"
-      :rotateBtn="true"
+      :rotation="rotation"
     >
-          :rotation="rotation"
-      <!-- :rotation = "rotation" -->
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
       <template slot="placeholder">
@@ -149,16 +147,14 @@ export default {
     isMobile() {
         return (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))
     },
-    async getImageData() {
-        let imageData = await this.crop.getImage('Base64', 'image/jpg', 2)
-        if (imageData) {
-          if (Object.prototype.toString.call(imageData) === '[object Blob]') {
+    getImageData() {
+       this.crop.getImage('Base64', 'image/jpg', 2).then(imageData => {
+         if (Object.prototype.toString.call(imageData) === '[object Blob]') {
               imageData =  window.URL.createObjectURL(imageData)
           }
           this.imageData = imageData
           this.cropAction = true
-        }
-        
+       }) 
     }
   }
 }

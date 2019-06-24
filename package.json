@@ -18,6 +18,7 @@
   ],
   "repository": "https://github.com/Banlangenn/vue-crop",
   "devDependencies": {
+    "@babel/preset-env": "^7.4.5",
     "@vue/cli-plugin-babel": "^3.4.1",
     "@vue/cli-plugin-eslint": "^3.4.1",
     "@vue/cli-service": "^3.4.1",
@@ -35,13 +36,31 @@
   ],
   "rules": {
     "no-console": 0,
-    "indent": ["error", 4],
+    "indent": [
+      "error",
+      4
+    ],
     "no-useless-escape": 0,
-    "linebreak-style": ["error", "unix"],
-    "quotes": ["error", "double"],
-    "semi": ["error", "always"],
-    "comma-dangle": ["error", "always"],
-    "no-cond-assign": ["error", "always"]
+    "linebreak-style": [
+      "error",
+      "unix"
+    ],
+    "quotes": [
+      "error",
+      "double"
+    ],
+    "semi": [
+      "error",
+      "always"
+    ],
+    "comma-dangle": [
+      "error",
+      "always"
+    ],
+    "no-cond-assign": [
+      "error",
+      "always"
+    ]
   },
   "eslintConfig": {
     "root": true,

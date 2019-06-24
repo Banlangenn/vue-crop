@@ -4,8 +4,7 @@
         @touchstart="handleStart($event)"
         @touchmove="handleMove($event)"
         @touchend="handleEnd($event)"
-        style="
-        overflow: hidden;"
+        style="overflow: hidden;"
     >
          <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
@@ -29,7 +28,22 @@
 import { getImageDirection, correctImage } from './util'
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imgLoaded', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'rotation', 'shape', 'penBtn', 'revokeBtn', 'rotateBtn'],
+        //1. props 验证   2.支持pc
+        props:[
+            'value',
+            'position',
+            'textWatermark',
+            'imgLoaded',
+            'imageWatermark',
+            'defaultImgUrl',
+            'color',
+            'angle',
+            'rotation',
+            'shape', 
+            'penBtn',
+            'revokeBtn',
+            'rotateBtn'
+          ],
         data() {
             return {
                 // ready: false,
@@ -126,7 +140,10 @@ import { getImageDirection, correctImage } from './util'
                 let number = 0  //  按钮数量
 
                 //  三个 if  更好 内聚 --
-                if (this.rotateBtn && !/\d/.test(this.rotation)) {
+                const rotateBtn = this.rotateBtn === undefined || this.rotateBtn 
+                const penBtn = this.penBtn === undefined  || this.penBtn 
+                const revokeBtn = this.revokeBtn  === undefined  || this.revokeBtn
+                if (rotateBtn) {
                     this.touchBar = {
                         x: width - 30 - 7,
                         y: 10,
@@ -136,7 +153,7 @@ import { getImageDirection, correctImage } from './util'
                     number ++ 
                 }
                 // width  画布宽度
-                if (this.penBtn) {
+                if (penBtn) {
                     this.paintBrush = {
                         x: width - 30 - 7,
                         y: 10 + ( 30 + interval) * number,
@@ -145,7 +162,7 @@ import { getImageDirection, correctImage } from './util'
                     }
                     number ++ 
                 }
-                if (this.revokeBtn) {
+                if (revokeBtn) {
                     this.revokeBar = {
                         x: width - 30 - 7,
                         y: 10 + (30  + interval ) * number,
