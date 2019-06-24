@@ -59,9 +59,9 @@ Vue.use(crop)
 | getImage | 获取处理后图片,返回Promise,可以选择返回 base64和bolb,quality为文件压缩比(大小) | Function(type:Base64 / Bolb, mimeType:image/jpeg  /  image/png, quality:Number)|
 | imgLoaded | 图片canvas加载完成，对调用此函数 | --|
 
-***这两个Methods 都是组件内置的：通过ref或v-model 调用***
+***changeImage，getImage 是组件内置的：通过ref或v-model 调用***
 >changeImage() 1. 直接调用，默认会打开本地文件选择  2.changeImage('url') 传入图片 网络url 会编辑该链接图片  
-getImage() 1.直接调用:默认参数：getImage('Base64','image/png', 2)    
+getImage() 2.直接调用:默认参数：getImage('Base64','image/png', 2)    
 type 可选值： Base64和 Bolb, mimeType 可选值：'image/jpeg' 和  'image/png', quality: 默认最佳
 
 ### Slot
