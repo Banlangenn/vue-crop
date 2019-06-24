@@ -44,9 +44,9 @@ Vue.use(crop)
 | angle | 按钮旋转角度  | Number|--| 0|
 | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
 | rotation | 水图片在canvas旋转角度，能动态改变，rotateBtn为false有效  | Number | -- | --|
-| penBtn | 是否渲染画笔按钮  | Boolean | true / false  | false|
-| revokeBtn | 是否渲染撤销按钮  | Boolean | true / false |  false|
-| rotateBtn | 是否渲染旋转按钮  | Boolean | true / false |  false|
+| penBtn | 是否渲染画笔按钮  | Boolean | true / false  | true|
+| revokeBtn | 是否渲染撤销按钮  | Boolean | true / false |  true|
+| rotateBtn | 是否渲染旋转按钮  | Boolean | true / false |  true|
 
 
 
