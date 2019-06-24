@@ -17,6 +17,7 @@ function getImageData(img) {
     let data = null
     return new Promise((reslove, reject) => {
         if (img.src) {
+            // eslint-disable-next-line
             if (/^data\:/i.test(img.src)) { // Data URI
                 data = base64ToArrayBuffer(img.src)
                 reslove(data)
@@ -43,6 +44,7 @@ function getImageData(img) {
 
 /*eslint no-useless-escape: "error"*/
 function base64ToArrayBuffer(base64) {
+    // eslint-disable-next-line
     base64 = base64.replace(/^data\:([^\;]+)\;base64,/gmi, '');
     var binary = atob(base64);
     var len = binary.length;
@@ -196,21 +198,21 @@ function getOrientation(arrayBuffer) {
     ctx.drawImage(img, x, y, width, height)
     ctx.restore()
   
-    // return canvas
-    return  new Promise((reslove) => {
-        if (!type) {
-            reslove(canvas)
-            return
-        }
-        canvas.toBlob(function(blob) {
-            const newImg = new Image()
-            const url =  window.URL.createObjectURL(blob)
-            newImg.src = url
-            newImg.onload = function() {
-            // 手机上有严重的性能问题
-                reslove(newImg)
-            }
-        })
-    })
+    return canvas
+    // return  new Promise((reslove) => {
+    //     if (!type) {
+    //         reslove(canvas)
+    //         return
+    //     }
+    //     canvas.toBlob(function(blob) {
+    //         const newImg = new Image()
+    //         const url =  window.URL.createObjectURL(blob)
+    //         newImg.src = url
+    //         newImg.onload = function() {
+    //         // 手机上有严重的性能问题
+    //             reslove(newImg)
+    //         }
+    //     })
+    // })
 }
   

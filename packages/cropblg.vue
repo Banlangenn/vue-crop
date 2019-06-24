@@ -29,7 +29,7 @@
 import { getImageDirection, correctImage } from './util'
     export default {
         name: 'crop',
-        props:['value', 'position', 'textWatermark', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'rotation', 'shape', 'penBtn', 'revokeBtn', 'rotateBtn'],
+        props:['value', 'position', 'textWatermark', 'imgLoaded', 'imageWatermark', 'defaultImgUrl', 'color', 'angle', 'rotation', 'shape', 'penBtn', 'revokeBtn', 'rotateBtn'],
         data() {
             return {
                 // ready: false,
@@ -932,14 +932,14 @@ import { getImageDirection, correctImage } from './util'
                     getImageDirection(img).then(res => {
                         if (res === 1) {
                             this.init(img)
-                            return
+                            this.$emit('imgLoaded')
+                            return 
                         }
                         //  只有钉钉  会莫名其妙 卡顿- =>   把图片 画在canvas 背景上了
                         this.init(img)
-                        correctImage(img, res).then(Img => {
-                            // alert('123')
-                            this.init(Img)
-                        })
+                        this.init(correctImage(img, res))
+                        this.$emit('imgLoaded')
+                       
                     }).catch( err =>{
                         // eslint-disable-next-line
                         console.error(err)

@@ -79,7 +79,7 @@
       :shape=shape
       :revokeBtn="true"
       :penBtn="true"
-
+      @imgLoaded="imgLoaded"
       :rotateBtn="true"
     >
           :rotation="rotation"
@@ -129,15 +129,20 @@ export default {
     }
   },
   components: {
-    range,
-    'v-dialog': dialog
+      range,
+      'v-dialog': dialog
   },
   created(){
-    if(!this.isMobile()){
-      alert('手机上才能图片缩放，保存')
-    }
+      if(!this.isMobile()){
+        alert('手机上才能图片缩放，保存')
+      }
   },
   methods: {
+    imgLoaded(){
+       // eslint-disable-next-line
+        console.log('图片加载完成~')
+        
+    },
     uploadImg(e) {
         this.imgWatermark = e.target.files[0]
     },

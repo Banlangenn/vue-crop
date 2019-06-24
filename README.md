@@ -41,10 +41,13 @@ Vue.use(crop)
 | textWatermark | 文字水印]  | String|--| --|
 | imageWatermark | 图片水印  | File / String|--| --|
 | defaultImgUrl | 默认图片  | File / String|--|--|
-| angle | 控制按钮旋转角度  | Number|--| 0|
+| angle | 按钮旋转角度  | Number|--| 0|
 | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色|
-<!-- | color | 水印.编辑框.控制按钮颜色  | String|16进制颜色| 反差最大颜色| -->
-rotateBtn
+| rotation | 水图片在canvas旋转角度，能动态改变，rotateBtn为false有效  | Number | -- | --|
+| penBtn | 是否渲染画笔按钮  | Boolean | true / false  | false|
+| revokeBtn | 是否渲染撤销按钮  | Boolean | true / false |  false|
+| rotateBtn | 是否渲染旋转按钮  | Boolean | true / false |  false|
+
 
 
 ***补充说明***
@@ -54,6 +57,7 @@ rotateBtn
 |--------|:-------:|------:|
 |changeImage |  改变处理图片,如果没有传imgAddress,会打开本地 | Function(imgAddress: String)|
 | getImage | 获取处理后图片,返回Promise,可以选择返回 base64和bolb,quality为文件压缩比(大小) | Function(type:Base64 / Bolb, mimeType:image/jpeg  /  image/png, quality:Number)|
+| imgLoaded | 图片canvas加载完成，对调用此函数 | --|
 
 ***这两个Methods 都是组件内置的：通过ref或v-model 调用***
 >changeImage() 1. 直接调用，默认会打开本地文件选择  2.changeImage('url') 传入图片 网络url 会编辑该链接图片  
