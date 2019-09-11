@@ -57,7 +57,7 @@ Vue.use(crop)
 |--------|:-------:|------:|
 |changeImage |  改变处理图片,如果没有传imgAddress,会打开本地 | Function(imgAddress: String)|
 | getImage | 获取处理后图片,返回Promise,可以选择返回 base64和bolb,quality为文件压缩比(大小) | Function(type:Base64 / Bolb, mimeType:image/jpeg  /  image/png, quality:Number)|
-| imgLoaded | 图片canvas加载完成，对调用此函数 | --|
+| imgLoaded | 图片canvas加载完成，对调用此函数（加loading） | --|
 
 ***changeImage，getImage 是组件内置的：通过ref或v-model 调用***
 >changeImage() 直接调用，默认会打开本地文件选择 ,changeImage('url') 传入图片 网络url 会编辑该链接图片  
