@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-   <span  style="color:#4ec973">（顶部小提示：UI只是掩饰功能）</span>
+   <!-- <span  style="color:#4ec973">（顶部小提示：UI只是掩饰功能）</span>
       <p class="watermark">
           <span>输入水印文字：</span>
           <input type="text" placeholder="可以输入水印" v-model="textWatermark"  :style="{color}">
@@ -66,10 +66,10 @@
       <br/>
       <button class="blue" @click="crop.changeImage()">点我换图</button>
       <button class="blue operationButton"  @click="getImageData" >生成图片</button>
-    </p>
+    </p> -->
 
     <crop
-      style="width:100%;height:300px;background-color: #f1f3f5;"
+      style="width:100%;height:100%;background-color: #f1f3f5;"
       v-model="crop"
       :position="option"
       :textWatermark = "textWatermark"
@@ -88,9 +88,9 @@
         <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
       </template>
 
-      <!-- <template slot="defaultImgUrl"> 
-        <img  src="./assets/u=1388650196,3398819234&fm=26&gp=0.jpg" />
-      </template> -->
+      <template slot="defaultImgUrl"> 
+        <img  src="./assets/timg.jpg" />
+      </template>
 
      </crop>
     <!-- <div style="text-align:center" v-if="cropAction">
@@ -163,7 +163,7 @@ export default {
 <style>
   body,html {
     /* width: 100%; */
-    /* height: 100%; */
+    height: 100vh;
   
   }
   * {
@@ -171,6 +171,7 @@ export default {
     margin: 0;
   }
   #app {
+    height: 100vh;
     font-size: 10px;
     font-family: 'Avenir', Helvetica, Arial, sans-serif;
     -webkit-font-smoothing: antialiased;

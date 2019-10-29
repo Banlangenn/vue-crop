@@ -46,12 +46,13 @@ import { getImageDirection, correctImage } from './util'
           ],
         data() {
             return {
+                debug: true,
                 // ready: false,
                 noImage: true,
                 ctx: null,
                 options: null,
                 pixelRatio: null,
-                scale:1,
+                scale: 1,
                 canvas: null,
                 image: {},
                 points: [],
@@ -65,7 +66,8 @@ import { getImageDirection, correctImage } from './util'
                 // 三个操作按钮  默认不显示的
                 touchBar: null,
                 paintBrush: null,
-                revokeBar: null
+                revokeBar: null,
+                rubberBar: null
             }
         },
         watch: {
@@ -143,15 +145,16 @@ import { getImageDirection, correctImage } from './util'
                 const rotateBtn = this.rotateBtn === undefined || this.rotateBtn 
                 const penBtn = this.penBtn === undefined  || this.penBtn 
                 const revokeBtn = this.revokeBtn  === undefined  || this.revokeBtn
-                if (rotateBtn) {
-                    this.touchBar = {
-                        x: width - 30 - 7,
-                        y: 10,
-                        width: 30,
-                        height: 30
-                    }
-                    number ++ 
-                }
+                const rubberBtn =  this.rubberBtn  === undefined  || this.rubberBtn
+                // if (rotateBtn) {
+                //     this.touchBar = {
+                //         x: width - 30 - 7,
+                //         y: 10,
+                //         width: 30,
+                //         height: 30
+                //     }
+                //     number ++ 
+                // }
                 // width  画布宽度
                 if (penBtn) {
                     this.paintBrush = {
@@ -162,8 +165,8 @@ import { getImageDirection, correctImage } from './util'
                     }
                     number ++ 
                 }
-                if (revokeBtn) {
-                    this.revokeBar = {
+                if (rubberBtn) {
+                    this.rubberBar = {
                         x: width - 30 - 7,
                         y: 10 + (30  + interval ) * number,
                         width: 30,
@@ -171,32 +174,47 @@ import { getImageDirection, correctImage } from './util'
                     }
                     number ++ 
                 }
+                // if (revokeBtn) {
+                //     this.revokeBar = {
+                //         x: width - 30 - 7,
+                //         y: 10 + (30  + interval ) * number,
+                //         width: 30,
+                //         height: 30
+                //     }
+                //     number ++ 
+                // }
+               
                 this.draw()
             },
             draw() {
                 const { width, height } = this.options,
                 shape = this.shape || 'rect'
                 // 避免预览到背景
+                // canvas init
                 this.ctx.clearRect(0, 0, width, height)
+                if (!this.averageColor) {
+                    this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
+                }
+               
                 // // 背景 // 考虑用css 实现
-                this.fillBackground()
+                // this.fillBackground()
                 //  处理出片
                 this.fillImage()
                 // console.timeEnd('fillImage')
                 this.drawPointFn(this.ctx)
-                if (!this.averageColor) {
-                        this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
-                }
-                if (shape === 'arc') {
-                    this.fillArcCropper()
-                } else  if (shape === 'rect') {
-                    this.updatePoint()
-                    this.fillRectCropper()
-                }
+
+                // if (shape === 'arc') {
+                //     this.fillArcCropper()
+                // } else  if (shape === 'rect') {
+                //     this.updatePoint()
+                //     this.fillRectCropper()
+                // }
                 //  console.time('drawTouchBar')
-                this.drawTouchBar(this.touchBar)
+
+                // this.drawTouchBar(this.touchBar)
                 this.drawPaintBrush(this.paintBrush)
-                this.drawRevokeBar(this.revokeBar)
+                // this.drawRevokeBar(this.revokeBar)
+                this.drawRubberBar(this.rubberBar)
                 // 写的 线
                 // console.timeEnd('drawTouchBar')
                 // this.preview()
@@ -238,7 +256,6 @@ import { getImageDirection, correctImage } from './util'
                         ctx.stroke()
                     })
                 }
-                //  ctx.lineWidth = 5
             },
             drawPaintBrush(touchBar) {
                 if (!touchBar) return
@@ -246,6 +263,7 @@ import { getImageDirection, correctImage } from './util'
                 const ctx = this.ctx,
                 // touchBar = touchBar,
                 color = this.color || this.averageColor
+                ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.lineCap = 'round'
                 ctx.beginPath()
@@ -265,15 +283,17 @@ import { getImageDirection, correctImage } from './util'
                 ctx.lineTo(x + 25, y + 26)
                  ctx.stroke()
             },
-            drawRevokeBar(touchBar) {
+             drawRevokeBar(touchBar) {
                 if (!touchBar) return
                 const {x, y} = touchBar
                 //  const {x, y, width} = touchBar   //  用宽 算个比例
                 const ctx = this.ctx,
                 // touchBar = touchBar,
                 color = this.color || this.averageColor
+                ctx.strokeStyle = color
                 ctx.lineWidth = 2
                 ctx.lineCap = 'round'
+                ctx.fillStyle = color
                 ctx.beginPath()
                 ctx.moveTo(x + 15, y + 12)
                 ctx.lineTo(x + 15, y + 8)
@@ -282,26 +302,52 @@ import { getImageDirection, correctImage } from './util'
                 ctx.lineTo(x + 15, y + 22)
                 ctx.lineTo(x + 15, y + 18)
                 ctx.stroke()
-                ctx.fillStyle = color
-                ctx.fill()
+                // ctx.fillStyle = color
+
+     
+                // ctx.fill()
                 ctx.beginPath()
                 ctx.arc(x + 15,  y + 24, 12, -Math.PI/2, -Math.PI/180 * 18, false)
                 ctx.arc(x + 15,  y + 35, 17,-Math.PI/180 * 45, -Math.PI/2, true)
                 ctx.stroke()
+                // ctx.fillStyle = color
+                // ctx.fill()
+
+            },
+            drawRubberBar(touchBar) {
+                if (!touchBar) return
+                const { x, y, width, height } = touchBar
+                //  const {x, y, width} = touchBar   //  用宽 算个比例
+                const ctx = this.ctx
+                const radius = 8
+                // touchBar = touchBar,
+                const color = this.color || this.averageColor
+                ctx.strokeStyle = color
                 ctx.fillStyle = color
-                ctx.fill()
+                // ctx.lineWidth = 3
+                // ctx.lineCap = 'round'
+                // ctx.fillStyle = color
+                ctx.beginPath()
+                ctx.arc(x + width / 2 , y + height / 2, radius, 0, Math.PI * 2, false)
+                // ctx.fill()
+                if (this.rubberAction) {
+                    ctx.fill()
+                }
+                ctx.stroke()
             },
             drawTouchBar(touchBar) {
                 if (!touchBar) return
                 const ctx = this.ctx,
                 color = this.color || this.averageColor,
+              
                 x = touchBar.x + touchBar.width * 0.6,
                 y =  touchBar.y + touchBar.height * 0.64,
                 r = touchBar.width * 0.41,
                 alpha = 6,
                 h1 = touchBar.width * 0.1,
                 h2 =  touchBar.width * 0.18
-                ctx.lineWidth = 1
+                ctx.lineWidth = 2
+                ctx.strokeStyle = color
                 // 填充颜色
                 ctx.fillStyle = color
                 // strokeRect  fillRect
@@ -590,19 +636,30 @@ import { getImageDirection, correctImage } from './util'
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleEnd(){
+                // 有两种 动作  画笔 和 橡皮
+                // 互相切换
                 if (this.changeDrawAction) {
-                    if (this.drawAction) {
-                        this.drawAction = false
-                        this.bgOpacity = 0
-                        this.draw()
-                    } else {
-                        this.drawAction = true
-                        this.bgOpacity = .4
-                        this.draw()
+                    //  this.DrawActionText = 'brush'
+                    // this.DrawActionText = 'rubber'
+                    switch (this.drawActionText) {  // 没写进去初始状态 DrawActionText
+                        case 'brush':
+                            // 笔
+                            this.drawAction = !this.drawAction
+                            this.rubberAction = false
+                            break;
+                        case 'rubber':
+                            // 橡皮
+                            this.rubberAction = !this.rubberAction // 没写进去初始状态 rubberAction
+                            this.drawAction = false // 没写进去初始状态 rubb
+                            break;
+                        default:
+                            break;
                     }
+                    this.draw()
                     this.changeDrawAction = false
                     return
                 }
+                // 搜集点 进入画笔
                 if (this.drawAction && this.pointLine.length > 0) {
                     this.drawPoint.x = this.drawPoint.x - this.image.x
                     this.drawPoint.y = this.drawPoint.y - this.image.y
@@ -618,13 +675,17 @@ import { getImageDirection, correctImage } from './util'
                     this.pointList.push(pointObj)
                     this.pointLine = []
                 }
+                // 最后把橡皮去掉
+                if (this.rubberAction) {
+                    this.draw()
+                }
                 
             },
             handleStart(e) {
                 // alert(1)
                 e.preventDefault()
                 // 双指
-                if (e.touches.length > 1) {
+                if (e.touches.length > 1 && !this.drawAction && !this.rubberAction) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
                     return;
@@ -643,7 +704,7 @@ import { getImageDirection, correctImage } from './util'
                 e.preventDefault()
                 const touches = e.touches
                 const image = this.image
-                if (touches.length > 1 && !this.drawAction) {
+                if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
                     let startTouches = this.startTouches
                     let k; // 最终的缩放系数
                     const scale = this.scale;
@@ -652,7 +713,7 @@ import { getImageDirection, correctImage } from './util'
                     // k = k < 1 ? k / 10 : k * 10
                     k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
                     k = k * scale;
-                    this.scale = this.limit(k, 0.02, 1.07)
+                    this.scale = this.limit(k, 0.5, 1.2)
                     const width = image.clientWidth * this.scale,
                     height = image.clientHeight * this.scale
                     this.image.x += (image.width - width) / 2
@@ -662,24 +723,56 @@ import { getImageDirection, correctImage } from './util'
                     this.draw()
                     return
                 }
+                // 画笔
                 if (this.drawAction) {
                     // 划线
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
                     const drawPoint = this.drawPoint
-                    const current = this.getCoordinateByEvent(e)
+                    const tempCurrent = this.getCoordinateByEvent(e)
+                    const current = {x: Math.floor(tempCurrent.x), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
                     const color =  this.color || this.averageColor
-                    ctx.lineTo(current.x, current.y)
-                    ctx.lineWidth = 3
                     ctx.strokeStyle = color
                     ctx.lineCap = 'round'
+                    ctx.lineTo(current.x, current.y)
                     ctx.stroke()
+
+
                     drawPoint.x = drawPoint.x - image.x
                     drawPoint.y = drawPoint.y - image.y
                     this.pointLine.push(drawPoint)
                     this.drawPoint = current
+                    return
+                }
+                // 橡皮
+                if (this.rubberAction) {
+                    const {x, y} = this.getCoordinateByEvent(e)
+                    const radius = 8
+                    const ctx  = this.ctx
+                    const pointList = this.pointList
+             
+                //    console.log('橡皮先生')
+                    for (let index = 0; index < pointList.length; index++) {
+                        const element = pointList[index]
+                        const pointLine = element.pointLine;
+                        const scale = this.scale / element.scale
+                        console.log(scale)
+                        for (let j = 0; j < pointLine.length; j++) {
+                            const item = pointLine[j];
+                            if (Math.abs(x - (image.x + item.x * scale)) <= radius + 1 && Math.abs(y -  (image.y + item.y * scale)) <= radius + 1) {
+                                this.pointList.splice(index,1)
+                                break
+                            }
+                        }
+                        
+                    }
+                    this.draw()
+                    //直接在这里画了  x y 全有
+                    ctx.beginPath()
+                    ctx.arc(x , y, radius, 0, Math.PI * 2, false)
+                    ctx.fill()
                     return
                 }
                 // 这是干啥的--画=>图片和 线
@@ -699,7 +792,9 @@ import { getImageDirection, correctImage } from './util'
                 ctx.beginPath()
                 // ctx.strokeStyle = 'red'//'transparent'
                 ctx.lineWidth = this.nookSide / 0.7
+                ctx.beginPath()
                 ctx.arc(this.arc.x, this.arc.y, this.arc.r + ctx.lineWidth , 0, Math.PI * 2)
+                ctx.stroke()
                 // ctx.stroke() 
                 return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
                  && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
@@ -710,15 +805,22 @@ import { getImageDirection, correctImage } from './util'
                 let t = {}
                 let index = 0
                 //  旋转
-                if ( this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
+                if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
+                     this.log('点击了画笔')
                     this.changeDrawAction = true
+                    this.drawActionText = 'brush'
                     return
-                }else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar)) {
-                    // t.type = 'draw'
-                    // 接下来 是draw 动作
-                    //  再次进来  保存 起始点 坐标
+                } else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar) && !this.drawAction) {
+                    this.log('点击了撤回')
                     this.pointList.pop()
                     this.draw()
+                    return
+                    
+                } else if (this.rubberBar && this.checkRegion(x, y, this.rubberBar)) {
+                    // 橡皮
+                    this.log('点击了橡皮')
+                    this.changeDrawAction = true
+                    this.drawActionText = 'rubber'
                     return
                 } else if (this.touchBar && this.checkRegion(x, y, this.touchBar)) {
                     // 旋转后的角度 每次
@@ -781,6 +883,10 @@ import { getImageDirection, correctImage } from './util'
                     return max
                 }
                 return value
+            },
+            log(value) {
+                if(!this.debug) return
+                console.log(value)
             },
             getImage(type='Base64', mimeType='image/jpeg', quality=1) {
                 if (this.noImage) return
