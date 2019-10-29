@@ -142,9 +142,9 @@ import { getImageDirection, correctImage } from './util'
                 let number = 0  //  按钮数量
 
                 //  三个 if  更好 内聚 --
-                const rotateBtn = this.rotateBtn === undefined || this.rotateBtn 
+                // const rotateBtn = this.rotateBtn === undefined || this.rotateBtn 
+                // const revokeBtn = this.revokeBtn  === undefined  || this.revokeBtn
                 const penBtn = this.penBtn === undefined  || this.penBtn 
-                const revokeBtn = this.revokeBtn  === undefined  || this.revokeBtn
                 const rubberBtn =  this.rubberBtn  === undefined  || this.rubberBtn
                 // if (rotateBtn) {
                 //     this.touchBar = {
@@ -187,8 +187,7 @@ import { getImageDirection, correctImage } from './util'
                 this.draw()
             },
             draw() {
-                const { width, height } = this.options,
-                shape = this.shape || 'rect'
+                const { width, height } = this.options
                 // 避免预览到背景
                 // canvas init
                 this.ctx.clearRect(0, 0, width, height)
@@ -203,6 +202,7 @@ import { getImageDirection, correctImage } from './util'
                 // console.timeEnd('fillImage')
                 this.drawPointFn(this.ctx)
 
+                // const shape = this.shape || 'rect'
                 // if (shape === 'arc') {
                 //     this.fillArcCropper()
                 // } else  if (shape === 'rect') {
@@ -752,18 +752,36 @@ import { getImageDirection, correctImage } from './util'
                     const radius = 8
                     const ctx  = this.ctx
                     const pointList = this.pointList
+                    const image = this.image
              
                 //    console.log('橡皮先生')
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
                         const pointLine = element.pointLine;
                         const scale = this.scale / element.scale
-                        console.log(scale)
                         for (let j = 0; j < pointLine.length; j++) {
                             const item = pointLine[j];
-                            if (Math.abs(x - (image.x + item.x * scale)) <= radius + 1 && Math.abs(y -  (image.y + item.y * scale)) <= radius + 1) {
-                                this.pointList.splice(index,1)
+                            const len = pointLine.length
+                            // 点 复原坐标 1 
+                            const originPoint = this.restPoint(item, image, scale)
+                            if (Math.abs(x - originPoint.x) <= radius + 1 && Math.abs(y - originPoint.y) <= radius + 1) {
+                                this.pointList.splice(index, 1)
                                 break
+                            }
+                            // 判断线 不是最后一个
+                            if (len == 1 || j == len - 1) break
+                            const item2 = pointLine[j + 1]
+                            // console.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
+                            if (this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}) > radius + 15 ) {
+                                console.log('差的很远的的一条线 橡皮离这个线的距离：')
+                                // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
+                                const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(item2, image, scale), {x, y})
+                                console.log(dis)
+                                if (dis <= radius + 1) {
+                                    this.pointList.splice(index, 1)
+                                    break
+                                }
+
                             }
                         }
                         
@@ -779,6 +797,44 @@ import { getImageDirection, correctImage } from './util'
                 const type = this.startPoint ? this.startPoint.type : null
                 if (type && this.getCoordinateByEvent(e)) {
                     this[type](this.getCoordinateByEvent(e))
+                }
+            },
+           distanceOfPoint2Line(p1, p2, {x, y}) {
+                var A = x - p1.x;
+                var B = y - p1.y;
+                var C = p2.x - p1.x;
+                var D = p2.y - p1.y;
+
+                var dot = A * C + B * D;
+                var len_sq = C * C + D * D;
+                var param = -1;
+                if (len_sq != 0) //线段长度不能为0
+                    param = dot / len_sq;
+
+                var xx, yy;
+
+                if (param < 0) {
+                    xx = p1.x;
+                    yy = p1.y;
+                }
+                else if (param > 1) {
+                    xx = p2.x;
+                    yy = p2.y;
+                }
+                else {
+                    xx = p1.x + param * C;
+                    yy = p1.y + param * D;
+                }
+
+                var dx = x - xx;
+                var dy = y - yy;
+                return Math.sqrt(dx * dx + dy * dy);
+            },
+
+            restPoint(pooint, image, scale) {
+                return {
+                    x: image.x + pooint.x * scale,
+                    y: image.y + pooint.y * scale
                 }
             },
             checkRegion(x,y,target) {
@@ -806,7 +862,7 @@ import { getImageDirection, correctImage } from './util'
                 let index = 0
                 //  旋转
                 if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
-                     this.log('点击了画笔')
+                    this.log('点击了画笔')
                     this.changeDrawAction = true
                     this.drawActionText = 'brush'
                     return

@@ -108,7 +108,7 @@
 </template>
 
 <script>
-import range from './Range'
+// import range from './Range'
 import dialog from './signDialog'
 export default {
   name: 'app',
@@ -127,7 +127,7 @@ export default {
     }
   },
   components: {
-      range,
+      // range,
       'v-dialog': dialog
   },
   created(){
