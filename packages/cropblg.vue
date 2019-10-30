@@ -46,7 +46,8 @@ import { getImageDirection, correctImage } from './util'
           ],
         data() {
             return {
-                debug: true,
+                straightLine: true, // 直线
+                debug: true, // debug
                 // ready: false,
                 noImage: true,
                 // ctx: null,
@@ -63,7 +64,7 @@ import { getImageDirection, correctImage } from './util'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                lineWidth: 8,
+                lineWidth: 13,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -239,11 +240,12 @@ import { getImageDirection, correctImage } from './util'
                 if (pointList.length > 0) {
                     pointList.forEach(el => {
                         const scale = this.scale / el.scale
-                        const lineWidth =  this.limit(el.lineWidth * scale, 1, 15)
-                        ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
+                        const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                        ctx.beginPath()
                         ctx.strokeStyle = el.color
                         ctx.lineCap = 'round'
-                        ctx.beginPath()
+                        ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
+                        // console.log(lineWidth)
                         const array = el.pointLine
                         for (let i = 0; i < array.length; i++) {
                             const element = array[i]
@@ -251,7 +253,7 @@ import { getImageDirection, correctImage } from './util'
                             if (i === 0) {
                                 // 要相对于图片的位置 才是对的  不能相对于 画布
                                 if (quality) {
-                                    ctx.moveTo((originPoint.x - cropper.x)* quality , (originPoint.y - cropper.y) * quality)
+                                    ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
                                 } else {
                                     ctx.moveTo(originPoint.x, originPoint.y)
                                 }
@@ -263,7 +265,7 @@ import { getImageDirection, correctImage } from './util'
                                 ctx.lineTo(originPoint.x, originPoint.y)
                             } 
                         }
-                        ctx.stroke()    
+                        ctx.stroke()
                     })
                 }
             },
@@ -494,7 +496,7 @@ import { getImageDirection, correctImage } from './util'
                 ctx.arc(this.arc.x, this.arc.y, this.arc.r, 0, Math.PI * 2)
                 ctx.stroke();
             },
-            handleArcMove({x, y}) {
+            handleArcMove({ x, y }) {
                 this.arc.r = this.limit(this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}), this.nookSide * 2, this.maxRadius)
                 this.draw()
             },
@@ -645,77 +647,6 @@ import { getImageDirection, correctImage } from './util'
                 return coordinate
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
-            handleEnd(){
-                // 有两种 动作  画笔 和 橡皮
-                // 互相切换
-                if (this.changeDrawAction) {
-                    //  this.DrawActionText = 'brush'
-                    // this.DrawActionText = 'rubber'
-                    switch (this.drawActionText) {  // 没写进去初始状态 DrawActionText
-                        case 'brush':
-                            // 笔
-                            this.drawAction = !this.drawAction
-                            this.rubberAction = false
-                            break;
-                        case 'rubber':
-                            // 橡皮
-                            this.rubberAction = !this.rubberAction // 没写进去初始状态 rubberAction
-                            this.drawAction = false // 没写进去初始状态 rubb
-                            break;
-                        default:
-                            break;
-                    }
-                    this.draw()
-                    this.changeDrawAction = false
-                    return
-                }
-                // 搜集点 进入画笔
-                if (this.drawAction && this.pointLine.length > 0) {
-                    this.drawPoint.x = this.drawPoint.x - this.image.x
-                    this.drawPoint.y = this.drawPoint.y - this.image.y
-                    this.pointLine.push(this.drawPoint)
-                    // 点的 宽度
-                    // 给个正方形----- 
-                    //  加个 maxX maxY  minX minY
-                    const array = this.pointLine
-                    //  初始化第一个  --不能默认0  有负值存在
-                    let maxX = array[0].x, maxY = array[0].y,  minX = array[0].x, minY = array[0].y
-                    for (let index = 1; index < array.length; index++) {
-                        const element = array[index]
-                        if (element.x < minX) {
-                            minX = element.x
-                        }
-                        if (element.y < minY) {
-                            minY = element.y
-                        }
-                        if (element.x > maxX) {
-                            maxX = element.x
-                        }
-                        if (element.y > maxY) {
-                            maxY = element.y
-                        }
-                       
-                    }
-                    const pointObj = {
-                        pointLine: this.pointLine,
-                        scale: this.scale,
-                        lineWidth: this.lineWidth,
-                        color: this.color || this.averageColor,
-                        rotateAngle : this.rotateAngle,
-                        maxX,
-                        maxY,
-                        minX,
-                        minY
-                    }
-                    this.pointList.push(pointObj)
-                    this.pointLine = []
-                }
-                // 最后把橡皮去掉
-                if (this.rubberAction) {
-                    this.draw()
-                }
-                
-            },
             handleStart(e) {
                 // alert(1)
                 e.preventDefault()
@@ -723,7 +654,7 @@ import { getImageDirection, correctImage } from './util'
                 if (e.touches.length > 1 && !this.drawAction && !this.rubberAction) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
-                    return;
+                    return
                 }
                 // 单指  起点
                 this.drawPoint = this.getCoordinateByEvent(e)
@@ -732,8 +663,7 @@ import { getImageDirection, correctImage } from './util'
                 if (this.drawAction) {  //  changeDrawAction bar 点中了
                     // 上次肯定会被清掉
                     this.pointLine = []
-                    this.ctx.beginPath()
-                    this.ctx.moveTo(this.drawPoint.x, this.drawPoint.y)
+                    this.firstPoint = this.drawPoint
                 }
             },
             handleMove (e) {
@@ -761,26 +691,71 @@ import { getImageDirection, correctImage } from './util'
                 }
                 // 画笔
                 if (this.drawAction) {
+
+
+                    /**
+                     *  直线
+                     */
+
+                    // 手动导入
+                    //  最新的终点
+                    // 只需要跑那根线就好了
+                    // this.handleEnd(this.getCoordinateByEvent(e))
+                   
+                    
+                    /**
+                     *  画笔 
+                     */
                     // 划线
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
                     const drawPoint = this.drawPoint
-                    const tempCurrent = this.getCoordinateByEvent(e)
-                    const current = {x: Math.floor(tempCurrent.x), y: Math.floor(tempCurrent.y)}
+                    const current = this.getCoordinateByEvent(e)
+                    // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
                     const color =  this.color || this.averageColor
+                    const lineWidth = this.limit(this.lineWidth, 1, 15)
                     ctx.strokeStyle = color
                     ctx.lineCap = 'round'
-                    ctx.lineWidth = this.lineWidth
-                    ctx.lineTo(current.x, current.y)
-                    ctx.stroke()
+                    
+                    // 划线  第一个点 用beginPath
+                    if (this.straightLine) { // 是直线
+                        this.draw()
+                        ctx.beginPath()
+                        ctx.lineWidth = lineWidth
+                        ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
+                        ctx.lineTo(current.x, current.y)
+                        ctx.stroke()
+    
+                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
+                        if (this.pointLine.length === 0) {
+                            this.pointLine.push({
+                                x: drawPoint.x - image.x,
+                                y: drawPoint.y - image.y
+                            })
+                        }
+                    } else {
 
-                    // this.pointLine.push({x: current.x - image.x, y: current.y - image.y})
-                    //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                    drawPoint.x = drawPoint.x - image.x
-                    drawPoint.y = drawPoint.y - image.y
-                    this.pointLine.push(drawPoint)
+                        if (this.pointLine.length === 0) {
+                            this.ctx.beginPath()
+                            ctx.lineWidth = lineWidth                
+                            this.ctx.moveTo(drawPoint.x, drawPoint.y)
+                        } else {
+                            ctx.lineTo(current.x, current.y)
+                            ctx.stroke()
+                        }
+
+                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
+                        this.pointLine.push({
+                            x: drawPoint.x - image.x,
+                            y: drawPoint.y - image.y
+                        })
+
+                    }
+
+
+                   
                     this.drawPoint = current
                     return
                 }
@@ -791,26 +766,32 @@ import { getImageDirection, correctImage } from './util'
                     const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
-
-                //    console.log('橡皮先生')
+                       this.log('进入橡皮先生')
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
                         const scale = this.scale / element.scale
-                        const pointLine = element.pointLine;
-                        const lineDis = element.lineWidth + radius / 2
+                        const pointLine = element.pointLine
+                        const lineDis = element.lineWidth / 2 + radius
                         const lineLength = pointLine.length
+                        // 还原最大 最小值
                         const maxPonit = this.restPoint({x: element.maxX, y: element.maxY}, image, scale)
                         const minPonit = this.restPoint({x: element.minX, y: element.minY}, image, scale)
-                        // console.log(minPonit)
                         // console.log(element.maxY)
-                        if (lineLength > 5 &&
+                        //  console.log('不在这条线的矩形内-- 不检测跳过进入下一条')
+                        // 是 直线  > == 2
+                        // 是曲线 > 5
+                        let number = 5  // 矩形宽高
+                        //  直线如果距离太小也会 被拦下来
+                        e
+                        if ((maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
                             // 有问题
                             x < minPonit.x ||
                             y < minPonit.y)
                         ) {
-                            continue
+                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条')
+                            continue 
                         }
                         for (let j = 0; j < lineLength; j++) {
                             const item = pointLine[j];
@@ -823,13 +804,16 @@ import { getImageDirection, correctImage } from './util'
                             }
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
-                            const item2 = pointLine[j + 1]
+                            const secondItem = pointLine[j + 1]
+                            // console.log('走到这里了')
                             // console.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
-                            if (this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}) > lineDis ) {
+                            // 判断 两个点的距离
+                            // console.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
+                            if (this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) >= lineDis ) {
                                 // console.log('差的很远的的一条线 橡皮离这个线的距离：')
                                 // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
-                                const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(item2, image, scale), {x, y})
-                                // console.log(dis)
+                                const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
+                                // console.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
                                     this.pointList.splice(index, 1)
                                     break
@@ -840,54 +824,128 @@ import { getImageDirection, correctImage } from './util'
                     }
 
                     this.draw()
-                    //直接在这里画了  x y 全有
+                    //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
                     ctx.beginPath()
                     ctx.arc(x , y, radius, 0, Math.PI * 2, false)
                     ctx.fill()
                     return
                 }
-                // 这是干啥的--画=>图片和 线
+                // 这是干啥的--画=>图片和 线  移动
                 const type = this.startPoint ? this.startPoint.type : null
                 if (type && this.getCoordinateByEvent(e)) {
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
-           distanceOfPoint2Line(p1, p2, {x, y}) {
-                var A = x - p1.x;
-                var B = y - p1.y;
-                var C = p2.x - p1.x;
-                var D = p2.y - p1.y;
+            handleEnd(){
+                // 有两种 动作  画笔 和 橡皮
+                // 互相切换
+                if (this.changeDrawAction) {
+                    //  this.DrawActionText = 'brush'
+                    // this.DrawActionText = 'rubber'
+                    switch (this.drawActionText) {  // 没写进去初始状态 DrawActionText
+                        case 'brush':
+                            // 笔
+                            this.drawAction = !this.drawAction
+                            this.rubberAction = false
+                            break;
+                        case 'rubber':
+                            // 橡皮
+                            this.rubberAction = !this.rubberAction // 没写进去初始状态 rubberAction
+                            this.drawAction = false // 没写进去初始状态 rubb
+                            break;
+                        default:
+                            break;
+                    }
+                    this.draw()
+                    this.changeDrawAction = false
+                    return
+                }
+                // 搜集点 进入画笔
+                // console.log(this.pointLine)
+                if (this.drawAction && this.pointLine.length > 0) {
+                    const drawPoint = this.drawPoint
+                    const image = this.image
+                    this.pointLine.push({
+                        x: drawPoint.x - image.x,
+                        y: drawPoint.y - image.y
+                    })
+                    // 点的 宽度
+                    // 给个正方形----- 
+                    //  加个 maxX maxY  minX minY
+                    const array = this.pointLine
+                    // 会有 明明在范围内 检测不到--- 范围太小了 加一点
+                    const offset = 2
+                    //  初始化第一个  --不能默认0  有负值存在
+                    let maxX = array[0].x, maxY = array[0].y,  minX = array[0].x, minY = array[0].y
+                    for (let index = 1; index < array.length; index++) {
+                        const element = array[index]
+                        if (element.x < minX) {
+                            minX = element.x - offset
+                        }
+                        if (element.y < minY) {
+                            minY = element.y - offset
+                        }
+                        if (element.x > maxX) {
+                            maxX = element.x + offset
+                        }
+                        if (element.y > maxY) {
+                            maxY = element.y + offset
+                        }
+                    }
+     
+                    const pointObj = {
+                        pointLine: this.pointLine,
+                        scale: this.scale,
+                        lineWidth: this.lineWidth,
+                        color: this.color || this.averageColor,
+                        rotateAngle : this.rotateAngle,
+                        maxX,
+                        maxY,
+                        minX,
+                        minY
+                    }
+                    this.pointList.push(pointObj)
+                    this.pointLine = []
+                }
+                // 最后把橡皮去掉
+                if (this.rubberAction) {
+                    this.draw()
+                }
+                
+            },
+           distanceOfPoint2Line(p1, p2, { x, y }) {
+                const A = x - p1.x
+                const B = y - p1.y
+                const C = p2.x - p1.x
+                const D = p2.y - p1.y
 
-                var dot = A * C + B * D;
-                var len_sq = C * C + D * D;
-                var param = -1;
+                const dot = A * C + B * D;
+                const len_sq = C * C + D * D
+                let param = -1
                 if (len_sq != 0) //线段长度不能为0
-                    param = dot / len_sq;
-
-                var xx, yy;
-
+                    param = dot / len_sq
+                let xx, yy
                 if (param < 0) {
-                    xx = p1.x;
-                    yy = p1.y;
+                    xx = p1.x
+                    yy = p1.y
                 }
                 else if (param > 1) {
-                    xx = p2.x;
-                    yy = p2.y;
+                    xx = p2.x
+                    yy = p2.y
                 }
                 else {
-                    xx = p1.x + param * C;
-                    yy = p1.y + param * D;
+                    xx = p1.x + param * C
+                    yy = p1.y + param * D
                 }
-
-                var dx = x - xx;
-                var dy = y - yy;
-                return Math.sqrt(dx * dx + dy * dy);
+                const dx = x - xx
+                const dy = y - yy
+                return Math.sqrt(dx * dx + dy * dy)
             },
 
             restPoint(pooint, image, scale) {
                 return {
-                    x: Math.floor(image.x + pooint.x * scale),
-                    y: Math.floor(image.y + pooint.y * scale)
+                    x: image.x + pooint.x * scale,
+                    y: image.y + pooint.y * scale
                 }
             },
             checkRegion(x,y,target) {
