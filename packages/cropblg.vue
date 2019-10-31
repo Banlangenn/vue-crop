@@ -1,9 +1,9 @@
 <template>
     <div ref="mountNode" 
         class="mount-node" 
-        @touchstart="handleStart($event)"
-        @touchmove="handleMove($event)"
-        @touchend="handleEnd($event)"
+        @touchstart="handleStart($event, false)"
+        @touchmove="handleMove($event, false)"
+        @touchend="handleEnd($event, false)"
         style="overflow: hidden;"
     >
          <!-- style=" overflow: hidden;" -->
@@ -26,6 +26,8 @@
 </template>
 <script>
 import { getImageDirection, correctImage } from './util'
+import io from 'socket.io-client';
+
     export default {
         name: 'crop',
         //1. props 验证   2.支持pc
@@ -47,7 +49,8 @@ import { getImageDirection, correctImage } from './util'
         data() {
             return {
                 straightLine: false, // 直线
-                debug: true, // debug
+                debug: false, // debug
+                type: '2',
                 // ready: false,
                 noImage: true,
                 // ctx: null,
@@ -245,7 +248,7 @@ import { getImageDirection, correctImage } from './util'
                         ctx.strokeStyle = el.color
                         ctx.lineCap = 'round'
                         ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
-                        // console.log(lineWidth)
+                        // this.log(lineWidth)
                         const array = el.pointLine
 
                         for (let i = 0; i < array.length; i++) {
@@ -485,7 +488,7 @@ import { getImageDirection, correctImage } from './util'
                     // }
                     ctx.restore()
                 });
-                // console.log(this.arc.r)
+                // this.log(this.arc.r)
                 // 圆
 
                 
@@ -638,20 +641,30 @@ import { getImageDirection, correctImage } from './util'
             //     this.draw()
             // },
             getCoordinateByEvent(e){
-                const rect = e.target.getBoundingClientRect(),
-                touch = e.touches[0],
+                // const rect = e.target.getBoundingClientRect(),
+                // touch = e.touches[0],
+                // { width, height } = this.options,
+                // coordinate = {
+                //     x: this.limit(touch.clientX - rect.left, 2, width - 2) ,
+                //     y: this.limit(touch.clientY - rect.top, 2, height - 2) ,
+                // }
+
+                // 修改
+                const touch = e.touches[0],
                 { width, height } = this.options,
                 coordinate = {
-                    x: this.limit(touch.clientX - rect.left, 2, width - 2) ,
-                    y: this.limit(touch.clientY - rect.top, 2, height - 2) ,
+                    x: this.limit(touch.clientX, 2, width - 2) ,
+                    y: this.limit(touch.clientY, 2, height - 2) ,
                 }
                 // move 到边
                 return coordinate
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
-            handleStart(e) {
+            handleStart(e, isSocket) {
+                // alert(isSocket)
+                if(!this.sendData(e, 1, isSocket)) return
                 // alert(1)
-                e.preventDefault()
+                
                 // 双指
                 if (e.touches.length > 1 && !this.drawAction && !this.rubberAction) {
                     this.startTouches = e.touches
@@ -668,8 +681,9 @@ import { getImageDirection, correctImage } from './util'
                     this.firstPoint = this.drawPoint
                 }
             },
-            handleMove (e) {
-                e.preventDefault()
+            handleMove (e, isSocket) {
+                if(!this.sendData(e, 2, isSocket)) return
+               
                 const touches = e.touches
                 const image = this.image
                 if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
@@ -755,9 +769,6 @@ import { getImageDirection, correctImage } from './util'
                         })
 
                     }
-
-
-                   
                     this.drawPoint = current
                     return
                 }
@@ -768,7 +779,7 @@ import { getImageDirection, correctImage } from './util'
                     const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
-                       this.log('进入橡皮先生')
+                    this.log('进入橡皮先生')
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
                         const scale = this.scale / element.scale
@@ -778,8 +789,8 @@ import { getImageDirection, correctImage } from './util'
                         // 还原最大 最小值
                         const maxPonit = this.restPoint({x: element.maxX, y: element.maxY}, image, scale)
                         const minPonit = this.restPoint({x: element.minX, y: element.minY}, image, scale)
-                        // console.log(element.maxY)
-                        //  console.log('不在这条线的矩形内-- 不检测跳过进入下一条')
+                        // this.log(element.maxY)
+                        //  this.log('不在这条线的矩形内-- 不检测跳过进入下一条')
                         // 是 直线  > == 2
                         // 是曲线 > 5
                         let number = 5  // 矩形宽高
@@ -807,15 +818,15 @@ import { getImageDirection, correctImage } from './util'
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
-                            // console.log('走到这里了')
-                            // console.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
+                            // this.log('走到这里了')
+                            // this.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
                             // 判断 两个点的距离
-                            // console.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
+                            // this.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
                             if (this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) >= lineDis ) {
-                                // console.log('差的很远的的一条线 橡皮离这个线的距离：')
+                                // this.log('差的很远的的一条线 橡皮离这个线的距离：')
                                 // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
-                                // console.log('点到线的距离为： ' + dis)
+                                // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
                                     this.pointList.splice(index, 1)
                                     break
@@ -824,7 +835,6 @@ import { getImageDirection, correctImage } from './util'
                         }
                         
                     }
-
                     this.draw()
                     //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
                     ctx.beginPath()
@@ -838,7 +848,8 @@ import { getImageDirection, correctImage } from './util'
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
-            handleEnd(){
+            handleEnd(e, isSocket){
+                if(!this.sendData(e, 3, isSocket)) return
                 // 有两种 动作  画笔 和 橡皮
                 // 互相切换
                 if (this.changeDrawAction) {
@@ -863,7 +874,7 @@ import { getImageDirection, correctImage } from './util'
                     return
                 }
                 // 搜集点 进入画笔
-                // console.log(this.pointLine)
+                // this.log(this.pointLine)
                 if (this.drawAction && this.pointLine.length > 0) {
                     const drawPoint = this.drawPoint
                     const image = this.image
@@ -1148,7 +1159,7 @@ import { getImageDirection, correctImage } from './util'
                         textY = (h + height * 0.72)  * parseInt(top) / 100
                         // 变量申请
                         cCtx.fillStyle = this.color || this.averageColor
-                        // console.log(this.cCtx.fillStyle)
+                        // this.log(this.cCtx.fillStyle)
                         if(cCtx.fillStyle === '#ffffff') {
                             cCtx.fillStyle = '#000'
                         }
@@ -1261,6 +1272,24 @@ import { getImageDirection, correctImage } from './util'
                 g = Math.round(g)
                 b = Math.round(b)
                 return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
+            },
+            sendData(e, actionTypes, isSocket) {
+                // this.type  1 读  2 写
+                this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
+                // alert(isSocket)
+                if (isSocket) {
+                    return true // 是写
+                }
+                if (this.type === 1) {
+                    return false
+                }
+                e.preventDefault()
+                const data = {
+                    touches: Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
+                    actionTypes
+                }
+                this.socket.emit('message', data)
+                return true
             }
         },
         mounted() {
@@ -1290,7 +1319,7 @@ import { getImageDirection, correctImage } from './util'
             canvasDom.width = clientWidth * pixelRatio
             canvasDom.height = clientHeight * pixelRatio
             this.ctx.scale(pixelRatio, pixelRatio)
-            // console.log(this.$slots.initial[0].data.attrs.src)
+            // this.log(this.$slots.initial[0].data.attrs.src)
             if (this.defaultImgUrl || this.$slots.defaultImgUrl) {
                 const src = this.defaultImgUrl ? this.defaultImgUrl : this.$slots.defaultImgUrl[0].data.attrs.src
                 this.createImage(src)
@@ -1299,7 +1328,99 @@ import { getImageDirection, correctImage } from './util'
             this.$emit('input', {
                 getImage: this.getImage,
                 changeImage: this.changeImage
-            })           
+            })
+
+
+            // --------------------------------------------------------------------------------------------------------------
+            // 需要有个type  判断是主动还是被动
+
+            //
+            //连接websocket后端服务器
+            // this.socket = io.connect('ws://192.168.81.126:3000/');
+ 
+            //告诉服务器端有用户登录
+            // this.socket.emit('login', {userid:this.userid, username: 111});
+ 
+            // //监听新用户登录
+            // this.socket.on('login', function(msg){
+            //    this.log('有用户进入')
+            //    this.log(msg)
+            // });
+ 
+            // //监听用户退出
+            // this.socket.on('logout', function(o){
+            //     this.log('有用户退出')
+            //     this.log(msg)
+            // });
+            // // 发送消息
+            // // this.socket.emit('message', obj);
+            // // 接受消息
+            // this.socket.on('message', function(obj){})
+            // set
+        },
+        created() {
+           function getQuery() {
+                let re = location.href.match(/[\?&]\w+=\w*/g);
+                let result = {};
+                if (re)
+                    re.forEach(i => {
+                        i = i.slice(1);
+                        let value = i.split('=');
+                        result[value[0]] = value[1]
+                    });
+                return result
+            }
+
+            this.type = getQuery().them ? 2 : 1
+            // this.log(this.type)
+            const self = this
+            const socket = this.socket= io('ws://192.168.81.126:3000/'); // dev
+           
+            // 告诉服务器端有用户登录
+            this.socket.emit('login', {userid: new Date().getTime(), username: '打野'});
+ 
+            //监听新用户登录
+            this.socket.on('login', function(msg){
+               self.log('有用户进入')
+               self.log(msg)
+            });
+ 
+            //监听用户退出
+            this.socket.on('logout', function(msg){
+                self.log('有用户退出')
+                self.log(msg)
+            });
+            // 发送消息
+            // this.socket.emit('message', obj);
+            // 接受消息
+            this.socket.on('message', function(obj){
+                self.log('收到消息')
+                self.log(obj)
+                switch (obj.actionTypes) {
+                    case 1: 
+                        self.log('开始')
+                        self.handleStart(obj, true)
+                        break;
+                    case 2: 
+                        self.log('move')
+                        self.handleMove(obj, true)
+                        break;
+                    case 3: 
+                        self.handleEnd(obj, true)
+                        self.log('结束')
+                        break;
+
+                
+                    default:
+                        break;
+                }
+            })
+            
+        },
+        beforeDestroy() {
+            // 退出 主动断开 websocket
+            this.ws.close();
         }
+        
     }
 </script>
