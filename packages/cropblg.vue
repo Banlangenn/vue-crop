@@ -46,7 +46,7 @@ import { getImageDirection, correctImage } from './util'
           ],
         data() {
             return {
-                straightLine: true, // 直线
+                straightLine: false, // 直线
                 debug: true, // debug
                 // ready: false,
                 noImage: true,
@@ -64,7 +64,7 @@ import { getImageDirection, correctImage } from './util'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                lineWidth: 13,
+                lineWidth: 3,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -247,6 +247,7 @@ import { getImageDirection, correctImage } from './util'
                         ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
                         // console.log(lineWidth)
                         const array = el.pointLine
+
                         for (let i = 0; i < array.length; i++) {
                             const element = array[i]
                             const originPoint = this.restPoint(element, image, scale)
@@ -257,15 +258,16 @@ import { getImageDirection, correctImage } from './util'
                                 } else {
                                     ctx.moveTo(originPoint.x, originPoint.y)
                                 }
+                                ctx.stroke()
                                 continue
                             }
                             if (quality) {
                                 ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
                             } else {
                                 ctx.lineTo(originPoint.x, originPoint.y)
-                            } 
+                            }
+                            ctx.stroke() 
                         }
-                        ctx.stroke()
                     })
                 }
             },
