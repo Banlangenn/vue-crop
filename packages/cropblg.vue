@@ -27,7 +27,7 @@
 <script>
 import { getImageDirection, correctImage } from './util'
 import io from 'socket.io-client';
-
+import workerSend from './workerSend';
     export default {
         name: 'crop',
         //1. props 验证   2.支持pc
@@ -78,14 +78,14 @@ import io from 'socket.io-client';
         watch: {
             shape() {
                 if (!this.noImage) {
-                    this.draw()
+                    this.renderCanvas()
                 }
             },
             rotation() {
                 //  内旋转 外旋转 只能有一个
                 if (!this.noImage && !this.rotateBtn && !this.drawAction) {
                     this.rotateAngle = this.rotation
-                    this.draw()
+                    this.renderCanvas()
                 }
             }
         },
@@ -195,14 +195,15 @@ import io from 'socket.io-client';
                 //     number ++ 
                 // }
                
-                this.draw()
+                this.renderCanvas()
             },
-            draw() {
+            renderCanvas() {
                 const { width, height } = this.options
                 // 避免预览到背景
                 // canvas init
                 this.ctx.clearRect(0, 0, width, height)
                 if (!this.averageColor) {
+                    //  只会跑一次
                     this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
                 }
                
@@ -336,7 +337,7 @@ import io from 'socket.io-client';
                 const { x, y, width, height } = touchBar
                 //  const {x, y, width} = touchBar   //  用宽 算个比例
                 const ctx = this.ctx
-                const radius = 8
+                const radius = 12 // 8
                 // touchBar = touchBar,
                 const color = this.color || this.averageColor
                 ctx.strokeStyle = color
@@ -502,8 +503,8 @@ import io from 'socket.io-client';
                 ctx.stroke();
             },
             handleArcMove({ x, y }) {
-                this.arc.r = this.limit(this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}), this.nookSide * 2, this.maxRadius)
-                this.draw()
+                this.arc.r = this.limit(this.getDistance({clientX: x, clientY: y}, {clientX: this.arc.x, clientY: this.arc.y}), this.nookSide * 2, this.maxRadius)
+                this.renderCanvas()
             },
            // 填充背景
             fillBackground() {
@@ -587,7 +588,7 @@ import io from 'socket.io-client';
                     return
                 }
                 this.cropper = {...this.cropper,...newCropper}
-                this.draw()
+                this.renderCanvas()
             },
             handleImageMove ({ x, y }) {
                 const s = this.startPoint
@@ -624,7 +625,7 @@ import io from 'socket.io-client';
                     this.image.x = this.limit(x - s.offsetX, right - this.image.width, left)
                     this.image.y = this.limit(y - s.offsetY, bottom - this.image.height, top)
                 */
-                this.draw()
+                this.renderCanvas()
             },
             // handleCropperMove({ x, y }) {
             //     const { width, height } = this.options;
@@ -638,7 +639,7 @@ import io from 'socket.io-client';
             //     // 判断边界
             //     this.cropper.x = this.limit(currentX, 0, maxX)
             //     this.cropper.y = this.limit(currentY, 0, maxY)
-            //     this.draw()
+            //     this.renderCanvas()
             // },
             getCoordinateByEvent(e){
                 // const rect = e.target.getBoundingClientRect(),
@@ -661,6 +662,7 @@ import io from 'socket.io-client';
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e, isSocket) {
+                this.clearCtx2()
                 // alert(isSocket)
                 if(!this.sendData(e, 1, isSocket)) return
                 // alert(1)
@@ -702,7 +704,7 @@ import io from 'socket.io-client';
                     this.image.y += (image.height - height) / 2
                     this.image.width = width
                     this.image.height = height
-                    this.draw()
+                    this.renderCanvas()
                     return
                 }
                 // 画笔
@@ -737,7 +739,7 @@ import io from 'socket.io-client';
                     
                     // 划线  第一个点 用beginPath
                     if (this.straightLine) { // 是直线
-                        this.draw()
+                        this.renderCanvas()
                         ctx.beginPath()
                         ctx.lineWidth = lineWidth
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
@@ -774,9 +776,9 @@ import io from 'socket.io-client';
                 }
                 // 橡皮
                 if (this.rubberAction) {
-                    const {x, y} = this.getCoordinateByEvent(e)
-                    const radius = 8
-                    const ctx  = this.ctx
+                    const { x, y } = this.getCoordinateByEvent(e)
+                    const radius = 12
+                    // const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
                     this.log('进入橡皮先生')
@@ -795,7 +797,7 @@ import io from 'socket.io-client';
                         // 是曲线 > 5
                         let number = 5  // 矩形宽高
                         //  直线如果距离太小也会 被拦下来
-                        e
+                        const time1 = new Date().getTime()
                         if ((maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
@@ -803,9 +805,11 @@ import io from 'socket.io-client';
                             x < minPonit.x ||
                             y < minPonit.y)
                         ) {
-                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条')
+                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + '' + (new Date().getTime() - time1) )
                             continue 
                         }
+                        this.log('在线的矩形内-- 开始检测')
+                        const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
                             const item = pointLine[j];
                             // const len = pointLine.length
@@ -813,33 +817,36 @@ import io from 'socket.io-client';
                             const originPoint = this.restPoint(item, image, scale)
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
                                 this.pointList.splice(index, 1)
+                                setTimeout(()=>{
+                                    this.renderCanvas()
+                                })
                                 break
                             }
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
                             // this.log('走到这里了')
-                            // this.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
+                            // this.log(this.getDistance({clientX: item.x, clientY:item.y}, {clientX: item.x, clientY:item2.y}))
                             // 判断 两个点的距离
-                            // this.log(this.getDistance({pageX: item.x, pageY:item.y}, {pageX: item.x, pageY:item2.y}))
-                            if (this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) >= lineDis ) {
+                            // this.log(this.getDistance({pageX: item.x, clientY:item.y}, {pageX: item.x, clientY:item2.y}))
+                            if (this.getDistance({clientX: item.x, clientY: item.y}, {clientX: secondItem.x, clientY: secondItem.y}) >= lineDis ) {
                                 // this.log('差的很远的的一条线 橡皮离这个线的距离：')
                                 // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
                                     this.pointList.splice(index, 1)
+                                    setTimeout(()=>{
+                                        this.renderCanvas()
+                                    })
                                     break
                                 }
                             }
                         }
-                        
+                        this.log('检测完毕 没有碰撞：检测耗时' + '' + (new Date().getTime() - time2 ))
                     }
-                    this.draw()
-                    //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
-                    ctx.beginPath()
-                    ctx.arc(x , y, radius, 0, Math.PI * 2, false)
-                    ctx.fill()
+                    // this.log('橡皮的半径' + ('' + radius))
+                    this.renderRubber(x, y, radius)
                     return
                 }
                 // 这是干啥的--画=>图片和 线  移动
@@ -848,7 +855,28 @@ import io from 'socket.io-client';
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
+            clearCtx2() {
+                const { width, height } = this.options
+                // 避免预览到背景
+                // canvas init
+                this.ctx2.clearRect(0, 0, width, height)
+            },
+            renderRubber(x, y, radius) {
+                this.log('橡皮的半径' + ('' + radius))
+                // 考虑 只做检测  不做渲染
+                // this.renderCanvas()
+                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
+                this.clearCtx2()
+                const rubberCtx = this.ctx2
+                const color = this.color
+                rubberCtx.strokeStyle = this.color
+                rubberCtx.fillStyle = color
+                rubberCtx.beginPath()
+                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
+                rubberCtx.fill()
+            },
             handleEnd(e, isSocket){
+                this.clearCtx2()
                 if(!this.sendData(e, 3, isSocket)) return
                 // 有两种 动作  画笔 和 橡皮
                 // 互相切换
@@ -869,7 +897,8 @@ import io from 'socket.io-client';
                         default:
                             break;
                     }
-                    this.draw()
+                    
+                    this.renderCanvas()
                     this.changeDrawAction = false
                     return
                 }
@@ -922,7 +951,7 @@ import io from 'socket.io-client';
                 }
                 // 最后把橡皮去掉
                 if (this.rubberAction) {
-                    this.draw()
+                    this.renderCanvas()
                 }
                 
             },
@@ -977,7 +1006,7 @@ import io from 'socket.io-client';
                 ctx.stroke()
                 // ctx.stroke() 
                 return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
-                 && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
+                 && this.getDistance({clientX: x, clientY: y}, {clientX: this.arc.x, clientY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
             },
             getPointByCoordinate({x, y}) {
                 const image = this.image,
@@ -993,7 +1022,7 @@ import io from 'socket.io-client';
                 } else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar) && !this.drawAction) {
                     this.log('点击了撤回')
                     this.pointList.pop()
-                    this.draw()
+                    this.renderCanvas()
                     return
                     
                 } else if (this.rubberBar && this.checkRegion(x, y, this.rubberBar)) {
@@ -1005,7 +1034,7 @@ import io from 'socket.io-client';
                 } else if (this.touchBar && this.checkRegion(x, y, this.touchBar)) {
                     // 旋转后的角度 每次
                     this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
-                    this.draw()
+                    this.renderCanvas()
                     return
                 } else if(this.drawAction){
                     return
@@ -1051,8 +1080,8 @@ import io from 'socket.io-client';
             },
             // 求两点之间的 距离
             getDistance(p1, p2) {
-                const x = p2.pageX - p1.pageX,
-                    y = p2.pageY - p1.pageY
+                const x = p2.clientX - p1.clientX,
+                    y = p2.clientY - p1.clientY
                 return Math.sqrt((x * x) + (y * y))
             },
             limit(value, min, max) {
@@ -1275,6 +1304,7 @@ import io from 'socket.io-client';
             },
             sendData(e, actionTypes, isSocket) {
                 // this.type  1 读  2 写
+                // console.log(this.options)
                 this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
                 // alert(isSocket)
                 if (isSocket) {
@@ -1288,37 +1318,60 @@ import io from 'socket.io-client';
                     touches: Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
                     actionTypes
                 }
-                this.socket.emit('message', data)
+                workerSend(data)
                 return true
+            },
+            createCanvas() {    
+                // 解决 字体模糊
+                const { mountNode } = this.$refs
+                const { clientWidth, clientHeight } = mountNode
+                // p可以优化
+                this.options = {
+                    width: clientWidth,
+                    height: clientHeight
+                }
+                // canvas dom
+                let canvasDom =  document.createElement('canvas')
+                canvasDom.style.width =  clientWidth + 'px'
+                canvasDom.style.height = clientHeight + 'px'
+                //  小方格背景
+               
+               
+
+                mountNode.appendChild(canvasDom)
+                const ctx = canvasDom.getContext('2d')
+                const pixelRatio = this.pixelRatio = this.getPixelRatio(ctx)
+                canvasDom.style.position = 'absolute'
+                canvasDom.style.top =  0
+                canvasDom.style.left =  0
+                canvasDom.style.zIndex = 2
+                canvasDom.width = clientWidth * pixelRatio
+                canvasDom.height = clientHeight * pixelRatio
+                ctx.scale(pixelRatio, pixelRatio)
+            
+                // this.options = canvasDom.getBoundingClientRect()
+                // this.pixelRatio   //  ------截图的时候会用
+                
+                const canvasDom2 = canvasDom.cloneNode(true)
+                canvasDom2.style.backgroundColor = '#fff'
+                canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
+                canvasDom2.style.backgroundSize = '29px 29px'
+                canvasDom2.style.backgroundPosition = '0 0, 15px 15px'
+                canvasDom2.style.zIndex = 1
+                // 笔记层
+            
+                mountNode.appendChild(canvasDom2)
+                const ctx2 = canvasDom2.getContext('2d')
+                ctx2.scale(pixelRatio, pixelRatio)
+                
+                return  [ctx2, ctx]
+                
             }
         },
         mounted() {
-            // 解决 字体模糊
-            const { mountNode } = this.$refs
-            const { clientWidth, clientHeight } = mountNode
-            // p可以优化
-            this.options = {
-                width: clientWidth,
-                height: clientHeight
-            }
-            // canvas dom
-            let canvasDom =  document.createElement('canvas')
-            canvasDom.style.width =  clientWidth + 'px'
-            canvasDom.style.height = clientHeight + 'px'
-            //  小方格背景
-            canvasDom.style.backgroundColor = '#fff'
-            canvasDom.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
-            canvasDom.style.backgroundSize = '29px 29px'
-            canvasDom.style.backgroundPosition = '0 0, 15px 15px'
-            mountNode.appendChild(canvasDom)
-            // this.options = canvasDom.getBoundingClientRect()
-           
-
-            this.ctx = canvasDom.getContext('2d')
-            const pixelRatio = this.pixelRatio = this.getPixelRatio(this.ctx)
-            canvasDom.width = clientWidth * pixelRatio
-            canvasDom.height = clientHeight * pixelRatio
-            this.ctx.scale(pixelRatio, pixelRatio)
+            const [ctx, ctx2] = this.createCanvas()
+            this.ctx = ctx
+            this.ctx2 = ctx2
             // this.log(this.$slots.initial[0].data.attrs.src)
             if (this.defaultImgUrl || this.$slots.defaultImgUrl) {
                 const src = this.defaultImgUrl ? this.defaultImgUrl : this.$slots.defaultImgUrl[0].data.attrs.src
@@ -1359,8 +1412,9 @@ import io from 'socket.io-client';
             // set
         },
         created() {
+           
            function getQuery() {
-                let re = location.href.match(/[\?&]\w+=\w*/g);
+                let re = location.href.match(/[\\?&]\w+=\w*/g);
                 let result = {};
                 if (re)
                     re.forEach(i => {
@@ -1372,28 +1426,36 @@ import io from 'socket.io-client';
             }
 
             this.type = getQuery().them ? 2 : 1
+            // '1读读读读读读读读读读' '2写写写写写写写写写写'
             // this.log(this.type)
+            // 如果是写的  不用建立这个 链接
+            if (this.type == 2)  return
+            this.log('如果是写 -- 不会走到这里的')
+          
             const self = this
-            const socket = this.socket= io('ws://192.168.81.126:3000/'); // dev
+            const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
            
             // 告诉服务器端有用户登录
-            this.socket.emit('login', {userid: new Date().getTime(), username: '打野'});
+            socket.emit('login', {userid: new Date().getTime(), username: '打野'});
  
             //监听新用户登录
-            this.socket.on('login', function(msg){
+            socket.on('login', function(msg){
                self.log('有用户进入')
                self.log(msg)
             });
  
             //监听用户退出
-            this.socket.on('logout', function(msg){
+            socket.on('logout', function(msg){
                 self.log('有用户退出')
                 self.log(msg)
             });
             // 发送消息
             // this.socket.emit('message', obj);
             // 接受消息
-            this.socket.on('message', function(obj){
+
+
+            // 缩放数据容易丢  传缩放比 
+            socket.on('message', function(obj){
                 self.log('收到消息')
                 self.log(obj)
                 switch (obj.actionTypes) {

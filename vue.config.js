@@ -37,5 +37,17 @@ module.exports = {
                 // 修改它的选项==>
                 return options;
             });
+
+        // 添加worker-loader
+        config.module
+            .rule('workerLoader')
+            .test(/\.worker\.js$/)
+            .use('worker-loader')
+            .loader('worker-loader')
+            .tap(options => {
+                // 修改它的选项...
+                return { inline: true }
+              })
+            .end()
     }
 };
