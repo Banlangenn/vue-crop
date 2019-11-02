@@ -1,18 +1,17 @@
 
-
-import MyWorker  from './webworker3.worker'
+import io from 'socket.io-client'
+import MyWorker  from './webworker5.worker'
 let send
-if (typeof(Worker)!=="undefined") {
+if (typeof(Worker) !== "undefined" ) {
     const worker = new MyWorker();
     // 支持webworker
     send = (value)=> {
-        // console.log(value)
         worker.postMessage(value) 
     }
 } else {
-    const socket  = io('ws://192.168.81.126:3000/'); // dev
+    const socket = io('ws://192.168.31.117:3000/'); // dev
     // 告诉服务器端有用户登录
-    socket.emit('login', {userid: new Date().getTime(), username: '打野'})
+    socket.emit('login', { userid: new Date().getTime(), username: '打野' })
     send = (value)=> { socket.emit('message',value) }
 }
 export default send

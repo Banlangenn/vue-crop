@@ -44,7 +44,7 @@ module.exports = {
             .test(/\.worker\.js$/)
             .use('worker-loader')
             .loader('worker-loader')
-            .tap(options => {
+            .tap(()=> {
                 // 修改它的选项...
                 return { inline: true }
               })
