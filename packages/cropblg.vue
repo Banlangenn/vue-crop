@@ -50,6 +50,7 @@ import workerSend from './workerSend'
             return {
                 straightLine: false, // 直线
                 debug: true, // debug
+                logLevel: 2,
                 type: '2',
                 // ready: false,
                 noImage: true,
@@ -67,7 +68,7 @@ import workerSend from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                lineWidth: 3,
+                lineWidth: 2,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -241,38 +242,37 @@ import workerSend from './workerSend'
             drawPointFn(ctx, quality = null, cropper = this.image, image = this.image){
                 const pointList = this.pointList
                 // const image = this.image
-                if (pointList.length > 0) {
-                    pointList.forEach(el => {
-                        const scale = this.scale / el.scale
-                        const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
-                        ctx.beginPath()
-                        ctx.strokeStyle = el.color
-                        ctx.lineCap = 'round'
-                        ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
-                        // this.log(lineWidth)
-                        const array = el.pointLine
-                        for (let i = 0; i < array.length; i++) {
-                            const element = array[i]
-                            const originPoint = this.restPoint(element, image, scale)
-                            if (i === 0) {
-                                // 要相对于图片的位置 才是对的  不能相对于 画布
-                                if (quality) {
-                                    ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
-                                } else {
-                                    ctx.moveTo(originPoint.x, originPoint.y)
-                                }
-                                // ctx.stroke()
-                                continue
-                            }
+                if (pointList.length == 0) return
+                ctx.lineCap = 'round'
+                pointList.forEach(el => {
+                    const scale = this.scale / el.scale
+                    const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                    ctx.beginPath()
+                    ctx.strokeStyle = el.color
+                    ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
+                    // this.log(lineWidth)
+                    const array = el.pointLine
+                    for (let i = 0; i < array.length; i++) {
+                        const element = array[i]
+                        const originPoint = this.restPoint(element, image, scale)
+                        if (i === 0) {
+                            // 要相对于图片的位置 才是对的  不能相对于 画布
                             if (quality) {
-                                ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
+                                ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
                             } else {
-                                ctx.lineTo(originPoint.x, originPoint.y)
+                                ctx.moveTo(originPoint.x, originPoint.y)
                             }
+                            // ctx.stroke()
+                            continue
                         }
-                        ctx.stroke() 
-                    })
-                }
+                        if (quality) {
+                            ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
+                        } else {
+                            ctx.lineTo(originPoint.x, originPoint.y)
+                        }
+                    }
+                    ctx.stroke()
+                })
             },
             drawPaintBrush(touchBar) {
                 if (!touchBar) return
@@ -653,8 +653,10 @@ import workerSend from './workerSend'
                 const touch = e.touches[0],
                 { width, height } = this.options,
                 coordinate = {
-                    x: this.limit(touch.clientX, 2, width - 2) ,
-                    y: this.limit(touch.clientY, 2, height - 2) ,
+                    // x: this.limit(this.getInt(touch.clientX), 2, width - 2),
+                    // y: this.limit(this.getInt(touch.clientY), 2, height - 2)
+                    x: this.limit(touch.clientX, 2, width - 2),
+                    y: this.limit(touch.clientY, 2, height - 2)
                 }
                 // move 到边
                 return coordinate
@@ -680,6 +682,7 @@ import workerSend from './workerSend'
                 if (this.drawAction) {  //  changeDrawAction bar 点中了
                     // 上次肯定会被清掉
                     this.pointLine = []
+                    // 如果是直线 需要永远知道第一个点  在什么位置
                     this.firstPoint = this.drawPoint
                 }
             },
@@ -739,7 +742,6 @@ import workerSend from './workerSend'
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
                         ctx.lineTo(current.x, current.y)
                         ctx.stroke()
-    
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         if (this.pointLine.length === 0) {
                             this.pointLine.push({
@@ -748,7 +750,8 @@ import workerSend from './workerSend'
                             })
                         }
                     } else {
-
+                        // console.log('----------90909090--------------------------------')
+                        // console.log(drawPoint)
                         if (this.pointLine.length === 0) {
                             this.ctx.beginPath()
                             ctx.lineWidth = lineWidth                
@@ -769,7 +772,7 @@ import workerSend from './workerSend'
                     return
                 }
                 // if (this.type == 2) return 目前是可以
-                // 缩放
+                // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
                 if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
                     if (this.type == 1) {
                         return
@@ -817,6 +820,7 @@ import workerSend from './workerSend'
                         // 是 直线  > == 2
                         // 是曲线 > 5
                         let number = 5  // 矩形宽高
+                        // (maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                         //  直线如果距离太小也会 被拦下来
                         const time1 = new Date().getTime()
                         if ((maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
@@ -826,10 +830,11 @@ import workerSend from './workerSend'
                             x < minPonit.x ||
                             y < minPonit.y)
                         ) {
-                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + '' + (new Date().getTime() - time1) )
+                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + 
+                            '' + (new Date().getTime() - time1) + 'ms' )
                             continue 
                         }
-                        this.log('经过矩形优化后 ------------耗时：'+ '' + (new Date().getTime() - time))
+                        // this.log('经过矩形优化后 ------------耗时：' + '' + (new Date().getTime() - time))
                         this.log('在线的矩形内-- 开始检测')
                         const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
@@ -837,6 +842,7 @@ import workerSend from './workerSend'
                             // const len = pointLine.length
                             // 点 复原坐标 1 
                             const originPoint = this.restPoint(item, image, scale)
+                            // 首先用点检测
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
                                 this.sendData(e, 4, index)
                                 this.pointList.splice(index, 1)
@@ -849,13 +855,24 @@ import workerSend from './workerSend'
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
-                            // this.log('走到这里了')
-                            // this.log(this.getDistance({clientX: item.x, clientY:item.y}, {clientX: item.x, clientY:item2.y}))
-                            // 判断 两个点的距离
-                            // this.log(this.getDistance({pageX: item.x, clientY:item.y}, {pageX: item.x, clientY:item2.y}))
+
+                            // 如果项目 离上一个点差的很远 ---  用线 检测
+                            // if (this.getDistance({clientX: x, clientY:x}, {clientX: this.drawPoint.x, clientY: this.drawPoint.y}) > lineDis) {
+                            //     //  橡皮檫的距离大于 检测距离
+                                
+                            //     const rubberDis = this.distanceOfPoint2Line(originPoint, this.drawPoint, {x, y})
+                            //     this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
+                            //      if (rubberDis <= lineDis) {
+                            //         this.sendData(e, 4, index)
+                            //         this.pointList.splice(index, 1)
+                            //         this.renderCanvas()
+                            //         break
+                            //     }
+                            // }
+
+
                             if (this.getDistance({clientX: item.x, clientY: item.y}, {clientX: secondItem.x, clientY: secondItem.y}) >= lineDis ) {
-                                // this.log('差的很远的的一条线 橡皮离这个线的距离：')
-                                // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
+                                // this.log('差的很远的的一条线 橡皮离这个线的距离')
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
@@ -866,11 +883,14 @@ import workerSend from './workerSend'
                                 }
                             }
                         }
-                        this.log(index + '这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2 ))
+                        this.log(index + '这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
+                        this.drawPoint = {x, y}
                         // 20
                     }
                     // this.log('橡皮的半径' + ('' + radius))
-                    this.log( 'all所有线：：：：ALL：： ：检测耗时' + '' + (new Date().getTime() - time ))
+                    this.log( 'all所有线(' + pointList.length + 
+                        ')：：：：ALL：： ：检测耗时' + '' + 
+                        (new Date().getTime() - time) + 'ms', 'red', 2)
                     return
                 }
                 // 这是干啥的--画=>图片和 线  移动
@@ -879,6 +899,17 @@ import workerSend from './workerSend'
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
+            //  取整、、
+            // getInt(num) { 
+            //     let rounded;   
+            //     rounded = (0.5 + num) | 0
+            //     // A double bitwise not.
+            //     rounded = ~~ (0.5 + num)
+            //     // Finally, a left bitwise shift.
+            //     rounded = (0.5 + num) << 0
+            //     return rounded
+            // },
+            // 第二 画布 清屏
             clearCtx2() {
                 const { width, height } = this.options
                 // 避免预览到背景
@@ -903,7 +934,7 @@ import workerSend from './workerSend'
                 this.clearCtx2()
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
-                // 互相切换
+                // TODO: 互相切换 可以用一个变量 优化掉 -----------------------------------
                 if (this.changeDrawAction) {
                     //  this.DrawActionText = 'brush'
                     // this.DrawActionText = 'rubber'
@@ -1117,14 +1148,15 @@ import workerSend from './workerSend'
                 }
                 return value
             },
-            log(value, color='default') {
+            log(value, color='default', level = 1) {
+                if (level < this.logLevel) return
                 // 日志分为 NONE，DEBUG，INFO，WARN 和 ERROR 5 个级别。
                 if(!this.debug) return
                 const colors = {
                     INFO: '#000',
                     red: 'font-size:16px;color:red;',
                     orange: 'font-size:16px;color:#f60;',
-                    ERROR: 'ERROR'
+                    green: 'green'
                 }
                 // console.dir(value)
                 if (typeof value === 'object') {
@@ -1554,10 +1586,5 @@ import workerSend from './workerSend'
             })
             
         },
-        beforeDestroy() {
-            // 退出 主动断开 websocket
-            this.ws.close();
-        }
-        
     }
 </script>
