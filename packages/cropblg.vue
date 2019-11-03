@@ -800,7 +800,16 @@ import workerSend from './workerSend'
                     if (this.type == 1) {
                         return
                     }
-                   
+
+                    /**
+                     *  优化 橡皮移动过快造成 经过线 也没有删除
+                     *  TODO:  橡皮移动过 收益不大  --影响检查速度
+                     */
+                    // 上一个点  复制一下 是为了保存当前点  --但是上一个点 检测还要用到
+                    const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
+                    this.drawPoint = { x, y }
+                    const isFast = this.getDistance({clientX: x, clientY: y}, {clientX: preve.x, clientY: preve.y}) >= radius
+
                     // const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
@@ -835,7 +844,7 @@ import workerSend from './workerSend'
                             continue 
                         }
                         // this.log('经过矩形优化后 ------------耗时：' + '' + (new Date().getTime() - time))
-                        this.log('在线的矩形内-- 开始检测')
+                        // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
                             const item = pointLine[j];
@@ -852,25 +861,11 @@ import workerSend from './workerSend'
                                 // })
                                 break
                             }
+
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
-
-                            // 如果项目 离上一个点差的很远 ---  用线 检测
-                            // if (this.getDistance({clientX: x, clientY:x}, {clientX: this.drawPoint.x, clientY: this.drawPoint.y}) > lineDis) {
-                            //     //  橡皮檫的距离大于 检测距离
-                                
-                            //     const rubberDis = this.distanceOfPoint2Line(originPoint, this.drawPoint, {x, y})
-                            //     this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
-                            //      if (rubberDis <= lineDis) {
-                            //         this.sendData(e, 4, index)
-                            //         this.pointList.splice(index, 1)
-                            //         this.renderCanvas()
-                            //         break
-                            //     }
-                            // }
-
-
+                            // 如果 离上一个点差的很远 ---  用线 检测
                             if (this.getDistance({clientX: item.x, clientY: item.y}, {clientX: secondItem.x, clientY: secondItem.y}) >= lineDis ) {
                                 // this.log('差的很远的的一条线 橡皮离这个线的距离')
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
@@ -882,9 +877,26 @@ import workerSend from './workerSend'
                                     break
                                 }
                             }
+                            
+                            // TODO:  橡皮移动过 收益不大  --影响检查速度
+                            if (isFast) {
+                                //  橡皮檫的距离大于 检测距离
+                                const rubberDis = this.distanceOfPoint2Line(originPoint, preve, {x, y})
+                                // this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
+                                    if (rubberDis <= lineDis) {
+                                    this.sendData(e, 4, index)
+                                    this.pointList.splice(index, 1)
+                                    this.renderCanvas()
+                                    // this.log('--------------快速橡皮删除的', '', 2)
+                                    break
+                                }
+                            }
+
+                            
                         }
+
+
                         this.log(index + '这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
-                        this.drawPoint = {x, y}
                         // 20
                     }
                     // this.log('橡皮的半径' + ('' + radius))
