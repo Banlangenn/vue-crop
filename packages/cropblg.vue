@@ -1,9 +1,9 @@
 <template>
     <div ref="mountNode" 
         class="mount-node" 
-        @touchstart="handleStart($event, false)"
-        @touchmove="handleMove($event, false)"
-        @touchend="handleEnd($event, false)"
+        @touchstart="handleStart($event)"
+        @touchmove="handleMove($event)"
+        @touchend="handleEnd($event)"
         style="overflow: hidden;"
     >
          <!-- style=" overflow: hidden;" -->
@@ -26,8 +26,8 @@
 </template>
 <script>
 import { getImageDirection, correctImage } from './util'
-import io from 'socket.io-client';
-import workerSend from './workerSend';
+import io from 'socket.io-client'
+import workerSend from './workerSend'
     export default {
         name: 'crop',
         //1. props 验证   2.支持pc
@@ -49,7 +49,8 @@ import workerSend from './workerSend';
         data() {
             return {
                 straightLine: false, // 直线
-                debug: false, // debug
+                debug: true, // debug
+                logLevel: 2,
                 type: '2',
                 // ready: false,
                 noImage: true,
@@ -67,7 +68,7 @@ import workerSend from './workerSend';
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                lineWidth: 3,
+                lineWidth: 2,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -241,39 +242,37 @@ import workerSend from './workerSend';
             drawPointFn(ctx, quality = null, cropper = this.image, image = this.image){
                 const pointList = this.pointList
                 // const image = this.image
-                if (pointList.length > 0) {
-                    pointList.forEach(el => {
-                        const scale = this.scale / el.scale
-                        const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
-                        ctx.beginPath()
-                        ctx.strokeStyle = el.color
-                        ctx.lineCap = 'round'
-                        ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
-                        // this.log(lineWidth)
-                        const array = el.pointLine
-
-                        for (let i = 0; i < array.length; i++) {
-                            const element = array[i]
-                            const originPoint = this.restPoint(element, image, scale)
-                            if (i === 0) {
-                                // 要相对于图片的位置 才是对的  不能相对于 画布
-                                if (quality) {
-                                    ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
-                                } else {
-                                    ctx.moveTo(originPoint.x, originPoint.y)
-                                }
-                                ctx.stroke()
-                                continue
-                            }
+                if (pointList.length == 0) return
+                ctx.lineCap = 'round'
+                pointList.forEach(el => {
+                    const scale = this.scale / el.scale
+                    const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                    ctx.beginPath()
+                    ctx.strokeStyle = el.color
+                    ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
+                    // this.log(lineWidth)
+                    const array = el.pointLine
+                    for (let i = 0; i < array.length; i++) {
+                        const element = array[i]
+                        const originPoint = this.restPoint(element, image, scale)
+                        if (i === 0) {
+                            // 要相对于图片的位置 才是对的  不能相对于 画布
                             if (quality) {
-                                ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
+                                ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
                             } else {
-                                ctx.lineTo(originPoint.x, originPoint.y)
+                                ctx.moveTo(originPoint.x, originPoint.y)
                             }
-                            ctx.stroke() 
+                            // ctx.stroke()
+                            continue
                         }
-                    })
-                }
+                        if (quality) {
+                            ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
+                        } else {
+                            ctx.lineTo(originPoint.x, originPoint.y)
+                        }
+                    }
+                    ctx.stroke()
+                })
             },
             drawPaintBrush(touchBar) {
                 if (!touchBar) return
@@ -654,17 +653,20 @@ import workerSend from './workerSend';
                 const touch = e.touches[0],
                 { width, height } = this.options,
                 coordinate = {
-                    x: this.limit(touch.clientX, 2, width - 2) ,
-                    y: this.limit(touch.clientY, 2, height - 2) ,
+                    // x: this.limit(this.getInt(touch.clientX), 2, width - 2),
+                    // y: this.limit(this.getInt(touch.clientY), 2, height - 2)
+                    x: this.limit(touch.clientX, 2, width - 2),
+                    y: this.limit(touch.clientY, 2, height - 2)
                 }
                 // move 到边
                 return coordinate
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
-            handleStart(e, isSocket) {
+            handleStart(e) {
                 this.clearCtx2()
                 // alert(isSocket)
-                if(!this.sendData(e, 1, isSocket)) return
+         
+                if(!this.sendData(e, 1)) return
                 // alert(1)
                 
                 // 双指
@@ -680,34 +682,29 @@ import workerSend from './workerSend';
                 if (this.drawAction) {  //  changeDrawAction bar 点中了
                     // 上次肯定会被清掉
                     this.pointLine = []
+                    // 如果是直线 需要永远知道第一个点  在什么位置
                     this.firstPoint = this.drawPoint
                 }
             },
-            handleMove (e, isSocket) {
-                if(!this.sendData(e, 2, isSocket)) return
+            scaleImage(scale) {
+                this.scale = scale
+                const image = this.image
+                const width = image.clientWidth * scale
+                const height = image.clientHeight * scale
+                this.image.x += (image.width - width) / 2
+                this.image.y += (image.height - height) / 2
+                this.image.width = width
+                this.image.height = height
+                
+                this.renderCanvas()
+            },
+            handleMove (e) {
+                if(!this.sendData(e, 2)) return
                
                 const touches = e.touches
                 const image = this.image
-                if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
-                    let startTouches = this.startTouches
-                    let k; // 最终的缩放系数
-                    const scale = this.scale;
-                    // const offset = e.deltaY / 800;
-                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
-                    // k = k < 1 ? k / 10 : k * 10
-                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
-                    k = k * scale;
-                    this.scale = this.limit(k, 0.5, 1.2)
-                    const width = image.clientWidth * this.scale,
-                    height = image.clientHeight * this.scale
-                    this.image.x += (image.width - width) / 2
-                    this.image.y += (image.height - height) / 2
-                    this.image.width = width
-                    this.image.height = height
-                    this.renderCanvas()
-                    return
-                }
-                // 画笔
+
+                 // 画笔
                 if (this.drawAction) {
 
 
@@ -745,7 +742,6 @@ import workerSend from './workerSend';
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
                         ctx.lineTo(current.x, current.y)
                         ctx.stroke()
-    
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         if (this.pointLine.length === 0) {
                             this.pointLine.push({
@@ -754,7 +750,8 @@ import workerSend from './workerSend';
                             })
                         }
                     } else {
-
+                        // console.log('----------90909090--------------------------------')
+                        // console.log(drawPoint)
                         if (this.pointLine.length === 0) {
                             this.ctx.beginPath()
                             ctx.lineWidth = lineWidth                
@@ -774,14 +771,50 @@ import workerSend from './workerSend';
                     this.drawPoint = current
                     return
                 }
+                // if (this.type == 2) return 目前是可以
+                // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
+                if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
+                    if (this.type == 1) {
+                        return
+                    }
+                    let startTouches = this.startTouches
+                    let k; // 最终的缩放系数
+                    const scale = this.scale;
+                    // const offset = e.deltaY / 800;
+                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+                    // k = k < 1 ? k / 10 : k * 10
+                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 160
+                    k = this.limit(k * scale, 0.5, 1.2);
+                    // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
+                    this.sendData(e, 5, k)
+                    this.scaleImage(k)
+                    return
+                }
+               
                 // 橡皮
                 if (this.rubberAction) {
                     const { x, y } = this.getCoordinateByEvent(e)
                     const radius = 12
+                    this.renderRubber(x, y, radius)
+
+                    if (this.type == 1) {
+                        return
+                    }
+
+                    /**
+                     *  优化 橡皮移动过快造成 经过线 也没有删除
+                     *  TODO:  橡皮移动过 收益不大  --影响检查速度
+                     */
+                    // 上一个点  复制一下 是为了保存当前点  --但是上一个点 检测还要用到
+                    const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
+                    this.drawPoint = { x, y }
+                    const isFast = this.getDistance({clientX: x, clientY: y}, {clientX: preve.x, clientY: preve.y}) >= radius
+
                     // const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
-                    this.log('进入橡皮先生')
+                    this.log('进入橡皮先生' + '我是写', + '' + this.type)
+                    const time = new Date().getTime() 
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
                         const scale = this.scale / element.scale
@@ -796,6 +829,7 @@ import workerSend from './workerSend';
                         // 是 直线  > == 2
                         // 是曲线 > 5
                         let number = 5  // 矩形宽高
+                        // (maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                         //  直线如果距离太小也会 被拦下来
                         const time1 = new Date().getTime()
                         if ((maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
@@ -805,48 +839,70 @@ import workerSend from './workerSend';
                             x < minPonit.x ||
                             y < minPonit.y)
                         ) {
-                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + '' + (new Date().getTime() - time1) )
+                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + 
+                            '' + (new Date().getTime() - time1) + 'ms' )
                             continue 
                         }
-                        this.log('在线的矩形内-- 开始检测')
+                        // this.log('经过矩形优化后 ------------耗时：' + '' + (new Date().getTime() - time))
+                        // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
                             const item = pointLine[j];
                             // const len = pointLine.length
                             // 点 复原坐标 1 
                             const originPoint = this.restPoint(item, image, scale)
+                            // 首先用点检测
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
+                                this.sendData(e, 4, index)
                                 this.pointList.splice(index, 1)
-                                setTimeout(()=>{
-                                    this.renderCanvas()
-                                })
+                                this.renderCanvas()
+                                // setTimeout(()=>{
+                                // 直接通知对方 删除这个线 不用再判断
+                                // })
                                 break
                             }
+
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
-                            // this.log('走到这里了')
-                            // this.log(this.getDistance({clientX: item.x, clientY:item.y}, {clientX: item.x, clientY:item2.y}))
-                            // 判断 两个点的距离
-                            // this.log(this.getDistance({pageX: item.x, clientY:item.y}, {pageX: item.x, clientY:item2.y}))
+                            // 如果 离上一个点差的很远 ---  用线 检测
                             if (this.getDistance({clientX: item.x, clientY: item.y}, {clientX: secondItem.x, clientY: secondItem.y}) >= lineDis ) {
-                                // this.log('差的很远的的一条线 橡皮离这个线的距离：')
-                                // const p0 = originPoint, p1 = this.restPoint(item2, image, scale), p={x, y}
+                                // this.log('差的很远的的一条线 橡皮离这个线的距离')
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
+                                    this.sendData(e, 4, index)
                                     this.pointList.splice(index, 1)
-                                    setTimeout(()=>{
-                                        this.renderCanvas()
-                                    })
+                                    this.renderCanvas()
                                     break
                                 }
                             }
+                            
+                            // TODO:  橡皮移动过 收益不大  --影响检查速度
+                            if (isFast) {
+                                //  橡皮檫的距离大于 检测距离
+                                const rubberDis = this.distanceOfPoint2Line(originPoint, preve, {x, y})
+                                // this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
+                                    if (rubberDis <= lineDis) {
+                                    this.sendData(e, 4, index)
+                                    this.pointList.splice(index, 1)
+                                    this.renderCanvas()
+                                    // this.log('--------------快速橡皮删除的', '', 2)
+                                    break
+                                }
+                            }
+
+                            
                         }
-                        this.log('检测完毕 没有碰撞：检测耗时' + '' + (new Date().getTime() - time2 ))
+
+
+                        this.log(index + '这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
+                        // 20
                     }
                     // this.log('橡皮的半径' + ('' + radius))
-                    this.renderRubber(x, y, radius)
+                    this.log( 'all所有线(' + pointList.length + 
+                        ')：：：：ALL：： ：检测耗时' + '' + 
+                        (new Date().getTime() - time) + 'ms', 'red', 2)
                     return
                 }
                 // 这是干啥的--画=>图片和 线  移动
@@ -855,11 +911,42 @@ import workerSend from './workerSend';
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
-            handleEnd(e, isSocket){
+            //  取整、、
+            // getInt(num) { 
+            //     let rounded;   
+            //     rounded = (0.5 + num) | 0
+            //     // A double bitwise not.
+            //     rounded = ~~ (0.5 + num)
+            //     // Finally, a left bitwise shift.
+            //     rounded = (0.5 + num) << 0
+            //     return rounded
+            // },
+            // 第二 画布 清屏
+            clearCtx2() {
+                const { width, height } = this.options
+                // 避免预览到背景
+                // canvas init
+                this.ctx2.clearRect(0, 0, width, height)
+            },
+            renderRubber(x, y, radius) {
+                this.log('橡皮的半径' + ('' + radius))
+                // 考虑 只做检测  不做渲染
+                // this.renderCanvas()
+                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
                 this.clearCtx2()
-                if(!this.sendData(e, 3, isSocket)) return
+                const rubberCtx = this.ctx2
+                const color = this.color
+                rubberCtx.strokeStyle = this.color
+                rubberCtx.fillStyle = color
+                rubberCtx.beginPath()
+                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
+                rubberCtx.fill()
+            },
+            handleEnd(e){
+                this.clearCtx2()
+                if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
-                // 互相切换
+                // TODO: 互相切换 可以用一个变量 优化掉 -----------------------------------
                 if (this.changeDrawAction) {
                     //  this.DrawActionText = 'brush'
                     // this.DrawActionText = 'rubber'
@@ -1093,9 +1180,24 @@ import workerSend from './workerSend';
                 }
                 return value
             },
-            log(value) {
+            log(value, color='default', level=1) {
+                if (level < this.logLevel) return
+                // 日志分为 NONE，DEBUG，INFO，WARN 和 ERROR 5 个级别。
                 if(!this.debug) return
-                console.log(value)
+                const colors = {
+                    INFO: '#000',
+                    red: 'font-size:16px;color:red;',
+                    orange: 'font-size:16px;color:#f60;',
+                    green: 'green'
+                }
+                // console.dir(value)
+                if (typeof value === 'object') {
+                    console.log(value)
+                    return
+                }
+                // console.log(value)
+                // console.log('%c' + '' +  value)
+                console.log('%c' + '' +  value, colors[color])
             },
             getImage(type='Base64', mimeType='image/jpeg', quality=1) {
                 if (this.noImage) return
@@ -1302,22 +1404,42 @@ import workerSend from './workerSend';
                 b = Math.round(b)
                 return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
             },
-            sendData(e, actionTypes, isSocket) {
+            sendData(e, actionTypes, value) {
+                this.log(this.options)
+                // console.log(this.options)
                 // this.type  1 读  2 写
                 // console.log(this.options)
                 this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
-                // alert(isSocket)
-                if (isSocket) {
-                    return true // 是写
+                this.log('发送数据-----------' + actionTypes + '-------------' + value)
+                // if (this.rubberAction && actionTypes == 2) return false
+                // 缩放 和 删除 是没有 e.type
+                if (e.type) { // 是原生事件
+                    e.preventDefault()
+                } else {
+                    return true // 是读 不需要 发送数据 但是需要 继续往下走
                 }
-                if (this.type === 1) {
+                if (this.type === 1) {  // 是读  并且  原生操作   中断执行
                     return false
                 }
-                e.preventDefault()
+                
+               /**
+                * actionTypes
+                * 
+                * 1 start {touches: []}
+                * 2 move {touches: []}
+                * 3 end  {touches: []}
+                * 4 delete线  { index: 3 }
+                * 5 scale 缩放 { scale: 3 }
+                */
+
+                // 优化数据结构 加快传输  我觉得没必要
                 const data = {
-                    touches: Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
+                    // 不放进来 很多东西 要写三遍 
+                    value: value || Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
                     actionTypes
                 }
+                this.log(data)
+                // console.log(workerSend)
                 workerSend(data)
                 return true
             },
@@ -1344,7 +1466,7 @@ import workerSend from './workerSend';
                 canvasDom.style.position = 'absolute'
                 canvasDom.style.top =  0
                 canvasDom.style.left =  0
-                canvasDom.style.zIndex = 2
+                // canvasDom.style.zIndex = 2
                 canvasDom.width = clientWidth * pixelRatio
                 canvasDom.height = clientHeight * pixelRatio
                 ctx.scale(pixelRatio, pixelRatio)
@@ -1353,19 +1475,28 @@ import workerSend from './workerSend';
                 // this.pixelRatio   //  ------截图的时候会用
                 
                 const canvasDom2 = canvasDom.cloneNode(true)
-                canvasDom2.style.backgroundColor = '#fff'
-                canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
-                canvasDom2.style.backgroundSize = '29px 29px'
-                canvasDom2.style.backgroundPosition = '0 0, 15px 15px'
-                canvasDom2.style.zIndex = 1
+                // canvasDom2.style.backgroundColor = '#fff'
+                // canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
+                // canvasDom2.style.backgroundSize = '29px 29px'
+                // canvasDom2.style.backgroundPosition = '0 0, 15px 15px'
+                // canvasDom2.style.zIndex = 1
                 // 笔记层
             
                 mountNode.appendChild(canvasDom2)
                 const ctx2 = canvasDom2.getContext('2d')
                 ctx2.scale(pixelRatio, pixelRatio)
                 
-                return  [ctx2, ctx]
+                return  [ctx, ctx2]
                 
+            },
+           convert() {
+                // 适配屏幕 转换数据
+                // 根据比例
+                // 当前屏幕 宽高 -- 要被 修改点
+                // 内部逻辑不用动
+                // 宽高比
+                const ratio = 1042 / 744 
+                // 当前屏幕 宽高
             }
         },
         mounted() {
@@ -1433,7 +1564,7 @@ import workerSend from './workerSend';
             this.log('如果是写 -- 不会走到这里的')
           
             const self = this
-            const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
+            const socket = this.socket = io('ws://192.168.31.117:3000/'); // dev
            
             // 告诉服务器端有用户登录
             socket.emit('login', {userid: new Date().getTime(), username: '打野'});
@@ -1454,35 +1585,47 @@ import workerSend from './workerSend';
             // 接受消息
 
 
-            // 缩放数据容易丢  传缩放比 
+            // 缩放数据容易丢  传缩放比
+            /**
+                * actionTypes
+                * 
+                * 1 start {touches: []}
+                * 2 move {touches: []}
+                * 3 end  {touches: []}
+                * 4 delete线  { index: 3 }
+                * 5 scale 缩放 { scale: 3 }
+                */ 
             socket.on('message', function(obj){
                 self.log('收到消息')
                 self.log(obj)
-                switch (obj.actionTypes) {
+                const { actionTypes, value } = obj
+                switch (actionTypes) {
                     case 1: 
-                        self.log('开始')
-                        self.handleStart(obj, true)
+                        self.log(' 开始', 'red')
+                        self.handleStart({ touches: value })
                         break;
                     case 2: 
-                        self.log('move')
-                        self.handleMove(obj, true)
+                        self.log('移动', 'red')
+                        self.handleMove({ touches: value })
                         break;
                     case 3: 
-                        self.handleEnd(obj, true)
-                        self.log('结束')
+                        self.handleEnd({ touches: value })
+                        self.log('结束', 'red')
                         break;
-
-                
+                    case 4: 
+                        self.pointList.splice(value, 1)
+                        self.renderCanvas()
+                        self.log(' 删除线', 'orange')
+                        break;
+                    case 5: 
+                        self.scaleImage(value)
+                        self.log('缩放', 'orange')
+                        break;
                     default:
                         break;
                 }
             })
             
         },
-        beforeDestroy() {
-            // 退出 主动断开 websocket
-            this.ws.close();
-        }
-        
     }
 </script>
