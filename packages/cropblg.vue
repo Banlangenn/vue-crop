@@ -855,26 +855,6 @@ import workerSend from './workerSend';
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
-            clearCtx2() {
-                const { width, height } = this.options
-                // 避免预览到背景
-                // canvas init
-                this.ctx2.clearRect(0, 0, width, height)
-            },
-            renderRubber(x, y, radius) {
-                this.log('橡皮的半径' + ('' + radius))
-                // 考虑 只做检测  不做渲染
-                // this.renderCanvas()
-                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
-                this.clearCtx2()
-                const rubberCtx = this.ctx2
-                const color = this.color
-                rubberCtx.strokeStyle = this.color
-                rubberCtx.fillStyle = color
-                rubberCtx.beginPath()
-                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
-                rubberCtx.fill()
-            },
             handleEnd(e, isSocket){
                 this.clearCtx2()
                 if(!this.sendData(e, 3, isSocket)) return
@@ -954,6 +934,26 @@ import workerSend from './workerSend';
                     this.renderCanvas()
                 }
                 
+            },
+            clearCtx2() {
+                const { width, height } = this.options
+                // 避免预览到背景
+                // canvas init
+                this.ctx2.clearRect(0, 0, width, height)
+            },
+            renderRubber(x, y, radius) {
+                this.log('橡皮的半径' + ('' + radius))
+                // 考虑 只做检测  不做渲染
+                // this.renderCanvas()
+                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
+                this.clearCtx2()
+                const rubberCtx = this.ctx2
+                const color = this.color
+                rubberCtx.strokeStyle = this.color
+                rubberCtx.fillStyle = color
+                rubberCtx.beginPath()
+                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
+                rubberCtx.fill()
             },
            distanceOfPoint2Line(p1, p2, { x, y }) {
                 const A = x - p1.x
