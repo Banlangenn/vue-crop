@@ -1496,33 +1496,27 @@ import workerSend from './workerSend'
                 // 内部逻辑不用动
                 // 宽高比
                 // img  就是自己的宽高
-                const clientW = currentOption.width
-                const clientH = currentOption.height
-                const { width, height } = OriginOptions
-                // 求 初始比例
-                let currentW = clientW,
-                    currentH = clientH,
-                    k = 1 // contain 时的缩放比
-                // contain 图片
-                if (clientW > width) {
-                    // alert('12123')
-                    currentW = width
-                    k = currentW / clientW
-                    currentH = k * clientH
+                const { width: clientW, height: clientH } = currentOption // 当前
+                const { width, height } = OriginOptions  // 原始
+
+                let currentW, currentH, k
+                // const wk = clientW / width
+                // const hk = clientH / height
+                // if (clientH / clientW < 1) {
+                    
+                // }
+                if (clientH / clientW > height / width) {
+                    // 把宽铺满
+                    currentW = clientW
+
+                    k = clientW / width
+                    currentH = currentW * (height / width)
+                } else {
+                    // 把高铺满
+                    currentH = clientH
+                    k = clientH / height
+                    currentW = currentH * (width / height)
                 }
-                if (currentH > height) {
-                    currentH = height
-                    k = currentH / clientH
-                    currentW = k * clientW
-                }
-                // 针对小图片
-                const minNum = 120
-                if (clientW < minNum && currentH < minNum) {
-                    currentW = minNum
-                    k = currentW / clientW
-                    currentH = k * clientH
-                }
-                console.log(currentH)
              return {
                 k, 
                 width: currentW, // 显示宽度
@@ -1541,16 +1535,27 @@ import workerSend from './workerSend'
                 // }
                 // const ratio = 1042 / 744 
                 // 当前屏幕 宽高
-            }
+            },
+            dataScale(data) {
+                console.log(data)
+                if (data.length === 0) return data
+                // console.log(data.map(e => ({e.clientX * this.kScale, e.clientY * this.kScale})))
+                return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
+            },
         },
         mounted() {
             const { mountNode } = this.$refs
             const { clientWidth, clientHeight } = mountNode
             const { k, width, height } = this.convert({ width: 1024, height: 744 }, { width: clientWidth, height: clientHeight })
             // mountNode
+            this.kScale = k
             mountNode.style.width =  width + 'px'
             mountNode.style.height = height + 'px'
-            console.log(width)
+            mountNode.style.background = '#f60'
+            // console.log(width)
+            // console.log(k)
+            // console.log(height)
+            // this.log(k)
 
             const [ctx, ctx2] = this.createCanvas()
             this.ctx = ctx
@@ -1565,7 +1570,7 @@ import workerSend from './workerSend'
                 getImage: this.getImage,
                 changeImage: this.changeImage
             })
-            console.log(this.options)
+            // console.log(this.options)
 
 
             // --------------------------------------------------------------------------------------------------------------
@@ -1617,7 +1622,7 @@ import workerSend from './workerSend'
             this.log('如果是写 -- 不会走到这里的')
           
             const self = this
-            const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
+            const socket = this.socket = io('ws://192.168.31.117:3000/'); // dev
            
             // 告诉服务器端有用户登录
             socket.emit('login', {userid: new Date().getTime(), username: '打野'});
@@ -1655,14 +1660,14 @@ import workerSend from './workerSend'
                 switch (actionTypes) {
                     case 1: 
                         self.log(' 开始', 'red')
-                        self.handleStart({ touches: value })
+                        self.handleStart({ touches: self.dataScale(value) })
                         break;
                     case 2: 
                         self.log('移动', 'red')
-                        self.handleMove({ touches: value })
+                        self.handleMove({ touches: self.dataScale(value) })
                         break;
                     case 3: 
-                        self.handleEnd({ touches: value })
+                        self.handleEnd({ touches: self.dataScale(value) })
                         self.log('结束', 'red')
                         break;
                     case 4: 

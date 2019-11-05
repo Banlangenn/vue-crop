@@ -132,7 +132,7 @@ export default {
   },
   created(){
       if(!this.isMobile()){
-        alert('手机上才能图片缩放，保存')
+        console.log('手机上才能图片缩放，保存')
       }
   },
   methods: {
