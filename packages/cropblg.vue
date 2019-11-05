@@ -1489,17 +1489,69 @@ import workerSend from './workerSend'
                 return  [ctx, ctx2]
                 
             },
-           convert() {
+           convert(OriginOptions, currentOption) {
                 // 适配屏幕 转换数据
                 // 根据比例
                 // 当前屏幕 宽高 -- 要被 修改点
                 // 内部逻辑不用动
                 // 宽高比
-                const ratio = 1042 / 744 
+                // img  就是自己的宽高
+                const clientW = currentOption.width
+                const clientH = currentOption.height
+                const { width, height } = OriginOptions
+                // 求 初始比例
+                let currentW = clientW,
+                    currentH = clientH,
+                    k = 1 // contain 时的缩放比
+                // contain 图片
+                if (clientW > width) {
+                    // alert('12123')
+                    currentW = width
+                    k = currentW / clientW
+                    currentH = k * clientH
+                }
+                if (currentH > height) {
+                    currentH = height
+                    k = currentH / clientH
+                    currentW = k * clientW
+                }
+                // 针对小图片
+                const minNum = 120
+                if (clientW < minNum && currentH < minNum) {
+                    currentW = minNum
+                    k = currentW / clientW
+                    currentH = k * clientH
+                }
+                console.log(currentH)
+             return {
+                k, 
+                width: currentW, // 显示宽度
+                height: currentH, // 真是 宽度
+             }
+            //  console.log('比例')
+                // 针对小图片
+                // this.image = {
+                //     element: img,
+                //     width: currentW, // 显示宽度
+                //     height: currentH, // 真是 宽度
+                //     x: (width - currentW) / 2,
+                //     y: (height - currentH) / 2,
+                //     clientWidth: clientW,
+                //     clientHeight: clientH
+                // }
+                // const ratio = 1042 / 744 
                 // 当前屏幕 宽高
             }
         },
         mounted() {
+            const { mountNode } = this.$refs
+            const { clientWidth, clientHeight } = mountNode
+            const { k, width, height } = this.convert({ width: 1024, height: 744 }, { width: clientWidth, height: clientHeight })
+            // mountNode
+            mountNode.style.width =  width + 'px'
+            mountNode.style.height = height + 'px'
+            console.log(width)
+
             const [ctx, ctx2] = this.createCanvas()
             this.ctx = ctx
             this.ctx2 = ctx2
@@ -1513,6 +1565,7 @@ import workerSend from './workerSend'
                 getImage: this.getImage,
                 changeImage: this.changeImage
             })
+            console.log(this.options)
 
 
             // --------------------------------------------------------------------------------------------------------------
@@ -1564,7 +1617,7 @@ import workerSend from './workerSend'
             this.log('如果是写 -- 不会走到这里的')
           
             const self = this
-            const socket = this.socket = io('ws://192.168.31.117:3000/'); // dev
+            const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
            
             // 告诉服务器端有用户登录
             socket.emit('login', {userid: new Date().getTime(), username: '打野'});
