@@ -99,31 +99,32 @@ import workerSend from './workerSend'
                 this.lines = [] // 四方形 截图的线  
 
 
-                const clientW = img.width,
-                clientH = img.height,
-                { width, height } = this.options
-                let currentW = clientW,
-                    currentH = clientH,
-                    k = 1 // contain 时的缩放比
-                // contain 图片
-                if (clientW > width) {
-                    // alert('12123')
-                    currentW = width
-                    k = currentW / clientW
-                    currentH = k * clientH
-                }
-                if (currentH > height) {
-                    currentH = height
-                    k = currentH / clientH
-                    currentW = k * clientW
-                }
-                // 针对小图片
-                const minNum = 120
-                if (clientW < minNum && currentH < minNum) {
-                    currentW = minNum
-                    k = currentW / clientW
-                    currentH = k * clientH
-                }
+                const clientW = img.width
+                const clientH = img.height
+                const { width, height } = this.options
+                // let currentW = clientW,
+                //     currentH = clientH,
+                //     k = 1 // contain 时的缩放比
+                // // contain 图片
+                // if (clientW > width) {
+                //     // alert('12123')
+                //     currentW = width
+                //     k = currentW / clientW
+                //     currentH = k * clientH
+                // }
+                // if (currentH > height) {
+                //     currentH = height
+                //     k = currentH / clientH
+                //     currentW = k * clientW
+                // }
+                // // 针对小图片
+                // const minNum = 120
+                // if (clientW < minNum && currentH < minNum) {
+                //     currentW = minNum
+                //     k = currentW / clientW
+                //     currentH = k * clientH
+                // }
+                const { k, width: currentW, height: currentH } = this.convert(img, this.options,)
                 this.scale = k
                 // 针对小图片
                 this.image = {
@@ -150,7 +151,7 @@ import workerSend from './workerSend'
                     height: currentH / 2
                 }
 
-                const interval = 8 // 间隔
+                const interval = 15  // 间隔
                 let number = 0  //  按钮数量
 
                 //  三个 if  更好 内聚 --
@@ -168,10 +169,11 @@ import workerSend from './workerSend'
                 //     number ++ 
                 // }
                 // width  画布宽度
+                // x  是对的  很精准 - y 不对
                 if (penBtn) {
                     this.paintBrush = {
-                        x: width - 30 - 7,
-                        y: 10 + ( 30 + interval) * number,
+                        x: width - 30 - 12 * this.kScale,
+                        y: (10 + ( 30 + interval)  * number) * this.kScale,
                         width: 30,
                         height: 30
                     }
@@ -179,8 +181,8 @@ import workerSend from './workerSend'
                 }
                 if (rubberBtn) {
                     this.rubberBar = {
-                        x: width - 30 - 7,
-                        y: 10 + (30  + interval ) * number,
+                        x: width - 30 - 12 * this.kScale,
+                        y: (10 + ( 30 + interval)  * number) * this.kScale,
                         width: 30,
                         height: 30
                     }
@@ -276,7 +278,7 @@ import workerSend from './workerSend'
             },
             drawPaintBrush(touchBar) {
                 if (!touchBar) return
-                const {x, y} = touchBar 
+                const { x, y, width } = touchBar 
                 const ctx = this.ctx,
                 // touchBar = touchBar,
                 color = this.color || this.averageColor
@@ -284,13 +286,25 @@ import workerSend from './workerSend'
                 ctx.lineWidth = 2
                 ctx.lineCap = 'round'
                 ctx.beginPath()
+                // width 根据wdith去边换算 width * width / 
                 ctx.moveTo(x + 20, y + 5)
                 ctx.lineTo(x + 24, y +  9)
                 ctx.lineTo(x + 12, y + 21)
                 ctx.lineTo(x + 7, y + 22)
                 ctx.lineTo(x + 8, y + 17)
-                // ctx.lineTo(x + 20, y + 5)
+                ctx.lineTo(x + 20, y + 5)
                 ctx.closePath()
+
+                
+                // ctx.moveTo(x + width * width / 20, y + width * width / 5)
+                // ctx.lineTo(x + width * (width / 24), y + width * (width / 9))
+                // ctx.lineTo(x +width * (width / 12), y + width * (width / 21))
+                // ctx.lineTo(x + width * (width / 7), y + width * (width / 22))
+                // ctx.lineTo(x + width * (width / 8), y + width * (width / 17))
+                // ctx.lineTo(x + width * (width / 20), y + width * (width / 5))
+                // ctx.closePath()
+
+                
                 if (this.drawAction) {
                     ctx.fillStyle = color
                     ctx.fill();
@@ -298,7 +312,10 @@ import workerSend from './workerSend'
                 // ctx.stroke()
                 ctx.moveTo(x + 5, y + 26)
                 ctx.lineTo(x + 25, y + 26)
-                 ctx.stroke()
+                ctx.stroke()
+
+                ctx.rect(x, y, width, width)
+                ctx.stroke();
             },
              drawRevokeBar(touchBar) {
                 if (!touchBar) return
@@ -351,6 +368,8 @@ import workerSend from './workerSend'
                     ctx.fill()
                 }
                 ctx.stroke()
+                ctx.rect(x, y, width, width)
+                ctx.stroke();
             },
             drawTouchBar(touchBar) {
                 if (!touchBar) return
@@ -795,6 +814,7 @@ import workerSend from './workerSend'
                 if (this.rubberAction) {
                     const { x, y } = this.getCoordinateByEvent(e)
                     const radius = 12
+                    this.clearCtx2()
                     this.renderRubber(x, y, radius)
 
                     if (this.type == 1) {
@@ -1033,7 +1053,8 @@ import workerSend from './workerSend'
                 // 考虑 只做检测  不做渲染
                 // this.renderCanvas()
                 // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
-                this.clearCtx2()
+                // console.log('画画橡皮')
+                // this.clearCtx2()
                 const rubberCtx = this.ctx2
                 const color = this.color
                 rubberCtx.strokeStyle = this.color
@@ -1077,11 +1098,12 @@ import workerSend from './workerSend'
                     y: image.y + pooint.y * scale
                 }
             },
-            checkRegion(x,y,target) {
-                return x > target.x &&
-                    x < target.x + target.width &&
-                    y > target.y &&
-                    y < target.y + target.height
+            checkRegion(x, y, target) {
+                // 添加个误差
+                return x + 2 > target.x &&
+                    x - 2 < target.x + target.width &&
+                    y + 2 > target.y &&
+                    y - 2 < target.y + target.height
             },
             checkArc(x, y) {
                 const ctx  = this.ctx
@@ -1466,7 +1488,7 @@ import workerSend from './workerSend'
                 canvasDom.style.position = 'absolute'
                 canvasDom.style.top =  0
                 canvasDom.style.left =  0
-                // canvasDom.style.zIndex = 2
+                canvasDom.style.zIndex = 2
                 canvasDom.width = clientWidth * pixelRatio
                 canvasDom.height = clientHeight * pixelRatio
                 ctx.scale(pixelRatio, pixelRatio)
@@ -1475,18 +1497,18 @@ import workerSend from './workerSend'
                 // this.pixelRatio   //  ------截图的时候会用
                 
                 const canvasDom2 = canvasDom.cloneNode(true)
-                // canvasDom2.style.backgroundColor = '#fff'
-                // canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
-                // canvasDom2.style.backgroundSize = '29px 29px'
-                // canvasDom2.style.backgroundPosition = '0 0, 15px 15px'
-                // canvasDom2.style.zIndex = 1
+                canvasDom2.style.backgroundColor = '#fff'
+                canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
+                canvasDom2.style.backgroundSize = '29px 29px'
+                canvasDom2.style.backgroundPosition = '0 0, 15px 15px'
+                canvasDom2.style.zIndex = 1
                 // 笔记层
             
                 mountNode.appendChild(canvasDom2)
                 const ctx2 = canvasDom2.getContext('2d')
                 ctx2.scale(pixelRatio, pixelRatio)
                 
-                return  [ctx, ctx2]
+                return  [ctx2, ctx]
                 
             },
            convert(OriginOptions, currentOption) {
@@ -1500,11 +1522,7 @@ import workerSend from './workerSend'
                 const { width, height } = OriginOptions  // 原始
 
                 let currentW, currentH, k
-                // const wk = clientW / width
-                // const hk = clientH / height
-                // if (clientH / clientW < 1) {
-                    
-                // }
+ 
                 if (clientH / clientW > height / width) {
                     // 把宽铺满
                     currentW = clientW
@@ -1517,30 +1535,15 @@ import workerSend from './workerSend'
                     k = clientH / height
                     currentW = currentH * (width / height)
                 }
-             return {
-                k, 
-                width: currentW, // 显示宽度
-                height: currentH, // 真是 宽度
-             }
-            //  console.log('比例')
-                // 针对小图片
-                // this.image = {
-                //     element: img,
-                //     width: currentW, // 显示宽度
-                //     height: currentH, // 真是 宽度
-                //     x: (width - currentW) / 2,
-                //     y: (height - currentH) / 2,
-                //     clientWidth: clientW,
-                //     clientHeight: clientH
-                // }
-                // const ratio = 1042 / 744 
-                // 当前屏幕 宽高
+                return {
+                    k, 
+                    width: currentW, // 显示宽度
+                    height: currentH, // 真是 宽度
+                }
             },
             dataScale(data) {
-                console.log(data)
-                if (data.length === 0) return data
-                // console.log(data.map(e => ({e.clientX * this.kScale, e.clientY * this.kScale})))
-                return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
+                if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
+                return data * self.kScale
             },
         },
         mounted() {
@@ -1622,7 +1625,7 @@ import workerSend from './workerSend'
             this.log('如果是写 -- 不会走到这里的')
           
             const self = this
-            const socket = this.socket = io('ws://192.168.31.117:3000/'); // dev
+            const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
            
             // 告诉服务器端有用户登录
             socket.emit('login', {userid: new Date().getTime(), username: '打野'});
@@ -1654,8 +1657,6 @@ import workerSend from './workerSend'
                 * 5 scale 缩放 { scale: 3 }
                 */ 
             socket.on('message', function(obj){
-                self.log('收到消息')
-                self.log(obj)
                 const { actionTypes, value } = obj
                 switch (actionTypes) {
                     case 1: 
@@ -1673,11 +1674,17 @@ import workerSend from './workerSend'
                     case 4: 
                         self.pointList.splice(value, 1)
                         self.renderCanvas()
-                        self.log(' 删除线', 'orange')
+                        self.log('删除线', 'orange')
                         break;
                     case 5: 
-                        self.scaleImage(value)
+                        self.scaleImage(self.dataScale(value))
                         self.log('缩放', 'orange')
+                    case 6: 
+                        // self.scaleImage(self.dataScale(value))
+                        self.log('橡皮', 'orange')
+                    case 7: 
+                        // self.scaleImage(self.dataScale(value))
+                        self.log('写字笔', 'orange')
                         break;
                     default:
                         break;
