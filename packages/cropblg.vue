@@ -1,3 +1,35 @@
+<style>
+    .action-bar {
+        width: 100%;
+        /* background: #ffc9c9; */
+        height: 60px;
+        position: absolute;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        justify-content:center;
+        align-items: center;
+        color: red;
+        /* pointer-events: none */
+    }
+    .icon-wrap {
+        padding: 2px 31px;
+        background-color: rgba(239, 238, 238, 0.3);
+        border-radius: 20px;
+        /* tex */
+    }
+    .icon {
+        color: #ccc;
+        width: 20px;
+        height: 20px;
+        fill: #ccc;
+        line-height: 60px;
+        padding: 5px 20px;
+    }
+    /* .rubber {
+        padding: 0 20px;
+    } */
+</style>
 <template>
     <div ref="mountNode" 
         class="mount-node" 
@@ -6,6 +38,17 @@
         @touchend="handleEnd($event)"
         style="overflow: hidden;"
     >
+    <div class="action-bar">
+        <!-- <button @touchstart="clickHandle">1213 </button> -->
+        <div class="icon-wrap">
+            <svg
+                 @touchstart="handlePen($event)"
+                t="1573031834722" :style="{fill: changeDrawAction == 1 ? '#f14864': ''}" class="icon pen" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4617" width="128" height="128"><path d="M79.36 916.48h343.04v51.2H79.36z" fill="" p-id="4618"></path><path d="M550.4 916.48h376.32v51.2H550.4z" fill="" p-id="4619"></path><path d="M629.76 158.72l215.04 215.04L373.76 844.8l-215.04-215.04L629.76 158.72z m0 0" fill="" p-id="4620"></path><path d="M716.8 74.24l215.04 215.04-64 64-215.04-215.04L716.8 74.24z m0 0" fill="" p-id="4621"></path><path d="M138.24 652.8l215.04 215.04L51.2 952.32l87.04-299.52z m0 0" fill="" p-id="4622"></path><path d="M798.72 71.68L931.84 204.8c23.04 23.04 20.48 58.88-2.56 81.92-23.04 23.04-61.44 25.6-81.92 2.56l-133.12-133.12c-23.04-20.48-23.04-58.88 2.56-81.92 23.04-23.04 58.88-25.6 81.92-2.56z m0 0" fill="" p-id="4623"></path></svg>
+            <svg
+                @touchstart="handleRubber($event)"
+                t="1573032058097" :style="{fill: changeDrawAction == 2 ? '#f14864': ''}" class="icon rubber" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
+        </div>
+    </div>
          <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
         <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
@@ -48,12 +91,17 @@ import workerSend from './workerSend'
           ],
         data() {
             return {
+                changeDrawAction: -1,
+                // penColor: '',
+                //   penColor: '',
                 straightLine: false, // 直线
                 debug: true, // debug
-                logLevel: 2,
+                logLevel: 0,
                 type: '2',
+                checkState: true,
                 // ready: false,
                 noImage: true,
+                
                 // ctx: null,
                 // options: null,
                 // pixelRatio: null,
@@ -84,7 +132,7 @@ import workerSend from './workerSend'
             },
             rotation() {
                 //  内旋转 外旋转 只能有一个
-                if (!this.noImage && !this.rotateBtn && !this.drawAction) {
+                if (!this.noImage && !this.rotateBtn && this.changeDrawAction == -1) {
                     this.rotateAngle = this.rotation
                     this.renderCanvas()
                 }
@@ -93,6 +141,7 @@ import workerSend from './workerSend'
         methods: {
             init(img){
                 // 初始化默认值
+                this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片
                 this.pointLine = [] // 线 
                 this.pointList = [] // 线 list
                 this.points = [] // 四方形 截图的点
@@ -227,9 +276,9 @@ import workerSend from './workerSend'
                 //  console.time('drawTouchBar')
 
                 // this.drawTouchBar(this.touchBar)
-                this.drawPaintBrush(this.paintBrush)
+                // this.drawPaintBrush(this.paintBrush)
                 // this.drawRevokeBar(this.revokeBar)
-                this.drawRubberBar(this.rubberBar)
+                // this.drawRubberBar(this.rubberBar)
                 // 写的 线
                 // console.timeEnd('drawTouchBar')
                 // this.preview()
@@ -305,7 +354,7 @@ import workerSend from './workerSend'
                 // ctx.closePath()
 
                 
-                if (this.drawAction) {
+                if (this.changeDrawAction == 1) {
                     ctx.fillStyle = color
                     ctx.fill();
                 }
@@ -314,8 +363,8 @@ import workerSend from './workerSend'
                 ctx.lineTo(x + 25, y + 26)
                 ctx.stroke()
 
-                ctx.rect(x, y, width, width)
-                ctx.stroke();
+                // ctx.rect(x, y, width, width)
+                // ctx.stroke();
             },
              drawRevokeBar(touchBar) {
                 if (!touchBar) return
@@ -364,12 +413,12 @@ import workerSend from './workerSend'
                 ctx.beginPath()
                 ctx.arc(x + width / 2 , y + height / 2, radius, 0, Math.PI * 2, false)
                 // ctx.fill()
-                if (this.rubberAction) {
+                if (this.changeDrawAction == 2) {
                     ctx.fill()
                 }
                 ctx.stroke()
-                ctx.rect(x, y, width, width)
-                ctx.stroke();
+                // ctx.rect(x, y, width, width)
+                // ctx.stroke();
             },
             drawTouchBar(touchBar) {
                 if (!touchBar) return
@@ -680,16 +729,44 @@ import workerSend from './workerSend'
                 // move 到边
                 return coordinate
             },
+            handlePen(e) {
+                // e.preventDefault()
+                // alert(123)
+
+                this.log('点击了画笔')
+                if (this.changeDrawAction == 1) {
+                    this.checkState = false
+                    this.changeDrawAction = -1
+                } else {
+                    this.checkState = false
+                    this.changeDrawAction = 1
+                }
+                this.sendData(e, 7, '')
+                // this.renderCanvas()
+
+                // this.straightLine = !this.straightLine
+            },
+            handleRubber(e) {
+                // e.preventDefault()
+                // alert(123)
+                this.log('点击了橡皮')
+                if (this.changeDrawAction == 2) {
+                    this.checkState = false
+                    this.changeDrawAction = -1
+                } else {
+                    this.checkState = false
+                    this.changeDrawAction = 2
+                }
+                this.sendData(e, 6, '')
+                // this.renderCanvas()
+            },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
                 this.clearCtx2()
-                // alert(isSocket)
-         
                 if(!this.sendData(e, 1)) return
                 // alert(1)
-                
                 // 双指
-                if (e.touches.length > 1 && !this.drawAction && !this.rubberAction) {
+                if (e.touches.length > 1 && this.changeDrawAction == -1) {
                     this.startTouches = e.touches
                     this.startPoint.type = null
                     return
@@ -698,7 +775,7 @@ import workerSend from './workerSend'
                 this.drawPoint = this.getCoordinateByEvent(e)
                 this.startPoint = this.getPointByCoordinate(this.drawPoint) // 判断点了 主要点是否 有东西
                 // --  画画
-                if (this.drawAction) {  //  changeDrawAction bar 点中了
+                if (this.changeDrawAction != -1) {  //  changeDrawAction bar 点中了
                     // 上次肯定会被清掉
                     this.pointLine = []
                     // 如果是直线 需要永远知道第一个点  在什么位置
@@ -718,13 +795,15 @@ import workerSend from './workerSend'
                 this.renderCanvas()
             },
             handleMove (e) {
+                // 判断是不是 读的一端
                 if(!this.sendData(e, 2)) return
+                // 判断是不是 第一次触发 新动作
+                if (!this.checkState) return
                
                 const touches = e.touches
                 const image = this.image
-
                  // 画笔
-                if (this.drawAction) {
+                if (this.changeDrawAction == 1) {
 
 
                     /**
@@ -792,7 +871,7 @@ import workerSend from './workerSend'
                 }
                 // if (this.type == 2) return 目前是可以
                 // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
-                if (touches.length > 1 && !this.drawAction && !this.rubberAction) {
+                if (touches.length > 1 && this.changeDrawAction == -1) {
                     if (this.type == 1) {
                         return
                     }
@@ -811,7 +890,7 @@ import workerSend from './workerSend'
                 }
                
                 // 橡皮
-                if (this.rubberAction) {
+                if (this.changeDrawAction == 2) {
                     const { x, y } = this.getCoordinateByEvent(e)
                     const radius = 12
                     this.clearCtx2()
@@ -965,33 +1044,20 @@ import workerSend from './workerSend'
             handleEnd(e){
                 this.clearCtx2()
                 if(!this.sendData(e, 3)) return
-                // 有两种 动作  画笔 和 橡皮
-                // TODO: 互相切换 可以用一个变量 优化掉 -----------------------------------
-                if (this.changeDrawAction) {
-                    //  this.DrawActionText = 'brush'
-                    // this.DrawActionText = 'rubber'
-                    switch (this.drawActionText) {  // 没写进去初始状态 DrawActionText
-                        case 'brush':
-                            // 笔
-                            this.drawAction = !this.drawAction
-                            this.rubberAction = false
-                            break;
-                        case 'rubber':
-                            // 橡皮
-                            this.rubberAction = !this.rubberAction // 没写进去初始状态 rubberAction
-                            this.drawAction = false // 没写进去初始状态 rubb
-                            break;
-                        default:
-                            break;
-                    }
-                    
-                    this.renderCanvas()
-                    this.changeDrawAction = false
+                  // 判断是不是 第一次触发 新动作
+                if (!this.checkState) {
+                    this.checkState = true
                     return
                 }
+
+                
+                // 有两种 动作  画笔 和 橡皮
+                // TODO: 互相切换 可以用一个变量 优化掉 -----------------------------------
+                if (this.changeDrawAction == -1) return
+                
                 // 搜集点 进入画笔
                 // this.log(this.pointLine)
-                if (this.drawAction && this.pointLine.length > 0) {
+                if (this.changeDrawAction == 1 && this.pointLine.length > 0) {
                     const drawPoint = this.drawPoint
                     const image = this.image
                     this.pointLine.push({
@@ -1117,7 +1183,9 @@ import workerSend from './workerSend'
                 return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
                  && this.getDistance({clientX: x, clientY: y}, {clientX: this.arc.x, clientY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
             },
+            // start 就触发
             getPointByCoordinate({x, y}) {
+                this.log('触发检测 点击区域')
                 const image = this.image,
                 shape = this.shape || 'rect'
                 let t = {}
@@ -1125,27 +1193,40 @@ import workerSend from './workerSend'
                 //  旋转
                 if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
                     this.log('点击了画笔')
-                    this.changeDrawAction = true
-                    this.drawActionText = 'brush'
+                    if (this.changeDrawAction == 1) {
+                        this.changeDrawAction = -1
+                    } else {
+                        this.checkState = false
+                        this.changeDrawAction = 1
+                    }
+                    this.renderCanvas()
+                    // this.drawActionText = 'brush'
                     return
-                } else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar) && !this.drawAction) {
+                } else if (this.rubberBar && this.checkRegion(x, y, this.rubberBar)) {
+                    // 橡皮
+                    this.log('点击了橡皮')
+                    if (this.changeDrawAction == 2) {
+                        this.changeDrawAction = -1
+                    } else {
+                        this.checkState = false
+                        this.changeDrawAction = 2
+                    }
+                    this.renderCanvas()
+                    // this.drawActionText = 'rubber'
+                    return
+                } else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar) && this.changeDrawAction == -1) {
                     this.log('点击了撤回')
                     this.pointList.pop()
                     this.renderCanvas()
                     return
                     
-                } else if (this.rubberBar && this.checkRegion(x, y, this.rubberBar)) {
-                    // 橡皮
-                    this.log('点击了橡皮')
-                    this.changeDrawAction = true
-                    this.drawActionText = 'rubber'
-                    return
                 } else if (this.touchBar && this.checkRegion(x, y, this.touchBar)) {
                     // 旋转后的角度 每次
                     this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
                     this.renderCanvas()
                     return
-                } else if(this.drawAction){
+                } else if( this.changeDrawAction !== -1){
+                    // 有动作
                     return
                 } else if (shape === 'arc' && this.checkArc(x, y)) {
                     t.type = 'handleArcMove'
@@ -1543,7 +1624,7 @@ import workerSend from './workerSend'
             },
             dataScale(data) {
                 if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
-                return data * self.kScale
+                return data * this.kScale
             },
         },
         mounted() {
@@ -1621,14 +1702,16 @@ import workerSend from './workerSend'
             // '1读读读读读读读读读读' '2写写写写写写写写写写'
             // this.log(this.type)
             // 如果是写的  不用建立这个 链接
+          
             if (this.type == 2)  return
             this.log('如果是写 -- 不会走到这里的')
+            console.log(this.type)
           
             const self = this
             const socket = this.socket = io('ws://192.168.81.126:3000/'); // dev
            
             // 告诉服务器端有用户登录
-            socket.emit('login', {userid: new Date().getTime(), username: '打野'});
+            socket.emit('login', {userid: new Date().getTime(), username: '打野', type: this.type});
  
             //监听新用户登录
             socket.on('login', function(msg){
@@ -1641,6 +1724,8 @@ import workerSend from './workerSend'
                 self.log('有用户退出')
                 self.log(msg)
             });
+            
+            
             // 发送消息
             // this.socket.emit('message', obj);
             // 接受消息
@@ -1681,13 +1766,16 @@ import workerSend from './workerSend'
                         self.log('缩放', 'orange')
                     case 6: 
                         // self.scaleImage(self.dataScale(value))
-                        self.log('橡皮', 'orange')
+                        self.log('橡皮', 'pink')
+                        self.handleRubber()
                     case 7: 
                         // self.scaleImage(self.dataScale(value))
-                        self.log('写字笔', 'orange')
+                        self.log('写字笔', '#f60000')
+                        self.handlePen()
                         break;
                     default:
                         break;
+                        
                 }
             })
             
