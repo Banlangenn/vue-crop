@@ -699,6 +699,8 @@ import { write, receive } from './workerSend'
             //     this.renderCanvas()
             // },
             getCoordinateByEvent(e){
+                // 要算出来-- e.target.getBoundingClientRect(), 位置
+                // 初始化的时候就拿出来
                 // const rect = e.target.getBoundingClientRect(),
                 // touch = e.touches[0],
                 // { width, height } = this.options,
@@ -708,6 +710,11 @@ import { write, receive } from './workerSend'
                 // }
 
                 // 修改
+                // if (e) {
+                //     e.type 
+                    
+                // }
+                const boundingClientRect = this.boundingClientRect
                 const touch = e.touches[0]
                 const { width, height } = this.options
                 const coordinate = {
@@ -715,8 +722,8 @@ import { write, receive } from './workerSend'
                     // y: this.limit(this.getInt(touch.clientY), 2, height - 2)
                     // 基于屏幕的 0 的位置
                     // 需要 算出来 当前画板的 左上角位置  减 画板位置 
-                    x: this.limit(touch.clientX, 2, width - 2),
-                    y: this.limit(touch.clientY, 2, height - 2)
+                    x: this.limit(touch.clientX - boundingClientRect.left, 2, width - 2),
+                    y: this.limit(touch.clientY - boundingClientRect.top, 2, height - 2)
                 }
                 // move 到边
                 return coordinate
@@ -786,8 +793,10 @@ import { write, receive } from './workerSend'
             scaleImage(scale, isRenderCanvas = true) {
                 this.scale = scale
                 const image = this.image
+
                 const width = image.clientWidth * scale
                 const height = image.clientHeight * scale
+
                 this.image.x += (image.width - width) / 2
                 this.image.y += (image.height - height) / 2
                 this.image.width = width
@@ -1091,19 +1100,20 @@ import { write, receive } from './workerSend'
                             maxY = element.y + offset
                         }
                     }
-     
+                    console.log(e)
                     const pointObj = {
                         pointLine: this.pointLine,
-                        scale: this.scale,
+                        scale: e.scale || this.scale,
                         lineWidth: this.lineWidth,
                         color: this.color || this.averageColor,
-                        rotateAngle : this.rotateAngle,
+                        // rotateAngle : this.rotateAngle,
                         maxX,
                         maxY,
                         minX,
                         minY
                     }
                     this.pointList.push(pointObj)
+                    // console.log(this.pointList)
                     this.pointLine = []
                 }
                 // 最后把橡皮去掉
@@ -1543,10 +1553,14 @@ import { write, receive } from './workerSend'
                 const data = {
                     // 不放进来 很多东西 要写三遍 
                     value: value || Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
-                    actionTypes
+                    actionTypes,
+                    scale: this.scale
+                }
+                if (this.changeDrawAction == 1 && actionTypes == 3) {
+                    // 画笔  起笔
+                    data.scale = this.scale
                 }
                 this.log(data)
-                // console.log(workerSend)
                 write({data, event: 'message'})
                 return true
             },
@@ -1569,20 +1583,19 @@ import { write, receive } from './workerSend'
                 //  小方格背景
                
                
-
+                // 刷新后在~就很精准
                 mountNode.appendChild(canvasDom)
                 const ctx = canvasDom.getContext('2d')
                 const pixelRatio = this.pixelRatio = this.getPixelRatio(ctx)
                 canvasDom.style.position = 'absolute'
                 canvasDom.style.top =  0
-                canvasDom.style.left =  '50px'
+                canvasDom.style.left =  0
                 canvasDom.style.zIndex = 2
                 canvasDom.width = clientWidth * pixelRatio
                 canvasDom.height = clientHeight * pixelRatio
                 ctx.scale(pixelRatio, pixelRatio)
             
-                // this.options = canvasDom.getBoundingClientRect()
-                // this.pixelRatio   //  ------截图的时候会用
+
                 
                 const canvasDom2 = canvasDom.cloneNode(true)
                 canvasDom2.style.backgroundColor = '#fff'
@@ -1596,7 +1609,7 @@ import { write, receive } from './workerSend'
                 const ctx2 = canvasDom2.getContext('2d')
                 ctx2.scale(pixelRatio, pixelRatio)
                 
-                return  [ctx2, ctx]
+                return  [ctx2, ctx,  canvasDom.getBoundingClientRect()]
                 
             },
            convert(OriginOptions, currentOption) {
@@ -1630,6 +1643,16 @@ import { write, receive } from './workerSend'
                 }
             },
             dataScale(data) {
+                // const scale = this.scale / el.scale
+                //     const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                //     ctx.beginPath()
+                //     ctx.strokeStyle = el.color
+                //     ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
+                //     // this.log(lineWidth)
+                //     const array = el.pointLine
+                //     for (let i = 0; i < array.length; i++) {
+                //         const element = array[i]
+                //         const originPoint = this.restPoint(element, image, scale)
                 if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
                 return data * this.kScale
             },
@@ -1651,9 +1674,10 @@ import { write, receive } from './workerSend'
                 this.kScale = k
             }
 
-            const [ctx, ctx2] = this.createCanvas()
+            const [ctx, ctx2, boundingClientRect] = this.createCanvas()
             this.ctx = ctx
             this.ctx2 = ctx2
+            this.boundingClientRect = boundingClientRect
             // this.log(this.$slots.initial[0].data.attrs.src)
             if (this.defaultImgUrl || this.$slots.defaultImgUrl) {
                 const src = this.defaultImgUrl ? this.defaultImgUrl : this.$slots.defaultImgUrl[0].data.attrs.src
@@ -1735,23 +1759,51 @@ import { write, receive } from './workerSend'
                     // 当前有没有在 正在画数据
                     if (this.type == 2) {
                         // 老师发数据
+                        // console.log(this.image.x)
+                        // console.log(this.image.x)
+                        // console.log(this.image.x)
                         write({data: {
+                            id: e.data.id,
+
                             pointList: this.pointList,
                             pointLine: this.pointLine,
                             changeDrawAction: this.changeDrawAction,
                             scale: this.scale,
-                            id: e.data.id
+                            imageX: this.image.x,
+                            imageY: this.image.y,
+                           
+
+
+
+
+                            straightLine: this.straightLine
                         }, event: 'toOne'})
+                        
                         // console.log('发出数据')
                     } else {
+                        // console.log(e.data.pointList)
                         // console.log(e.data)
                         // 学生收数据
+                        // 这个数据过去 是很正确的------------------------
                         const originData = e.data
                         this.changeDrawAction = originData.changeDrawAction
+
+                        // 复原数据 原始数据没有做任何更改
                         this.pointList = originData.pointList
                         this.pointLine = originData.pointLine
-                        this.scaleImage(this.dataScale(originData.scale), false)
-                        this.renderCanvas()
+                        // 原始数据
+
+
+                        this.image.x = this.dataScale(originData.imageX)
+                        this.image.y = this.dataScale(originData.imageY)
+
+                        
+                        
+                        
+                        this.straightLine = originData.straightLine
+                        // 自带renderCanvas
+                        this.scaleImage(this.dataScale(originData.scale))
+                        // this.renderCanvas()
                     }
                 }
                 if (e.event == 'message') {
