@@ -59,7 +59,7 @@
                 <svg
                     @touchstart="handleMatching($event)"
                     class="draw-icon matching"
-                    t="1573095231171"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2503" width="128" height="128"><path d="M503.2 902.2c-18.5 0-34.1-14.8-35-33.4-4.3-88.7-75-158.3-161-158.3-66.1 0-128.5-17.5-175.8-49.2-23.9-16.1-42.9-35-56.2-56.3-14.5-23-21.8-47.6-21.8-73.2 0-50.6 11.9-99.7 35.3-145.8 22.5-44.2 54.5-83.8 95.3-117.7 82.9-69 192.8-107 309.5-107 116.7 0 226.6 38 309.5 107 40.7 33.9 72.8 73.5 95.3 117.7 23.4 46.1 35.3 95.2 35.3 145.8 0 49.9-11.6 98.3-34.4 143.8-21.8 43.7-53.1 82.9-92.8 116.7-80.6 68.5-188 107.5-302.5 109.8-0.3 0.1-0.5 0.1-0.7 0.1z m-9.8-690.8c-215.1 0-390.1 143.7-390.1 320.4 0 32.5 19.9 63.7 55.9 87.9 39.1 26.3 91.7 40.7 147.9 40.7 107.9 0 197.4 82.8 209.8 191.2 203.4-10.1 366.5-151.2 366.5-319.8 0.1-176.7-174.9-320.4-390-320.4z" fill="#dbdbdb" p-id="2504"></path><path d="M602.5 767.8c-19.4 0-38.8-7.4-53.6-22.2-14.3-14.3-22.2-33.3-22.2-53.6s7.9-39.3 22.2-53.6c29.5-29.5 77.6-29.5 107.1 0s29.5 77.6 0 107.1c-14.7 14.9-34.1 22.3-53.5 22.3z m0-131.5c-14.3 0-28.6 5.4-39.4 16.3-10.5 10.5-16.3 24.5-16.3 39.4s5.8 28.9 16.3 39.4c21.7 21.7 57.1 21.7 78.9 0 21.7-21.7 21.7-57.1 0-78.9-10.9-10.8-25.2-16.2-39.5-16.2z" fill="#dbdbdb" p-id="2505"></path><path d="M738.9 383.8m-64.3 0a64.3 64.3 0 1 0 128.6 0 64.3 64.3 0 1 0-128.6 0Z" fill="#dbdbdb" p-id="2506"></path><path d="M557.8 285.2m-40.9 0a40.9 40.9 0 1 0 81.8 0 40.9 40.9 0 1 0-81.8 0Z" fill="#dbdbdb" p-id="2507"></path><path d="M376.6 285.4m-31.2 0a31.2 31.2 0 1 0 62.4 0 31.2 31.2 0 1 0-62.4 0Z" fill="#dbdbdb" p-id="2508"></path></svg>
+                    t="1573095231171"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2503" width="128" height="128"><path d="M503.2 902.2c-18.5 0-34.1-14.8-35-33.4-4.3-88.7-75-158.3-161-158.3-66.1 0-128.5-17.5-175.8-49.2-23.9-16.1-42.9-35-56.2-56.3-14.5-23-21.8-47.6-21.8-73.2 0-50.6 11.9-99.7 35.3-145.8 22.5-44.2 54.5-83.8 95.3-117.7 82.9-69 192.8-107 309.5-107 116.7 0 226.6 38 309.5 107 40.7 33.9 72.8 73.5 95.3 117.7 23.4 46.1 35.3 95.2 35.3 145.8 0 49.9-11.6 98.3-34.4 143.8-21.8 43.7-53.1 82.9-92.8 116.7-80.6 68.5-188 107.5-302.5 109.8-0.3 0.1-0.5 0.1-0.7 0.1z m-9.8-690.8c-215.1 0-390.1 143.7-390.1 320.4 0 32.5 19.9 63.7 55.9 87.9 39.1 26.3 91.7 40.7 147.9 40.7 107.9 0 197.4 82.8 209.8 191.2 203.4-10.1 366.5-151.2 366.5-319.8 0.1-176.7-174.9-320.4-390-320.4z" p-id="2504"></path><path d="M602.5 767.8c-19.4 0-38.8-7.4-53.6-22.2-14.3-14.3-22.2-33.3-22.2-53.6s7.9-39.3 22.2-53.6c29.5-29.5 77.6-29.5 107.1 0s29.5 77.6 0 107.1c-14.7 14.9-34.1 22.3-53.5 22.3z m0-131.5c-14.3 0-28.6 5.4-39.4 16.3-10.5 10.5-16.3 24.5-16.3 39.4s5.8 28.9 16.3 39.4c21.7 21.7 57.1 21.7 78.9 0 21.7-21.7 21.7-57.1 0-78.9-10.9-10.8-25.2-16.2-39.5-16.2z" fill="#dbdbdb" p-id="2505"></path><path d="M738.9 383.8m-64.3 0a64.3 64.3 0 1 0 128.6 0 64.3 64.3 0 1 0-128.6 0Z" fill="#dbdbdb" p-id="2506"></path><path d="M557.8 285.2m-40.9 0a40.9 40.9 0 1 0 81.8 0 40.9 40.9 0 1 0-81.8 0Z" fill="#dbdbdb" p-id="2507"></path><path d="M376.6 285.4m-31.2 0a31.2 31.2 0 1 0 62.4 0 31.2 31.2 0 1 0-62.4 0Z" fill="#dbdbdb" p-id="2508"></path></svg>
                 <svg
                     @touchstart="handlePen($event)"
                     class="draw-icon pen"
@@ -70,6 +70,10 @@
                     class="draw-icon rubber"
                     :style="{fill: changeDrawAction == 2 ? '#f14864': ''}"
                     t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
+                <svg
+                     @touchstart="replay()"
+                    class="draw-icon replay"
+                    t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782" fill="#dbdbdb"></path></svg>
             </div>
         </div>
         <!-- 颜色  直线 虚线   粗细 -->
@@ -142,9 +146,9 @@ import { write, receive } from './workerSend'
                 //   penColor: '',
                 straightLine: false, // 直线
                 debug: false, // debug
-                logLevel: 0,
+                logLevel: 5,
                 type: '2',
-                checkState: true,
+                
                 // ready: false,
                 noImage: true,
                 
@@ -171,6 +175,7 @@ import { write, receive } from './workerSend'
                 // paintBrush: null,
                 // revokeBar: null,
                 // rubberBar: null
+               
             }
         },
         watch: {
@@ -190,11 +195,13 @@ import { write, receive } from './workerSend'
         methods: {
             init(img){
                 // 初始化默认值
-                this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片
+                this.checkState = true // move 事件  是否能够进入到方法内 
+                this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
                 this.pointLine = [] // 线 
                 this.pointList = [] // 线 list
                 this.points = [] // 四方形 截图的点
-                this.lines = [] // 四方形 截图的线  
+                this.lines = [] // 四方形 截图的线
+                this.recordData = [] //  记录
 
 
                 const clientW = img.width
@@ -238,6 +245,10 @@ import { write, receive } from './workerSend'
                 const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
                 this.maxRadius = Math.min(width, height) / 2
                 this.renderCanvas()
+
+                // if (this.type == 2) {
+                //     this.replay()
+                // }
             },
             renderCanvas() {
                 const { width, height } = this.options
@@ -291,7 +302,6 @@ import { write, receive } from './workerSend'
                     ctx.beginPath()
                     ctx.strokeStyle = el.color
                     ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
-                    // this.log(lineWidth)
                     const array = el.pointLine
                     for (let i = 0; i < array.length; i++) {
                         const element = array[i]
@@ -714,6 +724,8 @@ import { write, receive } from './workerSend'
                 //     e.type 
                     
                 // }
+
+                // TODO: 为什么定位了  位置就不准了  我猜测是  偏移位置也需要  缩放
                 const boundingClientRect = this.boundingClientRect
                 const touch = e.touches[0]
                 const { width, height } = this.options
@@ -730,15 +742,14 @@ import { write, receive } from './workerSend'
             },
             handleMatching(e) {
                 //  切换
-                this.log('点击了调色板')
-                this.straightLine = !this.straightLine
+                // this.log('点击了调色板')
+                // this.straightLine = !this.straightLine
                 this.checkState = false
-                this.sendData(e, 8, '')
+                // this.sendData(e, 8, '')
+
+                write({data: {}, event:'writeIn'})
             },
             handlePen(e) {
-                // e.preventDefault()
-                // alert(123)
-
                 this.log('点击了画笔')
                 if (this.changeDrawAction == 1) {
                     this.checkState = false
@@ -748,9 +759,6 @@ import { write, receive } from './workerSend'
                     this.changeDrawAction = 1
                 }
                 this.sendData(e, 7, '')
-                // this.renderCanvas()
-
-                // this.straightLine = !this.straightLine
             },
             handleRubber(e) {
                 // e.preventDefault()
@@ -768,10 +776,10 @@ import { write, receive } from './workerSend'
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
+                // if (!this.checkState) return // 美哟u什么
                 this.clearCtx2()
                 if(!this.sendData(e, 1)) return
                 // 判断是不是 第一次触发 新动作
-                if (!this.checkState) return
                 // alert(1)
                 // 双指
                 if (e.touches.length > 1 && this.changeDrawAction == -1) {
@@ -808,9 +816,9 @@ import { write, receive } from './workerSend'
             },
             handleMove (e) {
                 // 判断是不是 读的一端
+                if (!this.checkState) return
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
-                if (!this.checkState) return
                
                 const touches = e.touches
                 const image = this.image
@@ -854,10 +862,17 @@ import { write, receive } from './workerSend'
                         ctx.stroke()
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         if (this.pointLine.length === 0) {
-                            this.pointLine.push({
-                                x: drawPoint.x - image.x,
-                                y: drawPoint.y - image.y
-                            })
+                            try {
+                                this.pointLine.push({
+                                    x: drawPoint.x - image.x,
+                                    y: drawPoint.y - image.y
+                                })
+                            } catch (error) {
+                                console.log('-------------==============')
+                                console.log(drawPoint)
+                                console.log(image)
+                                throw error
+                            }
                         }
                     } else {
                         // console.log('----------90909090--------------------------------')
@@ -872,11 +887,17 @@ import { write, receive } from './workerSend'
                         }
 
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        this.pointLine.push({
-                            x: drawPoint.x - image.x,
-                            y: drawPoint.y - image.y
-                        })
-
+                        try {
+                            this.pointLine.push({
+                                x: drawPoint.x - image.x,
+                                y: drawPoint.y - image.y
+                            })
+                        } catch (error) {
+                            console.log('-------------==============')
+                            console.log(drawPoint)
+                            console.log(image)
+                            throw error
+                        }
                     }
                     this.drawPoint = current
                     return
@@ -917,9 +938,9 @@ import { write, receive } from './workerSend'
                      *  TODO:  橡皮移动过 收益不大  --影响检查速度
                      */
                     // 上一个点  复制一下 是为了保存当前点  --但是上一个点 检测还要用到
-                    const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
-                    this.drawPoint = { x, y }
-                    const isFast = this.getDistance({clientX: x, clientY: y}, {clientX: preve.x, clientY: preve.y}) >= radius
+                    // const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
+                    // this.drawPoint = { x, y }
+                    // const isFast = this.getDistance({clientX: x, clientY: y}, {clientX: preve.x, clientY: preve.y}) >= radius
 
                     // const ctx  = this.ctx
                     const pointList = this.pointList
@@ -935,15 +956,13 @@ import { write, receive } from './workerSend'
                         // 还原最大 最小值
                         const maxPonit = this.restPoint({x: element.maxX, y: element.maxY}, image, scale)
                         const minPonit = this.restPoint({x: element.minX, y: element.minY}, image, scale)
-                        // this.log(element.maxY)
-                        //  this.log('不在这条线的矩形内-- 不检测跳过进入下一条')
                         // 是 直线  > == 2
                         // 是曲线 > 5
                         let number = 5  // 矩形宽高
                         // (maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                         //  直线如果距离太小也会 被拦下来
                         const time1 = new Date().getTime()
-                        if ((maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
+                        if ((Math.abs(maxPonit.x - minPonit.x) > number  &&  Math.abs(maxPonit.y - minPonit.y) > number) &&
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
                             // 有问题
@@ -954,7 +973,6 @@ import { write, receive } from './workerSend'
                             '' + (new Date().getTime() - time1) + 'ms' )
                             continue 
                         }
-                        // this.log('经过矩形优化后 ------------耗时：' + '' + (new Date().getTime() - time))
                         // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
@@ -967,9 +985,6 @@ import { write, receive } from './workerSend'
                                 this.sendData(e, 4, index)
                                 this.pointList.splice(index, 1)
                                 this.renderCanvas()
-                                // setTimeout(()=>{
-                                // 直接通知对方 删除这个线 不用再判断
-                                // })
                                 break
                             }
 
@@ -990,20 +1005,18 @@ import { write, receive } from './workerSend'
                             }
                             
                             // TODO:  橡皮移动过 收益不大  --影响检查速度
-                            if (isFast) {
-                                //  橡皮檫的距离大于 检测距离
-                                const rubberDis = this.distanceOfPoint2Line(originPoint, preve, {x, y})
-                                // this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
-                                    if (rubberDis <= lineDis) {
-                                    this.sendData(e, 4, index)
-                                    this.pointList.splice(index, 1)
-                                    this.renderCanvas()
-                                    // this.log('--------------快速橡皮删除的', '', 2)
-                                    break
-                                }
-                            }
-
-                            
+                            // if (isFast) {
+                            //     //  橡皮檫的距离大于 检测距离
+                            //     const rubberDis = this.distanceOfPoint2Line(preve, {x, y}, originPoint)
+                            //     // this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
+                            //         if (rubberDis <= lineDis) {
+                            //         this.sendData(e, 4, index)
+                            //         this.pointList.splice(index, 1)
+                            //         this.renderCanvas()
+                            //         // this.log('--------------快速橡皮删除的', '', 2)
+                            //         break
+                            //     }
+                            // } 
                         }
 
 
@@ -1013,7 +1026,7 @@ import { write, receive } from './workerSend'
                     // this.log('橡皮的半径' + ('' + radius))
                     this.log( 'all所有线(' + pointList.length + 
                         ')：：：：ALL：： ：检测耗时' + '' + 
-                        (new Date().getTime() - time) + 'ms', 'red', 2)
+                        (new Date().getTime() - time) + 'ms', 'red', 5)
                     return
                 }
                 // 这是干啥的--画=>图片和 线  移动
@@ -1056,7 +1069,7 @@ import { write, receive } from './workerSend'
             handleEnd(e){
                 this.clearCtx2()
                 if(!this.sendData(e, 3)) return
-                  // 判断是不是 第一次触发 新动作
+                // 判断是不是 第一次触发 新动作
                 if (!this.checkState) {
                     // console.log(123)
                     this.checkState = true
@@ -1100,7 +1113,6 @@ import { write, receive } from './workerSend'
                             maxY = element.y + offset
                         }
                     }
-                    console.log(e)
                     const pointObj = {
                         pointLine: this.pointLine,
                         scale: e.scale || this.scale,
@@ -1208,6 +1220,7 @@ import { write, receive } from './workerSend'
                 if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
                     this.log('点击了画笔')
                     if (this.changeDrawAction == 1) {
+                        this.checkState = false
                         this.changeDrawAction = -1
                     } else {
                         this.checkState = false
@@ -1220,6 +1233,7 @@ import { write, receive } from './workerSend'
                     // 橡皮
                     this.log('点击了橡皮')
                     if (this.changeDrawAction == 2) {
+                         this.checkState = false
                         this.changeDrawAction = -1
                     } else {
                         this.checkState = false
@@ -1522,14 +1536,15 @@ import { write, receive } from './workerSend'
                 return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
             },
             sendData(e = {}, actionTypes, value) {
-                this.log(this.options)
-                // console.log(this.options)
+            //    return false
                 // this.type  1 读  2 写
                 // console.log(this.options)
                 this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
                 this.log('发送数据-----------' + actionTypes + '-------------' + value)
                 // if (this.rubberAction && actionTypes == 2) return false
                 // 缩放 和 删除 是没有 e.type
+
+                // 屏蔽原生 操作 展示
                 if (e.type) { // 是原生事件
                     e.preventDefault()
                 } else {
@@ -1553,14 +1568,14 @@ import { write, receive } from './workerSend'
                 const data = {
                     // 不放进来 很多东西 要写三遍 
                     value: value || Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
-                    actionTypes,
-                    scale: this.scale
+                    actionTypes
                 }
-                if (this.changeDrawAction == 1 && actionTypes == 3) {
-                    // 画笔  起笔
+                if (actionTypes == 5) {
+                    // 画笔  起笔  缩放
                     data.scale = this.scale
                 }
-                this.log(data)
+                // this.log(data)
+                this.recordData.push(data)
                 write({data, event: 'message'})
                 return true
             },
@@ -1656,6 +1671,98 @@ import { write, receive } from './workerSend'
                 if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
                 return data * this.kScale
             },
+            replay(id) {
+                if (this.type == 1) {
+                    return
+                }
+                this.checkState = false
+                if (id) {
+                    window.cancelAnimationFrame(id)
+                }
+                // 先克隆数据  然后 初始化 所有状态
+                // -----
+                const dataJSON = JSON.parse(JSON.stringify(this.recordData))
+                // 要捕捉所有动作
+                this.init(this.image.element)
+                // 初始化
+                // const dataJSON = require('./time-1573201111325.json')
+                const len = dataJSON.length
+                const startTime = new Date().getTime()
+                // console.log(dataJSON[0])
+               this.replayIndex = 0 // 会迁入 初始化
+                // console.log(dataJSON)
+                const self = this
+                function step(timestamp) {
+                    const data = dataJSON[self.replayIndex]
+                    const diff = new Date().getTime() - startTime
+                    // console.log(time)
+                    // 差时
+                    // 暂停时间 
+                    if (
+                        true
+                        // diff >= dataJSON[self.replayIndex].time - 10
+                    ) {
+
+                        // 出现问题 这一笔 还没有渲染完成  下一笔就来了
+                        self.replayIndex += 1
+                        write({ data, event: 'message'})
+
+                        const { actionTypes, value } = data
+                        switch (actionTypes) {
+                            case 1: 
+                                self.handleStart({ touches: value })
+                                // self.log(' 开始', 'red', 3)
+                                break
+                            case 2: 
+                                self.handleMove({ touches: value })
+                                // self.log('移动', 'red', 3)
+                                break
+                            case 3: 
+                                self.handleEnd({ touches: value })
+                                // self.log('结束', 'red', 3)
+                                break
+                            case 4: 
+                                self.pointList.splice(value, 1)
+                                self.renderCanvas()
+                                // self.log('删除线', 'orange', 3)
+                                break
+                            case 5: 
+                                self.scaleImage(value)
+                                // self.log('缩放', 'orange')
+                                break
+                            case 6: 
+                                self.handleRubber()
+                                // self.log('橡皮', 'pink', 3)
+                                break
+                            case 7: 
+                                self.handlePen()
+                                // self.log('画笔', '#f60bbb', 3)
+                                break
+                            case 8: 
+                                self.handleMatching()
+                                // self.log('调色板', '#f60rrr', 3)
+                                break
+                            default:
+                                break
+                        }
+                        // console.log(self.replayIndex < len)
+                    }
+
+                    
+                    if (self.replayIndex >= len) {
+                        return
+                    }
+                    self.RAFID = window.requestAnimationFrame(step)
+                    // step()
+                }
+                // console.log('123')
+                // while (self.replayIndex < len) {
+                // console.log(self.replayIndex)
+                //     step()
+                // }
+                // step()
+                this.RAFID = window.requestAnimationFrame(step)
+            }
         },
         mounted() {
             const { mountNode } = this.$refs
@@ -1678,6 +1785,18 @@ import { write, receive } from './workerSend'
             this.ctx = ctx
             this.ctx2 = ctx2
             this.boundingClientRect = boundingClientRect
+
+
+
+            /**
+             *  回放功能
+             */
+      
+
+
+
+
+            //
             // this.log(this.$slots.initial[0].data.attrs.src)
             if (this.defaultImgUrl || this.$slots.defaultImgUrl) {
                 const src = this.defaultImgUrl ? this.defaultImgUrl : this.$slots.defaultImgUrl[0].data.attrs.src
@@ -1718,6 +1837,7 @@ import { write, receive } from './workerSend'
             // set
         },
         created() {
+        
            
            function getQuery() {
                 let re = location.href.match(/[\\?&]\w+=\w*/g);
@@ -1751,6 +1871,9 @@ import { write, receive } from './workerSend'
                 * 6 橡皮 ''
                 * 7 画笔 ''
                 */ 
+
+            //    还原坐标位置  有两种方式 - 1.求出来一个缩放比算出位置   2. 把图片定位好 根据图片算出位置
+            //  目前两种都用到了 1. 画图 和 橡皮 图片拖动   2. 复原老师笔记
             receive((e) => {
                 // console.log(e)
                 // 暂时只有 --
@@ -1771,20 +1894,21 @@ import { write, receive } from './workerSend'
                             scale: this.scale,
                             imageX: this.image.x,
                             imageY: this.image.y,
-                           
+                            drawPoint: this.drawPoint,
 
 
 
 
                             straightLine: this.straightLine
                         }, event: 'toOne'})
-                        
+                        this.log('给新加入的学生推送自己的状态数据', 'red', 5)
                         // console.log('发出数据')
                     } else {
                         // console.log(e.data.pointList)
                         // console.log(e.data)
                         // 学生收数据
                         // 这个数据过去 是很正确的------------------------
+                        this.log('数据还原', 'red', 5)
                         const originData = e.data
                         this.changeDrawAction = originData.changeDrawAction
 
@@ -1797,7 +1921,9 @@ import { write, receive } from './workerSend'
                         this.image.x = this.dataScale(originData.imageX)
                         this.image.y = this.dataScale(originData.imageY)
 
-                        
+
+                        this.drawPoint.x = this.dataScale(drawPoint.x)
+                        this.drawPoint.y = this.dataScale(drawPoint.y)
                         
                         
                         this.straightLine = originData.straightLine
@@ -1811,35 +1937,35 @@ import { write, receive } from './workerSend'
                     switch (actionTypes) {
                         case 1: 
                             this.handleStart({ touches: this.dataScale(value) })
-                            this.log(' 开始', 'red')
+                            this.log(' 开始', 'red', 3)
                             break
                         case 2: 
                             this.handleMove({ touches: this.dataScale(value) })
-                            this.log('移动', 'red')
+                            this.log('移动', 'red', 3)
                             break
                         case 3: 
                             this.handleEnd({ touches: this.dataScale(value) })
-                            this.log('结束', 'red')
+                            this.log('结束', 'red', 3)
                             break
                         case 4: 
                             this.pointList.splice(value, 1)
                             this.renderCanvas()
-                            this.log('删除线', 'orange')
+                            this.log('删除线', 'orange', 3)
                             break
                         case 5: 
                             this.scaleImage(this.dataScale(value))
                             this.log('缩放', 'orange')
                             break
                         case 6: 
-                            this.log('橡皮', 'pink')
+                            this.log('橡皮', 'pink', 3)
                             this.handleRubber()
                             break
                         case 7: 
-                            this.log('画笔', '#f60000')
+                            this.log('画笔', '#f60bbb', 3)
                             this.handlePen()
                             break
                         case 8: 
-                            this.log('调色板', '#f60000')
+                            this.log('调色板', '#f60rrr', 3)
                             this.handleMatching()
                             break
                         default:

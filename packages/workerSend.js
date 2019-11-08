@@ -1,6 +1,6 @@
 
 import io from 'socket.io-client'
-import MyWorker  from './webworker177.worker'
+import MyWorker  from './webworker117.worker'
 let _write
 let _receive
 if (typeof(Worker) !== 'undefined' ) {
@@ -26,6 +26,9 @@ if (typeof(Worker) !== 'undefined' ) {
                 break;
             case 'toOne':
                 socket.emit('toOne', value.data)
+                break;
+            case 'writeIn':
+                socket.emit('writeIn', mainData.data)
                 break;
             default:
                 break;

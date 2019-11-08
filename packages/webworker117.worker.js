@@ -15,8 +15,10 @@ addEventListener('message', function (e) {
             socket.emit('message', mainData.data)
             break;
         case 'toOne':
-            console.log(mainData.event)
             socket.emit('toOne', mainData.data)
+            break;
+        case 'writeIn':
+            socket.emit('writeIn', mainData.data)
             break;
         default:
             break;
