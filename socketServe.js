@@ -1,7 +1,7 @@
 var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
- 
+const fs =  require('fs')
 app.get('/', function(req, res){
     res.send('<h1>Welcome Realtime Server</h1>');
 });
@@ -71,12 +71,42 @@ io.on('connection', function(socket){
     });
      
     //监听用户发布聊天内容
+    // 开始事件
+
+    let startTime = 0
+    let actionList = []
     socket.on('message', function(obj){
         //向所有客户端广播发布的消息
         // io.emit('message', obj);
         console.log('老师发数据了 我要广播了')
+        if (actionList.length == 0 ) {
+            actionList.push({
+                time: 0,
+                data: obj
+            })
+            startTime = new Date().getTime()
+        } else {
+            actionList.push({
+                time: new Date().getTime() - startTime,
+                data: obj
+            })
+        }
+        // 数据 动作 
+        // 写入文件 json 文件
+        // 先写入内存  在写入文件
         socket.broadcast.emit('message', obj);
     });
+    socket.on('writeIn', function(obj){
+        //向所有客户端广播发布的消息
+        // io.emit('message', obj);
+        fs.writeFile(`./time-${new Date().getTime()}.json`, JSON.stringify(actionList, null, 4), function(err){
+            if(err){
+                console.error(err);
+            }
+            console.log('----------新增成功-------------');
+        })
+    });
+
    
 });
  
