@@ -71,7 +71,7 @@
                     :style="{fill: changeDrawAction == 2 ? '#f14864': ''}"
                     t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
                 <svg
-                     @touchstart="replay()"
+                     @touchend="replay()"
                     class="draw-icon replay"
                     t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782" fill="#dbdbdb"></path></svg>
             </div>
@@ -146,7 +146,7 @@ import { write, receive } from './workerSend'
                 //   penColor: '',
                 straightLine: false, // 直线
                 debug: false, // debug
-                logLevel: 5,
+                logLevel: 0,
                 type: '2',
                 
                 // ready: false,
@@ -178,20 +178,6 @@ import { write, receive } from './workerSend'
                
             }
         },
-        watch: {
-            shape() {
-                if (!this.noImage) {
-                    this.renderCanvas()
-                }
-            },
-            rotation() {
-                //  内旋转 外旋转 只能有一个
-                if (!this.noImage && !this.rotateBtn && this.changeDrawAction == -1) {
-                    this.rotateAngle = this.rotation
-                    this.renderCanvas()
-                }
-            }
-        },
         methods: {
             init(img){
                 // 初始化默认值
@@ -207,28 +193,6 @@ import { write, receive } from './workerSend'
                 const clientW = img.width
                 const clientH = img.height
                 const { width, height } = this.options
-                // let currentW = clientW,
-                //     currentH = clientH,
-                //     k = 1 // contain 时的缩放比
-                // // contain 图片
-                // if (clientW > width) {
-                //     // alert('12123')
-                //     currentW = width
-                //     k = currentW / clientW
-                //     currentH = k * clientH
-                // }
-                // if (currentH > height) {
-                //     currentH = height
-                //     k = currentH / clientH
-                //     currentW = k * clientW
-                // }
-                // // 针对小图片
-                // const minNum = 120
-                // if (clientW < minNum && currentH < minNum) {
-                //     currentW = minNum
-                //     k = currentW / clientW
-                //     currentH = k * clientH
-                // }
                 const { k, width: currentW, height: currentH } = this.convert(img, this.options,)
                 this.scale = k
                 // 针对小图片
@@ -267,192 +231,32 @@ import { write, receive } from './workerSend'
                 // console.timeEnd('fillImage')
                 this.drawPointFn(this.ctx)
 
-                // const shape = this.shape || 'rect'
-                // if (shape === 'arc') {
-                //     this.fillArcCropper()
-                // } else  if (shape === 'rect') {
-                //     this.updatePoint()
-                //     this.fillRectCropper()
-                // }
-                //  console.time('drawTouchBar')
-
-                // this.drawTouchBar(this.touchBar)
-                // this.drawPaintBrush(this.paintBrush)
-                // this.drawRevokeBar(this.revokeBar)
-                // this.drawRubberBar(this.rubberBar)
-                // 写的 线
-                // console.timeEnd('drawTouchBar')
-                // this.preview()
             },
-            // rotatePoint({ pageX, pageY }, r, angle){
-            //     angle = Math.PI / 180 * angle
-            //     return { 
-            //         x: pageX + Math.cos(angle) * r,
-            //         y: pageY + Math.sin(angle) * r
-            //     }
-            // },
-            drawPointFn(ctx, quality = null, cropper = this.image, image = this.image){
+
+            drawPointFn(ctx){
                 const pointList = this.pointList
-                // const image = this.image
+                const image = this.image
                 if (pointList.length == 0) return
                 ctx.lineCap = 'round'
                 pointList.forEach(el => {
                     const scale = this.scale / el.scale
-                    const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+
+                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15) + 1
                     ctx.beginPath()
                     ctx.strokeStyle = el.color
-                    ctx.lineWidth = quality ? lineWidth * 2 : lineWidth
                     const array = el.pointLine
                     for (let i = 0; i < array.length; i++) {
                         const element = array[i]
                         const originPoint = this.restPoint(element, image, scale)
                         if (i === 0) {
                             // 要相对于图片的位置 才是对的  不能相对于 画布
-                            if (quality) {
-                                ctx.moveTo((originPoint.x - cropper.x) * quality , (originPoint.y - cropper.y) * quality)
-                            } else {
-                                ctx.moveTo(originPoint.x, originPoint.y)
-                            }
-                            // ctx.stroke()
+                            ctx.moveTo(originPoint.x, originPoint.y)
                             continue
                         }
-                        if (quality) {
-                            ctx.lineTo((originPoint.x - cropper.x) * quality, (originPoint.y - cropper.y) * quality)
-                        } else {
-                            ctx.lineTo(originPoint.x, originPoint.y)
-                        }
+                        ctx.lineTo(originPoint.x, originPoint.y)
                     }
                     ctx.stroke()
                 })
-            },
-            drawPaintBrush(touchBar) {
-                if (!touchBar) return
-                const { x, y, width } = touchBar 
-                const ctx = this.ctx,
-                // touchBar = touchBar,
-                color = this.color || this.averageColor
-                ctx.strokeStyle = color
-                ctx.lineWidth = 2
-                ctx.lineCap = 'round'
-                ctx.beginPath()
-                // width 根据wdith去边换算 width * width / 
-                ctx.moveTo(x + 20, y + 5)
-                ctx.lineTo(x + 24, y +  9)
-                ctx.lineTo(x + 12, y + 21)
-                ctx.lineTo(x + 7, y + 22)
-                ctx.lineTo(x + 8, y + 17)
-                ctx.lineTo(x + 20, y + 5)
-                ctx.closePath()
-
-                
-                // ctx.moveTo(x + width * width / 20, y + width * width / 5)
-                // ctx.lineTo(x + width * (width / 24), y + width * (width / 9))
-                // ctx.lineTo(x +width * (width / 12), y + width * (width / 21))
-                // ctx.lineTo(x + width * (width / 7), y + width * (width / 22))
-                // ctx.lineTo(x + width * (width / 8), y + width * (width / 17))
-                // ctx.lineTo(x + width * (width / 20), y + width * (width / 5))
-                // ctx.closePath()
-
-                
-                if (this.changeDrawAction == 1) {
-                    ctx.fillStyle = color
-                    ctx.fill();
-                }
-                // ctx.stroke()
-                ctx.moveTo(x + 5, y + 26)
-                ctx.lineTo(x + 25, y + 26)
-                ctx.stroke()
-
-                // ctx.rect(x, y, width, width)
-                // ctx.stroke();
-            },
-             drawRevokeBar(touchBar) {
-                if (!touchBar) return
-                const {x, y} = touchBar
-                //  const {x, y, width} = touchBar   //  用宽 算个比例
-                const ctx = this.ctx,
-                // touchBar = touchBar,
-                color = this.color || this.averageColor
-                ctx.strokeStyle = color
-                ctx.lineWidth = 2
-                ctx.lineCap = 'round'
-                ctx.fillStyle = color
-                ctx.beginPath()
-                ctx.moveTo(x + 15, y + 12)
-                ctx.lineTo(x + 15, y + 8)
-                ctx.lineTo(x + 7, y + 15)
-
-                ctx.lineTo(x + 15, y + 22)
-                ctx.lineTo(x + 15, y + 18)
-                ctx.stroke()
-                // ctx.fillStyle = color
-
-     
-                // ctx.fill()
-                ctx.beginPath()
-                ctx.arc(x + 15,  y + 24, 12, -Math.PI/2, -Math.PI/180 * 18, false)
-                ctx.arc(x + 15,  y + 35, 17,-Math.PI/180 * 45, -Math.PI/2, true)
-                ctx.stroke()
-                // ctx.fillStyle = color
-                // ctx.fill()
-
-            },
-            drawRubberBar(touchBar) {
-                if (!touchBar) return
-                const { x, y, width, height } = touchBar
-                //  const {x, y, width} = touchBar   //  用宽 算个比例
-                const ctx = this.ctx
-                const radius = 12 // 8
-                // touchBar = touchBar,
-                const color = this.color || this.averageColor
-                ctx.strokeStyle = color
-                ctx.fillStyle = color
-                // ctx.lineWidth = 3
-                // ctx.lineCap = 'round'
-                // ctx.fillStyle = color
-                ctx.beginPath()
-                ctx.arc(x + width / 2 , y + height / 2, radius, 0, Math.PI * 2, false)
-                // ctx.fill()
-                if (this.changeDrawAction == 2) {
-                    ctx.fill()
-                }
-                ctx.stroke()
-                // ctx.rect(x, y, width, width)
-                // ctx.stroke();
-            },
-            drawTouchBar(touchBar) {
-                if (!touchBar) return
-                const ctx = this.ctx,
-                color = this.color || this.averageColor,
-              
-                x = touchBar.x + touchBar.width * 0.6,
-                y =  touchBar.y + touchBar.height * 0.64,
-                r = touchBar.width * 0.41,
-                alpha = 6,
-                h1 = touchBar.width * 0.1,
-                h2 =  touchBar.width * 0.18
-                ctx.lineWidth = 2
-                ctx.strokeStyle = color
-                // 填充颜色
-                ctx.fillStyle = color
-                // strokeRect  fillRect
-                ctx.fillRect(x - touchBar.width / 6, y - touchBar.height / 6, touchBar.width * 0.43, touchBar.height * 0.43)
-                ctx.beginPath()
-                ctx.arc(x, y, r, Math.PI/180 * 180, -Math.PI/2 + alpha, false)
-                ctx.stroke()
-                if(alpha < 2*Math.PI) {
-                    const x1 = x + (r - h1) * Math.sin(alpha),
-                    y1 = y - (r - h1) * Math.cos(alpha),
-                    x2 = x + (r + h1) * Math.sin(alpha),
-                    y2 = y - (r + h1) * Math.cos(alpha),
-                    x0 = (x1 + x2) / 2 + h2 * Math.sin(alpha + Math.PI/2),
-                    y0 = (y1 + y2) / 2 - h2 * Math.cos(alpha + Math.PI/2)
-                    ctx.beginPath()
-                    ctx.moveTo(x0, y0)
-                    ctx.lineTo(x1, y1)
-                    ctx.lineTo(x2, y2)
-                    ctx.fill()
-                }
             },
             fillImage() {
                 const image = this.image
@@ -460,202 +264,6 @@ import { write, receive } from './workerSend'
                 const rotateAngle = this.rotateAngle
                 // this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
                 ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
-            },
-            updatePoint() {
-                // 点中点和线 不用 执行 
-                const c = this.cropper,
-                nookSide =  this.nookSide,
-                cWidth = c.x + c.width,
-                cHeight = c.y + c.height,
-                forecastX = cWidth - nookSide,
-                forecastY = cHeight - nookSide
-                this.points = [
-                    {
-                        x: c.x,
-                        y: c.y,
-                        width:nookSide,
-                        height:nookSide,
-                        diffX: 0,
-                        diffY: 0
-                    },
-                    {
-                        x: forecastX ,
-                        y: c.y,
-                        width:nookSide,
-                        height:nookSide,
-                        diffX: nookSide,
-                        diffY: 0
-                    },
-                    {
-                        x: forecastX ,
-                        y: forecastY,
-                        width:nookSide,
-                        height:nookSide,
-                        diffX: nookSide,
-                        diffY: nookSide
-                    },
-                    {
-                        x: c.x,
-                        y: forecastY,
-                        width:nookSide,
-                        height:nookSide,
-                        diffX: 0,
-                        diffY: nookSide
-                    }
-                ]
-                // 寻找四根线
-                const lineHeight = nookSide / .7,
-                halfLineHeight = lineHeight / 2
-                this.lines = [
-                     {
-                        x: c.x,
-                        y: c.y - halfLineHeight,
-                        width: c.width,
-                        height: lineHeight
-                    },
-                    {
-                        x: cWidth - halfLineHeight,
-                        y: c.y,
-                        width: lineHeight,
-                        height: c.height
-                    },
-                    {
-                        x: c.x,
-                        y: cHeight - halfLineHeight,
-                        width: c.width,
-                        height: lineHeight
-                    },
-                    {
-                        x: c.x - halfLineHeight,
-                        y: c.y,
-                        width: lineHeight,
-                        height: c.height
-                    }
-                ]
-            },
-            fillRectCropper() {
-                const ctx = this.ctx,
-                cropper = this.cropper,
-                points = this.points,
-                color = this.color || this.averageColor
-                ctx.strokeStyle = color
-                ctx.lineWidth = 2
-                ctx.strokeRect(cropper.x, cropper.y, cropper.width, cropper.height)
-                ctx.fillStyle = color
-                const nookSide = this.nookSide / 8
-                points.forEach((element, index) => {
-                    ctx.save()
-                    ctx.translate(element.x + element.diffX, element.y + element.diffY)
-                    ctx.rotate(index * 90 * (Math.PI/180))
-                    ctx.fillRect(-nookSide, -nookSide, element.height, nookSide * 2)
-                    ctx.fillRect(-nookSide, -nookSide, nookSide * 2, element.width)
-                    // if(index % 2 === 0){
-                    //     ctx.fillRect(-nookSide, cropper.height / 2 - element.nookSide , element.nookSide / 4, element.nookSide * 2)
-                    // } else {
-                    //     ctx.fillRect(-nookSide, cropper.width / 2 - element.nookSide, element.nookSide / 4, element.nookSide * 2)
-                    // }
-                    ctx.restore()
-                });
-                // this.log(this.arc.r)
-                // 圆
-
-                
-            },
-            fillArcCropper() {
-                const ctx = this.ctx
-                ctx.beginPath()
-                ctx.strokeStyle = this.color || this.averageColor
-                ctx.lineWidth =  2 // this.nookSide / 0.7
-                ctx.arc(this.arc.x, this.arc.y, this.arc.r, 0, Math.PI * 2)
-                ctx.stroke();
-            },
-            handleArcMove({ x, y }) {
-                this.arc.r = this.limit(this.getDistance({clientX: x, clientY: y}, {clientX: this.arc.x, clientY: this.arc.y}), this.nookSide * 2, this.maxRadius)
-                this.renderCanvas()
-            },
-           // 填充背景
-            fillBackground() {
-                // 多个变量可以用逗号 一次赋值
-                const { width, height } = this.options, 
-                ctx = this.ctx
-                ctx.save()
-                ctx.fillStyle = '#fff'
-                ctx.fillStyle = `rgba(0, 0, 0, ${this.bgOpacity})`
-                ctx.fillRect(0, 0, width, height)
-                 //蒙层 
-                ctx.restore()
-            },
-            getNewCropper(touchX, touchY ,cropper) {
-               return {
-                    cropperWidth:(cropper.x + cropper.width) - touchX,
-                    cropperHeight: (cropper.y + cropper.height) - touchY,
-                    cropperX: touchX - cropper.x,
-                    cropperY: touchY - cropper.y
-               }
-            },
-            handlePointMove({ x, y }) {
-                const cropper = this.cropper,
-                newCropper = {},
-                { cropperWidth, cropperHeight, cropperX, cropperY } = this.getNewCropper(x, y, cropper)
-                switch (this.index) {
-                    case 0:
-                        newCropper.width =  cropperWidth
-                        newCropper.height = cropperHeight
-                        newCropper.x = x
-                        newCropper.y = y
-                        break;
-                    case 1:
-                    // x  不会动
-                        newCropper.width =  cropperX
-                        newCropper.height =  cropperHeight
-                        newCropper.y = y
-                        break;
-                    case 3:
-                    // y 不会动
-                        newCropper.width = cropperWidth
-                        newCropper.height = cropperY
-                        newCropper.x = x
-                        break;
-                    case 2:
-                        newCropper.width = cropperX
-                        newCropper.height = cropperY
-                        break;
-                    default:
-                        break;
-                }
-                this.renderCropper(newCropper)
-            },
-            handleLineMove ({ x, y }) {
-                const cropper = this.cropper,
-                newCropper = {},
-                { cropperWidth, cropperHeight, cropperX, cropperY } = this.getNewCropper(x, y, cropper)
-                switch (this.index) {
-                    case 3:
-                        newCropper.width = cropperWidth
-                        newCropper.x = x // 限制
-                        break;
-                    case 0:
-                        newCropper.height = cropperHeight
-                        newCropper.y = y // 限制
-                        break;
-                    case 1:
-                        newCropper.width = cropperX
-                        break;
-                    case 2:
-                    // y 不会动
-                        newCropper.height = cropperY
-                        break;
-                    default:
-                        break;
-                }
-                this.renderCropper(newCropper)
-            },
-            renderCropper(newCropper) {
-                 if (newCropper.width <= this.nookSide * 4 || newCropper.height <= this.nookSide * 4) {
-                    return
-                }
-                this.cropper = {...this.cropper,...newCropper}
-                this.renderCanvas()
             },
             handleImageMove ({ x, y }) {
                 const s = this.startPoint
@@ -743,11 +351,11 @@ import { write, receive } from './workerSend'
             handleMatching(e) {
                 //  切换
                 // this.log('点击了调色板')
-                // this.straightLine = !this.straightLine
+                this.straightLine = !this.straightLine
                 this.checkState = false
                 // this.sendData(e, 8, '')
 
-                write({data: {}, event:'writeIn'})
+                // write({data: {}, event:'writeIn'})
             },
             handlePen(e) {
                 this.log('点击了画笔')
@@ -816,7 +424,7 @@ import { write, receive } from './workerSend'
             },
             handleMove (e) {
                 // 判断是不是 读的一端
-                if (!this.checkState) return
+                if (!this.checkState) return // 不用发送 无意义的数据
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
                
@@ -945,7 +553,7 @@ import { write, receive } from './workerSend'
                     // const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
-                    this.log('进入橡皮先生' + '我是写', + '' + this.type)
+                    this.log('进入橡皮先生' + '我是写' + '--type:' + this.type)
                     const time = new Date().getTime() 
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
@@ -958,11 +566,12 @@ import { write, receive } from './workerSend'
                         const minPonit = this.restPoint({x: element.minX, y: element.minY}, image, scale)
                         // 是 直线  > == 2
                         // 是曲线 > 5
-                        let number = 5  // 矩形宽高
+                        // let number = 5  // 矩形宽高
                         // (maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
                         //  直线如果距离太小也会 被拦下来
                         const time1 = new Date().getTime()
-                        if ((Math.abs(maxPonit.x - minPonit.x) > number  &&  Math.abs(maxPonit.y - minPonit.y) > number) &&
+                        // (Math.abs(maxPonit.x - minPonit.x) > number  &&  Math.abs(maxPonit.y - minPonit.y) > number) &&
+                        if (
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
                             // 有问题
@@ -982,9 +591,9 @@ import { write, receive } from './workerSend'
                             const originPoint = this.restPoint(item, image, scale)
                             // 首先用点检测
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
-                                this.sendData(e, 4, index)
                                 this.pointList.splice(index, 1)
                                 this.renderCanvas()
+                                this.sendData(e, 4, index)
                                 break
                             }
 
@@ -997,9 +606,9 @@ import { write, receive } from './workerSend'
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
-                                    this.sendData(e, 4, index)
                                     this.pointList.splice(index, 1)
                                     this.renderCanvas()
+                                    this.sendData(e, 4, index)
                                     break
                                 }
                             }
@@ -1020,12 +629,12 @@ import { write, receive } from './workerSend'
                         }
 
 
-                        this.log(index + '这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
+                        this.log('index:' + index + ',这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
                         // 20
                     }
                     // this.log('橡皮的半径' + ('' + radius))
-                    this.log( 'all所有线(' + pointList.length + 
-                        ')：：：：ALL：： ：检测耗时' + '' + 
+                    this.log( '一共(' + pointList.length + 
+                        '根),检测耗时' + '' + 
                         (new Date().getTime() - time) + 'ms', 'red', 5)
                     return
                 }
@@ -1078,7 +687,6 @@ import { write, receive } from './workerSend'
 
                 
                 // 有两种 动作  画笔 和 橡皮
-                // TODO: 互相切换 可以用一个变量 优化掉 -----------------------------------
                 if (this.changeDrawAction == -1) return
                 
                 // 搜集点 进入画笔
@@ -1095,7 +703,7 @@ import { write, receive } from './workerSend'
                     //  加个 maxX maxY  minX minY
                     const array = this.pointLine
                     // 会有 明明在范围内 检测不到--- 范围太小了 加一点
-                    const offset = 2
+                    const offset = 6
                     //  初始化第一个  --不能默认0  有负值存在
                     let maxX = array[0].x, maxY = array[0].y,  minX = array[0].x, minY = array[0].y
                     for (let index = 1; index < array.length; index++) {
@@ -1117,7 +725,7 @@ import { write, receive } from './workerSend'
                         pointLine: this.pointLine,
                         scale: e.scale || this.scale,
                         lineWidth: this.lineWidth,
-                        color: this.color || this.averageColor,
+                        color: this.color,
                         // rotateAngle : this.rotateAngle,
                         maxX,
                         maxY,
@@ -1184,10 +792,10 @@ import { write, receive } from './workerSend'
                 return Math.sqrt(dx * dx + dy * dy)
             },
 
-            restPoint(pooint, image, scale) {
+            restPoint(point, image, scale) {
                 return {
-                    x: image.x + pooint.x * scale,
-                    y: image.y + pooint.y * scale
+                    x: image.x + point.x * scale,
+                    y: image.y + point.y * scale
                 }
             },
             checkRegion(x, y, target) {
@@ -1330,136 +938,8 @@ import { write, receive } from './workerSend'
                 // console.log('%c' + '' +  value)
                 console.log('%c' + '' +  value, colors[color])
             },
-            getImage(type='Base64', mimeType='image/jpeg', quality=1) {
-                if (this.noImage) return
-                const shape = this.shape || 'rect'
-                let cropper = this.cropper
-                if (shape == 'imgage') {
-                    cropper = this.image
-                } else if (shape === 'arc') {
-                    // 圆形必须 2倍才好
-                    cropper = {
-                        x: this.arc.x - this.arc.r,
-                        y: this.arc.y - this.arc.r,
-                        width:  this.arc.r * 2,
-                        height:  this.arc.r * 2
-                    }
-                }
-                const image = this.image,
-                pixelRatio = this.pixelRatio,
-                types = {
-                    Base64(canvas, mimeType, resolve) {
-                        resolve(canvas.toDataURL(mimeType))
-                    },
-                    Blob(canvas, mimeType, resolve){
-                        canvas.toBlob((blob)=> {
-                            resolve(blob)
-                        }, mimeType)
-                    } 
-                },
-                w = cropper.width * quality ,
-                h = cropper.height * quality,
-                // 变量申请
-                canvasDom =  document.createElement('canvas'),
-                cCtx = canvasDom.getContext('2d')
-                // if (!this.canvas) {
-                //     this.canvas = document.createElement('canvas')
-                //     this.cCtx = this.canvas.getContext('2d')
-                    // const { mountNode } = this.$refs
-                    // mountNode.appendChild(this.canvas)
-                // }
-                // const cCtx = this.cCtx
-                canvasDom.width = w * pixelRatio
-                canvasDom.height = h * pixelRatio
-                cCtx.scale(pixelRatio, pixelRatio)
-                cCtx.clearRect(0, 0, w, h)
-                const rotateAngle = this.rotateAngle
-                if (shape === 'arc') {
-                    const radius = w / 2
-                    cCtx.beginPath()
-                    // 圆心是当前正方形的(画布) 中间
-                    cCtx.arc(radius , radius, radius, 0, Math.PI * 2, false)
-                    cCtx.clip()
-                }
-                //  圆形 只有 2 倍 缩放 数据是正确的
-                // 旋转图片  这个是  主图旋转  /也是canvas 上 img
-                this.canvasRotate('img', cCtx, image.element,
-                    rotateAngle,
-                    (image.x - cropper.x)  * quality,
-                    (image.y - cropper.y)  * quality,
-                    image.width * quality,
-                    image.height * quality
-                )
-                // 在整个图片上 写写画画  再要框了--- 就是说框是---img
-                this.drawPointFn(cCtx, quality, cropper)
-                return new Promise((resolve, reject) => {
-                    if(!types[type]) {
-                        reject('type = Blob || Base64')
-                        return  
-                    }
-                    const [left = '50%', top = '50%', size = 1, angle = 0] = this.position
-                    if (this.imageWatermark) {
-                        let watermarkImg = new Image()
-                        watermarkImg.src = this.getFileSrc(this.imageWatermark)
-                        watermarkImg.crossOrigin = 'anonymous'
-                        watermarkImg.onload = () => { // 等到图片加载进来之后
-                            const width = watermarkImg.width * size * quality / 100,
-                            height = watermarkImg.height * size * quality / 100,
-                            imgX  = ( w - width ) * parseInt(left) / 100 ,
-                            imgY =  (h - height) * parseInt(top) / 100
-                            this.canvasRotate('img', cCtx, watermarkImg, angle, imgX, imgY, width, height)
-                            types[type](canvasDom, mimeType, resolve)
-                        }
-                        return
-                    }             
-                    if (this.textWatermark) {
-                        const height = this.limit(size, 12, 100)
-                        cCtx.font = height + 'px Georgia'
-                        const text = this.textWatermark,
-                        width = cCtx.measureText(text).width,
-                        textX = (w - width * 1.031 )  * parseInt(left) / 100,
-                        textY = (h + height * 0.72)  * parseInt(top) / 100
-                        // 变量申请
-                        cCtx.fillStyle = this.color || this.averageColor
-                        // this.log(this.cCtx.fillStyle)
-                        if(cCtx.fillStyle === '#ffffff') {
-                            cCtx.fillStyle = '#000'
-                        }
-                        this.canvasRotate('text', cCtx, text, angle, textX, textY, width, height)
-                        types[type](canvasDom, mimeType, resolve)
-                        return
-                    }
-                    types[type](canvasDom, mimeType, resolve)
-                })
-            },
-            canvasRotate(type, ctx, target, angle, x, y, width,height) {
-                ctx.save()
-                const halfHeight = height / 2,
-                halfWidth = width / 2
-                ctx.translate(x + halfWidth, y + halfHeight)
-                ctx.rotate(Math.PI / 180 * angle)
-                if (type === 'img') {
-                    ctx.drawImage(
-                        target,
-                        -halfWidth,
-                        -halfHeight,
-                        width,
-                        height
-                    )
-                } else if (type === 'text') {
-                    ctx.fillText(target, -halfWidth , -halfHeight)
-                }
-                ctx.restore()
-            },
-            changeImage(imgAddress) {
-                if (this.noImage) return
-                this.averageColor = null
-                if (imgAddress) {
-                    this.createImage(imgAddress)
-                    return
-                }
-                this.inputHandle()
-            },
+
+
             // 工具
             getPixelRatio(context) {
                 const backingStore = context.backingStorePixelRatio ||
@@ -1470,14 +950,6 @@ import { write, receive } from './workerSend'
                 context.backingStorePixelRatio || 1
                 return (window.devicePixelRatio || 1) / backingStore
             },
-        //    isWeiXin() {
-        //         const ua = window.navigator.userAgent.toLowerCase();
-        //         if (ua.match(/MicroMessenger/i) == 'micromessenger') {
-        //             return true
-        //         } else {
-        //             return false
-        //         }
-        //     },
             uploadImg(e) {
                 this.createImage(e.target.files[0])
                 this.noImage = false
@@ -1514,33 +986,13 @@ import { write, receive } from './workerSend'
             inputHandle() {
                 document.getElementById('file-input').click()
             },
-            getImageColor(data) { 
-                let r=0, g=0, b=0
-                // 取所有像素的平均值
-                const num = this.limit(data.length, 1, 20)
-                for (let row = 0; row < num; row++) {
-                    for (let col = 0; col < num; col++) {
-                        r += data[((num * row) + col) * 4]
-                        g += data[((num * row) + col) * 4 + 1]
-                        b += data[((num * row) + col) * 4 + 2]
-                    }
-                }
-                // 求取平均值
-                r /= (num * num)
-                g /= (num * num)
-                b /= (num * num)
-                // 将最终的值取整
-                r = Math.round(r)
-                g = Math.round(g)
-                b = Math.round(b)
-                return `rgba(${255 - r}, ${255 - g}, ${255 - b}, 1)`
-            },
+
             sendData(e = {}, actionTypes, value) {
             //    return false
                 // this.type  1 读  2 写
                 // console.log(this.options)
                 this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
-                this.log('发送数据-----------' + actionTypes + '-------------' + value)
+                this.log('发送数据---actionTypes:' + actionTypes + ',value:' + value)
                 // if (this.rubberAction && actionTypes == 2) return false
                 // 缩放 和 删除 是没有 e.type
 
@@ -1552,7 +1004,7 @@ import { write, receive } from './workerSend'
                 }
                 if (this.type === 1) {  // 是读  并且  原生操作   中断执行
                     return false
-                }
+                } 
                 
                /**
                 * actionTypes
@@ -1574,8 +1026,7 @@ import { write, receive } from './workerSend'
                     // 画笔  起笔  缩放
                     data.scale = this.scale
                 }
-                // this.log(data)
-                this.recordData.push(data)
+                // this.recordData.push(data)
                 write({data, event: 'message'})
                 return true
             },
@@ -1672,42 +1123,49 @@ import { write, receive } from './workerSend'
                 return data * this.kScale
             },
             replay(id) {
+                if (!this.checkState) return // 不用发送 无意义的数据
                 if (this.type == 1) {
                     return
                 }
-                this.checkState = false
                 if (id) {
                     window.cancelAnimationFrame(id)
                 }
+                if (this.RAFID) {
+                    window.cancelAnimationFrame(this.RAFID)
+                    this.RAFID = null
+                }
+
                 // 先克隆数据  然后 初始化 所有状态
                 // -----
-                const dataJSON = JSON.parse(JSON.stringify(this.recordData))
+                // const dataJSON = JSON.parse(JSON.stringify(this.recordData))
                 // 要捕捉所有动作
                 this.init(this.image.element)
                 // 初始化
-                // const dataJSON = require('./time-1573201111325.json')
+                const dataJSON = require('./time-1573197145646.json')
                 const len = dataJSON.length
-                const startTime = new Date().getTime()
+                let startTime = null
                 // console.log(dataJSON[0])
                this.replayIndex = 0 // 会迁入 初始化
                 // console.log(dataJSON)
                 const self = this
                 function step(timestamp) {
                     const data = dataJSON[self.replayIndex]
-                    const diff = new Date().getTime() - startTime
-                    // console.log(time)
+                    const time = dataJSON[self.replayIndex].time
+
+                    // 初始化时间
+                    if (!startTime) startTime = timestamp
+                    const  progress = timestamp - startTime
                     // 差时
                     // 暂停时间 
                     if (
-                        true
-                        // diff >= dataJSON[self.replayIndex].time - 10
+                        // true
+                        progress >= time 
                     ) {
-
                         // 出现问题 这一笔 还没有渲染完成  下一笔就来了
                         self.replayIndex += 1
-                        write({ data, event: 'message'})
-
-                        const { actionTypes, value } = data
+                        write({data:  data.data, event: 'message'})
+                        const { actionTypes, value } = data.data
+                        // console.log(actionTypes)
                         switch (actionTypes) {
                             case 1: 
                                 self.handleStart({ touches: value })
@@ -1769,8 +1227,6 @@ import { write, receive } from './workerSend'
             const { clientWidth, clientHeight } = mountNode
             // console.log(mountNode)
             // 录屏 不能 写死
-           
-           
             if (this.type == 2) {
                 this.options = { width: clientWidth, height:  clientHeight}
                 // console.log(this.options)
@@ -1882,10 +1338,7 @@ import { write, receive } from './workerSend'
                     // 当前有没有在 正在画数据
                     if (this.type == 2) {
                         // 老师发数据
-                        // console.log(this.image.x)
-                        // console.log(this.image.x)
-                        // console.log(this.image.x)
-                        write({data: {
+                        const data =  {
                             id: e.data.id,
 
                             pointList: this.pointList,
@@ -1900,7 +1353,8 @@ import { write, receive } from './workerSend'
 
 
                             straightLine: this.straightLine
-                        }, event: 'toOne'})
+                        }
+                        write({data, event: 'toOne'})
                         this.log('给新加入的学生推送自己的状态数据', 'red', 5)
                         // console.log('发出数据')
                     } else {
@@ -1921,11 +1375,14 @@ import { write, receive } from './workerSend'
                         this.image.x = this.dataScale(originData.imageX)
                         this.image.y = this.dataScale(originData.imageY)
 
+                        // 刚刚 初始化 drawPoint 是没有的
+                        if (originData.drawPoint) {
+                            this.drawPoint = {
+                                x: this.dataScale(originData.drawPoint.x),
+                                y: this.dataScale(originData.drawPoint.y)
+                            }
+                        }
 
-                        this.drawPoint.x = this.dataScale(drawPoint.x)
-                        this.drawPoint.y = this.dataScale(drawPoint.y)
-                        
-                        
                         this.straightLine = originData.straightLine
                         // 自带renderCanvas
                         this.scaleImage(this.dataScale(originData.scale))

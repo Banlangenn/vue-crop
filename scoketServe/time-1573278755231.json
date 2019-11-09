@@ -1,0 +1,321 @@
+[
+    {
+        "time": 0,
+        "data": {
+            "value": [
+                {
+                    "clientX": 678,
+                    "clientY": 311.75
+                }
+            ],
+            "actionTypes": 1
+        }
+    },
+    {
+        "time": 19,
+        "data": {
+            "value": [
+                {
+                    "clientX": 676.193359375,
+                    "clientY": 316.9766540527344
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 101,
+        "data": {
+            "value": [
+                {
+                    "clientX": 672.2344970703125,
+                    "clientY": 382.2882385253906
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 143,
+        "data": {
+            "value": [
+                {
+                    "clientX": 673.6334838867188,
+                    "clientY": 424.60369873046875
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 199,
+        "data": {
+            "value": [
+                {
+                    "clientX": 673.4217529296875,
+                    "clientY": 448.9542541503906
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 250,
+        "data": {
+            "value": [
+                {
+                    "clientX": 672.609619140625,
+                    "clientY": 463.2328186035156
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 291,
+        "data": {
+            "value": [
+                {
+                    "clientX": 671.1812133789062,
+                    "clientY": 462.13092041015625
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 330,
+        "data": {
+            "value": [
+                {
+                    "clientX": 671.25,
+                    "clientY": 450.9375
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 377,
+        "data": {
+            "value": [
+                {
+                    "clientX": 672.281982421875,
+                    "clientY": 425.6639404296875
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 429,
+        "data": {
+            "value": [
+                {
+                    "clientX": 675.6446533203125,
+                    "clientY": 408.22723388671875
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 466,
+        "data": {
+            "value": [
+                {
+                    "clientX": 678.0846557617188,
+                    "clientY": 400.9114074707031
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 523,
+        "data": {
+            "value": [
+                {
+                    "clientX": 680.8167724609375,
+                    "clientY": 389.1412658691406
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 563,
+        "data": {
+            "value": [
+                {
+                    "clientX": 682.5872802734375,
+                    "clientY": 385.1568603515625
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 600,
+        "data": {
+            "value": [
+                {
+                    "clientX": 683.6702880859375,
+                    "clientY": 382.659423828125
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 645,
+        "data": {
+            "value": [
+                {
+                    "clientX": 684.25,
+                    "clientY": 381.6924743652344
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 692,
+        "data": {
+            "value": [
+                {
+                    "clientX": 684.25,
+                    "clientY": 376.4737548828125
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 737,
+        "data": {
+            "value": [
+                {
+                    "clientX": 687.5352172851562,
+                    "clientY": 365.2724914550781
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 779,
+        "data": {
+            "value": [
+                {
+                    "clientX": 693.1810913085938,
+                    "clientY": 354.7088928222656
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 830,
+        "data": {
+            "value": [
+                {
+                    "clientX": 701.4627685546875,
+                    "clientY": 335.1117858886719
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 872,
+        "data": {
+            "value": [
+                {
+                    "clientX": 705.4783325195312,
+                    "clientY": 324.2562561035156
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 922,
+        "data": {
+            "value": [
+                {
+                    "clientX": 712.7171020507812,
+                    "clientY": 305.7039794921875
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 974,
+        "data": {
+            "value": [
+                {
+                    "clientX": 722.3593139648438,
+                    "clientY": 290.48095703125
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 1019,
+        "data": {
+            "value": [
+                {
+                    "clientX": 729.2017822265625,
+                    "clientY": 281.7417297363281
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 1058,
+        "data": {
+            "value": [
+                {
+                    "clientX": 734.75,
+                    "clientY": 275
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 1096,
+        "data": {
+            "value": [
+                {
+                    "clientX": 736.07080078125,
+                    "clientY": 273.2687683105469
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 1145,
+        "data": {
+            "value": [
+                {
+                    "clientX": 739,
+                    "clientY": 270.25
+                }
+            ],
+            "actionTypes": 2
+        }
+    },
+    {
+        "time": 1153,
+        "data": {
+            "value": [],
+            "actionTypes": 3
+        }
+    }
+]
