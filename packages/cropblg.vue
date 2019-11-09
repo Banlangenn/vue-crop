@@ -351,11 +351,11 @@ import { write, receive } from './workerSend'
             handleMatching(e) {
                 //  切换
                 // this.log('点击了调色板')
-                this.straightLine = !this.straightLine
-                this.checkState = false
+                // this.straightLine = !this.straightLine
+                // this.checkState = false
                 // this.sendData(e, 8, '')
 
-                // write({data: {}, event:'writeIn'})
+                write({data: {}, event:'writeIn'})
             },
             handlePen(e) {
                 this.log('点击了画笔')
@@ -592,6 +592,7 @@ import { write, receive } from './workerSend'
                             // 首先用点检测
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
                                 this.pointList.splice(index, 1)
+                                console.log('点--------删除线下标为:' + index)
                                 this.renderCanvas()
                                 this.sendData(e, 4, index)
                                 break
@@ -607,6 +608,7 @@ import { write, receive } from './workerSend'
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
                                     this.pointList.splice(index, 1)
+                                    console.log('线--------删除线下标为:' + index)
                                     this.renderCanvas()
                                     this.sendData(e, 4, index)
                                     break
@@ -1026,6 +1028,10 @@ import { write, receive } from './workerSend'
                     // 画笔  起笔  缩放
                     data.scale = this.scale
                 }
+                if (data.actionTypes == 4) {
+                    console.log('======发送删除线下标为:' + data.value)
+                }
+               
                 // this.recordData.push(data)
                 write({data, event: 'message'})
                 return true
@@ -1141,7 +1147,7 @@ import { write, receive } from './workerSend'
                 // 要捕捉所有动作
                 this.init(this.image.element)
                 // 初始化
-                const dataJSON = require('./time-1573197145646.json')
+                const dataJSON = require('./time-1573292689756.json')
                 const len = dataJSON.length
                 let startTime = null
                 // console.log(dataJSON[0])
