@@ -187,7 +187,9 @@ import { write, receive } from './workerSend'
                 this.pointList = [] // 线 list
                 this.points = [] // 四方形 截图的点
                 this.lines = [] // 四方形 截图的线
+                this.isReplay = this.isReplay || false // 是否是回放
                 this.recordData = [] //  记录
+
 
 
                 const clientW = img.width
@@ -531,13 +533,13 @@ import { write, receive } from './workerSend'
                 }
                
                 // 橡皮
-                if (this.changeDrawAction == 2) {
+                if (this.changeDrawAction == 2) { 
                     const { x, y } = this.getCoordinateByEvent(e)
                     const radius = 12
                     this.clearCtx2()
                     this.renderRubber(x, y, radius)
 
-                    if (this.type == 1) {
+                    if (this.type == 1 || this.isReplay) { // 回放 橡皮不做判断
                         return
                     }
 
@@ -1129,17 +1131,16 @@ import { write, receive } from './workerSend'
                 return data * this.kScale
             },
             replay(id) {
+                this.isReplay = true
                 if (!this.checkState) return // 不用发送 无意义的数据
                 if (this.type == 1) {
                     return
-                }
-                if (id) {
-                    window.cancelAnimationFrame(id)
                 }
                 if (this.RAFID) {
                     window.cancelAnimationFrame(this.RAFID)
                     this.RAFID = null
                 }
+                 
 
                 // 先克隆数据  然后 初始化 所有状态
                 // -----
@@ -1147,7 +1148,7 @@ import { write, receive } from './workerSend'
                 // 要捕捉所有动作
                 this.init(this.image.element)
                 // 初始化
-                const dataJSON = require('./time-1573292689756.json')
+                const dataJSON = require('./time-1573197145646.json')
                 const len = dataJSON.length
                 let startTime = null
                 // console.log(dataJSON[0])
@@ -1167,7 +1168,6 @@ import { write, receive } from './workerSend'
                         // true
                         progress >= time 
                     ) {
-                        // 出现问题 这一笔 还没有渲染完成  下一笔就来了
                         self.replayIndex += 1
                         write({data:  data.data, event: 'message'})
                         const { actionTypes, value } = data.data
@@ -1211,21 +1211,17 @@ import { write, receive } from './workerSend'
                         }
                         // console.log(self.replayIndex < len)
                     }
-
-                    
                     if (self.replayIndex >= len) {
+                        self.isReplay = false
                         return
                     }
                     self.RAFID = window.requestAnimationFrame(step)
-                    // step()
                 }
-                // console.log('123')
-                // while (self.replayIndex < len) {
-                // console.log(self.replayIndex)
-                //     step()
-                // }
-                // step()
                 this.RAFID = window.requestAnimationFrame(step)
+                return () => {
+                    window.cancelAnimationFrame(this.RAFID)
+                    this.RAFID = null
+                }
             }
         },
         mounted() {
