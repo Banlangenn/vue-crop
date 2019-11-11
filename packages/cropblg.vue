@@ -39,6 +39,9 @@
         line-height: 60px;
         padding: 5px 20px;
     }
+    .draw-matching-wrap {
+        position: absolute;
+    }
     /* .rubber {
         padding: 0 20px;
     } */
@@ -80,7 +83,7 @@
             </div>
         </div>
         <!-- 颜色  直线 虚线   粗细 -->
-        <!-- <div>
+        <div v-show="showMatching" class="draw-matching-wrap" :style="matchingWrapStyle">
             <span>
                 <button>书写</button>
                 <button>直线</button>
@@ -100,7 +103,7 @@
                 <button>粗笔</button>
                 <button>超粗笔</button>
             </span>
-        </div> -->
+        </div>
     </div>
          <!-- style=" overflow: hidden;" -->
     <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
@@ -166,6 +169,8 @@ import { BlgSocket } from './workerSend'
                 // paintBrush: null,
                 // revokeBar: null,
                 // rubberBar: null
+                matchingWrap: null,
+                showMatching: false
                
             }
         },
@@ -311,8 +316,8 @@ import { BlgSocket } from './workerSend'
                 // touch = e.touches[0],
                 // { width, height } = this.options,
                 // coordinate = {
-                //     x: this.limit(touch.clientX - rect.left, 2, width - 2) ,
-                //     y: this.limit(touch.clientY - rect.top, 2, height - 2) ,
+                //     x: this.limit(touch.pageX - rect.left, 2, width - 2) ,
+                //     y: this.limit(touch.pageY - rect.top, 2, height - 2) ,
                 // }
 
                 // 修改
@@ -326,17 +331,30 @@ import { BlgSocket } from './workerSend'
                 const touch = e.touches[0]
                 const { width, height } = this.options
                 const coordinate = {
-                    // x: this.limit(this.getInt(touch.clientX), 2, width - 2),
-                    // y: this.limit(this.getInt(touch.clientY), 2, height - 2)
+                    // x: this.limit(this.getInt(touch.pageX), 2, width - 2),
+                    // y: this.limit(this.getInt(touch.pageY), 2, height - 2)
                     // 基于屏幕的 0 的位置
                     // 需要 算出来 当前画板的 左上角位置  减 画板位置 
-                    x: this.limit(touch.clientX - boundingClientRect.left, 2, width - 2),
-                    y: this.limit(touch.clientY - boundingClientRect.top, 2, height - 2)
+                    x: this.limit(touch.pageX - boundingClientRect.left, 2, width - 2),
+                    y: this.limit(touch.pageY - boundingClientRect.top, 2, height - 2)
                 }
                 // move 到边
                 return coordinate
             },
             handleMatching(e) {
+            // 1）touches：当前位于屏幕上的所有手指的列表。
+            // 2）targetTouches：位于当前DOM元素上手指的列表。
+            // 3）changedTouches：涉及当前事件手指的列表。 
+                const point = e.touches[0]
+                console.log(point)
+                this.matchingWrapStyle = {
+                    top: point.pageY + 'px',
+                    left: point.pageX + 'px'
+                }
+                this.showMatching = true
+                // const  this.getCoordinateByEvent(e)
+
+
                 //  切换
                 // this.log('点击了调色板')
                 // this.straightLine = !this.straightLine
@@ -529,7 +547,7 @@ import { BlgSocket } from './workerSend'
                     // 上一个点  复制一下 是为了保存当前点  --但是上一个点 检测还要用到
                     // const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
                     // this.drawPoint = { x, y }
-                    // const isFast = this.getDistance({clientX: x, clientY: y}, {clientX: preve.x, clientY: preve.y}) >= radius
+                    // const isFast = this.getDistance({pageX: x, pageY: y}, {pageX: preve.x, pageY: preve.y}) >= radius
 
                     // const ctx  = this.ctx
                     const pointList = this.pointList
@@ -581,7 +599,7 @@ import { BlgSocket } from './workerSend'
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
                             // 如果 离上一个点差的很远 ---  用线 检测
-                            if (this.getDistance({clientX: item.x, clientY: item.y}, {clientX: secondItem.x, clientY: secondItem.y}) >= lineDis ) {
+                            if (this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) >= lineDis ) {
                                 // this.log('差的很远的的一条线 橡皮离这个线的距离')
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
@@ -790,7 +808,7 @@ import { BlgSocket } from './workerSend'
                 ctx.stroke()
                 // ctx.stroke() 
                 return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
-                 && this.getDistance({clientX: x, clientY: y}, {clientX: this.arc.x, clientY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
+                 && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
             },
             // start 就触发
             getPointByCoordinate({x, y}) {
@@ -838,8 +856,8 @@ import { BlgSocket } from './workerSend'
             },
             // 求两点之间的 距离
             getDistance(p1, p2) {
-                const x = p2.clientX - p1.clientX,
-                    y = p2.clientY - p1.clientY
+                const x = p2.pageX - p1.pageX,
+                    y = p2.pageY - p1.pageY
                 return Math.sqrt((x * x) + (y * y))
             },
             limit(value, min, max) {
@@ -899,6 +917,7 @@ import { BlgSocket } from './workerSend'
                 img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
                     getImageDirection(img).then(res => {
+                        this.socketInit()
                         if (res === 1) {
                             this.init(img)
                             this.$emit('imgLoaded')
@@ -908,7 +927,6 @@ import { BlgSocket } from './workerSend'
                         this.init(img)
                         this.init(correctImage(img, res))
                         this.$emit('imgLoaded')
-                       
                     }).catch( err =>{
                         // eslint-disable-next-line
                         console.error(err)
@@ -961,7 +979,7 @@ import { BlgSocket } from './workerSend'
                 // 优化数据结构 加快传输  我觉得没必要 
                 const data = {
                     // 不放进来 很多东西 要写三遍 
-                    value: value || Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
+                    value: value || Array.from(e.touches).map(e => ({pageX: e.pageX, pageY: e.pageY})),
                     actionTypes
                 }
                 if (actionTypes == 5) {
@@ -1065,7 +1083,7 @@ import { BlgSocket } from './workerSend'
                 //         const element = array[i]
                 //         const originPoint = this.restPoint(element, image, scale)
                 if (this.type == 2) return data
-                if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
+                if (Array.isArray(data)) return data.map(item => ({ pageX: item.pageX * this.kScale, pageY: item.pageY * this.kScale }))
                 return data * this.kScale
             },
             replay(id) {
@@ -1123,44 +1141,127 @@ import { BlgSocket } from './workerSend'
                 }
             },
             distributeEvent(data) {
+                // console.log(this.type)
+                // 缩放数据容易丢  传缩放比
+                /**
+                    * actionTypes
+                    * 
+                    * 1 start {touches: []}
+                    * 2 move {touches: []}
+                    * 3 end  {touches: []}
+                    * 4 delete线  { index: number }
+                    * 5 scale 缩放 { scale: number }
+                    * 6 橡皮 ''
+                    * 7 画笔 ''
+                    */ 
                 const { actionTypes, value } = data
-                 switch (actionTypes) {
-                        case 1: 
-                            this.handleStart({ touches: this.dataScale(value) })
-                            this.log(' 开始', 'red', 3)
-                            break
-                        case 2: 
-                            this.handleMove({ touches: this.dataScale(value) })
-                            this.log('移动', 'red', 3)
-                            break
-                        case 3: 
-                            this.handleEnd({ touches: this.dataScale(value) })
-                            this.log('结束', 'red', 3)
-                            break
-                        case 4: 
-                            this.pointList.splice(value, 1)
-                            this.renderCanvas()
-                            this.log('删除线', 'orange', 3)
-                            break
-                        case 5: 
-                            this.scaleImage(this.dataScale(value))
-                            this.log('缩放', 'orange')
-                            break
-                        case 6: 
-                            this.log('橡皮', 'pink', 3)
-                            this.handleRubber()
-                            break
-                        case 7: 
-                            this.log('画笔', '#f60bbb', 3)
-                            this.handlePen()
-                            break
-                        case 8: 
-                            this.log('调色板', '#f60rrr', 3)
-                            this.handleMatching()
-                            break
-                        default:
-                            break
-                    }
+                switch (actionTypes) {
+                    case 1: 
+                        this.handleStart({ touches: this.dataScale(value) })
+                        this.log(' 开始', 'red', 3)
+                        break
+                    case 2: 
+                        this.handleMove({ touches: this.dataScale(value) })
+                        this.log('移动', 'red', 3)
+                        break
+                    case 3: 
+                        this.handleEnd({ touches: this.dataScale(value) })
+                        this.log('结束', 'red', 3)
+                        break
+                    case 4: 
+                        this.pointList.splice(value, 1)
+                        this.renderCanvas()
+                        this.log('删除线', 'orange', 3)
+                        break
+                    case 5: 
+                        this.scaleImage(this.dataScale(value))
+                        this.log('缩放', 'orange')
+                        break
+                    case 6: 
+                        this.log('橡皮', 'pink', 3)
+                        this.handleRubber()
+                        break
+                    case 7: 
+                        this.log('画笔', '#f60bbb', 3)
+                        this.handlePen()
+                        break
+                    case 8: 
+                        this.log('调色板', '#f60rrr', 3)
+                        this.handleMatching()
+                        break
+                    default:
+                        break
+                }
+            },
+            socketInit() {
+                // 初始化 socket
+                //  socketInit('ws://192.168.81.126:3000/')
+                this.socketInstance = new BlgSocket({ url: 'ws://192.168.81.126:3000/',  writeEvent: ['login', 'message', 'toOne', 'writeIn'], readEvent: ['message', 'toOne'] })
+
+                this.socketInstance.write({data: {userid: new Date().getTime(), username: this.type == 2 ? '老师' : '学生', type: this.type}, event: 'login'})
+
+                //   还原坐标位置  有两种方式 - 1.求出来一个缩放比算出位置   2. 把图片定位好 根据图片算出位置
+                //   目前两种都用到了 1. 画图 和 橡皮 图片拖动   2. 复原老师笔记
+                this.socketInstance.read((e) => {
+                    // console.log(e)
+                    // 暂时只有 --
+                    if (e.event == 'message') {
+                        // 分发数据
+                        this.distributeEvent(e.data)
+                    } else if (e.event == 'toOne') {
+                        //  望=给这个 同学同步数据
+                        // 当前有没有在 正在画数据
+                        if (this.type == 2) {
+                            // 老师发数据
+                            const data =  {
+                                id: e.data.id,
+
+                                pointList: this.pointList,
+                                pointLine: this.pointLine,
+                                changeDrawAction: this.changeDrawAction,
+                                scale: this.scale,
+                                imageX: this.image.x,
+                                imageY: this.image.y,
+                                drawPoint: this.drawPoint,
+
+
+                                straightLine: this.straightLine
+                            }
+                            this.socketInstance.write({data, event: 'toOne'})
+                            this.log('给新加入的学生推送自己的状态数据', 'red', 5)
+                            // console.log('发出数据')
+                        } else {
+                            // console.log(e.data.pointList)
+                            // console.log(e.data)
+                            // 学生收数据
+                            // 这个数据过去 是很正确的------------------------
+                            this.log('数据还原', 'red', 5)
+                            const originData = e.data
+                            this.changeDrawAction = originData.changeDrawAction
+
+                            // 复原数据 原始数据没有做任何更改
+                            this.pointList = originData.pointList
+                            this.pointLine = originData.pointLine
+                            // 原始数据
+                            // console.log(this.image)
+                            this.image.x = this.dataScale(originData.imageX)
+                            this.image.y = this.dataScale(originData.imageY)
+
+                            // 刚刚 初始化 drawPoint 是没有的
+                            if (originData.drawPoint) {
+                                this.drawPoint = {
+                                    x: this.dataScale(originData.drawPoint.x),
+                                    y: this.dataScale(originData.drawPoint.y)
+                                }
+                            }
+
+                            this.straightLine = originData.straightLine
+                            // 自带renderCanvas
+                            this.scaleImage(this.dataScale(originData.scale))
+                            // this.renderCanvas()
+                        }
+                    } 
+                })
             }
         },
         mounted() {
@@ -1188,10 +1289,6 @@ import { BlgSocket } from './workerSend'
             /**
              *  回放功能
              */
-      
-
-
-
 
             //
             // this.log(this.$slots.initial[0].data.attrs.src)
@@ -1206,96 +1303,6 @@ import { BlgSocket } from './workerSend'
             })
 
 
-        },
-        created() {
-        // 初始化 socket
-        //  socketInit('ws://192.168.81.126:3000/')
-        this.socketInstance = new BlgSocket({ url: 'ws://192.168.81.126:3000/',  writeEvent: ['login', 'message', 'toOne', 'writeIn'], readEvent: ['message', 'toOne'] })
-
-
-            // this.type = getQuery().them ? 2 : 1
-            // '1读读读读读读读读读读' '2写写写写写写写写写写'
-            // this.log(this.type)
-            // 如果是写的  不用建立这个 链接
-            this.socketInstance.write({data: {userid: new Date().getTime(), username: this.type == 2 ? '老师' : '学生', type: this.type}, event: 'login'})
-            // if (this.type == 2)  return
-            // this.log('如果是写 -- 不会走到这里的')
-            // console.log(this.type)
-            // 缩放数据容易丢  传缩放比
-            /**
-                * actionTypes
-                * 
-                * 1 start {touches: []}
-                * 2 move {touches: []}
-                * 3 end  {touches: []}
-                * 4 delete线  { index: number }
-                * 5 scale 缩放 { scale: number }
-                * 6 橡皮 ''
-                * 7 画笔 ''
-                */ 
-
-            //   还原坐标位置  有两种方式 - 1.求出来一个缩放比算出位置   2. 把图片定位好 根据图片算出位置
-            //   目前两种都用到了 1. 画图 和 橡皮 图片拖动   2. 复原老师笔记
-            this.socketInstance.read((e) => {
-                // console.log(e)
-                // 暂时只有 --
-                if (e.event == 'message') {
-                    // 分发数据
-                    this.distributeEvent(e.data)
-                } else if (e.event == 'toOne') {
-                    //  望=给这个 同学同步数据
-                    // 当前有没有在 正在画数据
-                    if (this.type == 2) {
-                        // 老师发数据
-                        const data =  {
-                            id: e.data.id,
-
-                            pointList: this.pointList,
-                            pointLine: this.pointLine,
-                            changeDrawAction: this.changeDrawAction,
-                            scale: this.scale,
-                            imageX: this.image.x,
-                            imageY: this.image.y,
-                            drawPoint: this.drawPoint,
-
-
-                            straightLine: this.straightLine
-                        }
-                        this.socketInstance.write({data, event: 'toOne'})
-                        this.log('给新加入的学生推送自己的状态数据', 'red', 5)
-                        // console.log('发出数据')
-                    } else {
-                        // console.log(e.data.pointList)
-                        // console.log(e.data)
-                        // 学生收数据
-                        // 这个数据过去 是很正确的------------------------
-                        this.log('数据还原', 'red', 5)
-                        const originData = e.data
-                        this.changeDrawAction = originData.changeDrawAction
-
-                        // 复原数据 原始数据没有做任何更改
-                        this.pointList = originData.pointList
-                        this.pointLine = originData.pointLine
-                        // 原始数据
-                        // console.log(this.image)
-                        this.image.x = this.dataScale(originData.imageX)
-                        this.image.y = this.dataScale(originData.imageY)
-
-                        // 刚刚 初始化 drawPoint 是没有的
-                        if (originData.drawPoint) {
-                            this.drawPoint = {
-                                x: this.dataScale(originData.drawPoint.x),
-                                y: this.dataScale(originData.drawPoint.y)
-                            }
-                        }
-
-                        this.straightLine = originData.straightLine
-                        // 自带renderCanvas
-                        this.scaleImage(this.dataScale(originData.scale))
-                        // this.renderCanvas()
-                    }
-                } 
-            })         
-        },
+        }
     }
 </script>
