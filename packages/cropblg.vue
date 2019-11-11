@@ -54,7 +54,10 @@
     >
     <div class="draw-action-bar" :style="{width: options.width + 'px', height: options.height + 'px'}">
         <!-- <button @touchstart="clickHandle">1213 </button> -->
-        <div class="draw-icon-wrap">
+        <div class="draw-icon-wrap"
+        @touchstart.stop="()=>{}"
+        @touchmove.stop="()=>{}"
+        @touchend.stop="()=>{}">
             <div class="draw-icon-list">
                 <svg
                     @touchstart="handleMatching($event)"
@@ -120,34 +123,22 @@
 <script>
 import { getImageDirection, correctImage } from './util'
 
-import { write, receive } from './workerSend'
+import { BlgSocket } from './workerSend'
     export default {
         name: 'crop',
         //1. props 验证   2.支持pc
         props:[
-            'value',
-            'position',
-            'textWatermark',
-            'imgLoaded',
-            'imageWatermark',
-            'defaultImgUrl',
-            'color',
-            'angle',
-            'rotation',
-            'shape', 
-            'penBtn',
-            'revokeBtn',
-            'rotateBtn'
+            'type',
           ],
         data() {
             return {
+                color: '#f14864',  // 颜色
                 changeDrawAction: -1,
                 // penColor: '',
                 //   penColor: '',
                 straightLine: false, // 直线
                 debug: false, // debug
                 logLevel: 0,
-                type: '2',
                 
                 // ready: false,
                 noImage: true,
@@ -181,7 +172,6 @@ import { write, receive } from './workerSend'
         methods: {
             init(img){
                 // 初始化默认值
-                this.checkState = true // move 事件  是否能够进入到方法内 
                 this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
                 this.pointLine = [] // 线 
                 this.pointList = [] // 线 list
@@ -189,6 +179,7 @@ import { write, receive } from './workerSend'
                 this.lines = [] // 四方形 截图的线
                 this.isReplay = this.isReplay || false // 是否是回放
                 this.recordData = [] //  记录
+                this.color = '#f14864' //  颜色
 
 
 
@@ -221,11 +212,6 @@ import { write, receive } from './workerSend'
                 // 避免预览到背景
                 // canvas init
                 this.ctx.clearRect(0, 0, width, height)
-                // if (!this.averageColor) {
-                //     //  只会跑一次
-                //     this.averageColor = this.getImageColor(this.ctx.getImageData(this.corePoint.x - 25,  this.corePoint.y - 25, 50, 50).data)
-                // }
-               
                 // // 背景 // 考虑用css 实现
                 // this.fillBackground()
                 //  处理出片
@@ -354,18 +340,15 @@ import { write, receive } from './workerSend'
                 //  切换
                 // this.log('点击了调色板')
                 // this.straightLine = !this.straightLine
-                // this.checkState = false
                 // this.sendData(e, 8, '')
 
-                write({data: {}, event:'writeIn'})
+                // this.socketInstance.write({data: {}, event:'writeIn'}) // 写入
             },
             handlePen(e) {
                 this.log('点击了画笔')
                 if (this.changeDrawAction == 1) {
-                    this.checkState = false
                     this.changeDrawAction = -1
                 } else {
-                    this.checkState = false
                     this.changeDrawAction = 1
                 }
                 this.sendData(e, 7, '')
@@ -375,10 +358,8 @@ import { write, receive } from './workerSend'
                 // alert(123)
                 this.log('点击了橡皮')
                 if (this.changeDrawAction == 2) {
-                    this.checkState = false
                     this.changeDrawAction = -1
                 } else {
-                    this.checkState = false
                     this.changeDrawAction = 2
                 }
                 this.sendData(e, 6, '')
@@ -386,7 +367,6 @@ import { write, receive } from './workerSend'
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
-                // if (!this.checkState) return // 美哟u什么
                 this.clearCtx2()
                 if(!this.sendData(e, 1)) return
                 // 判断是不是 第一次触发 新动作
@@ -426,7 +406,6 @@ import { write, receive } from './workerSend'
             },
             handleMove (e) {
                 // 判断是不是 读的一端
-                if (!this.checkState) return // 不用发送 无意义的数据
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
                
@@ -457,7 +436,7 @@ import { write, receive } from './workerSend'
                     const current = this.getCoordinateByEvent(e)
                     // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
-                    const color =  this.color || this.averageColor
+                    const color =  this.color
                     const lineWidth = this.limit(this.lineWidth, 1, 15)
                     ctx.strokeStyle = color
                     ctx.lineCap = 'round'
@@ -478,9 +457,9 @@ import { write, receive } from './workerSend'
                                     y: drawPoint.y - image.y
                                 })
                             } catch (error) {
-                                console.log('-------------==============')
-                                console.log(drawPoint)
-                                console.log(image)
+                                console.error(error)
+                                console.error(drawPoint)
+                                console.error(image)
                                 throw error
                             }
                         }
@@ -503,9 +482,9 @@ import { write, receive } from './workerSend'
                                 y: drawPoint.y - image.y
                             })
                         } catch (error) {
-                            console.log('-------------==============')
-                            console.log(drawPoint)
-                            console.log(image)
+                            console.error(error)
+                            console.error(drawPoint)
+                            console.error(image)
                             throw error
                         }
                     }
@@ -593,9 +572,7 @@ import { write, receive } from './workerSend'
                             const originPoint = this.restPoint(item, image, scale)
                             // 首先用点检测
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
-                                this.pointList.splice(index, 1)
-                                console.log('点--------删除线下标为:' + index)
-                                this.renderCanvas()
+                                this.removeLine(index)
                                 this.sendData(e, 4, index)
                                 break
                             }
@@ -609,9 +586,7 @@ import { write, receive } from './workerSend'
                                 const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
                                 // this.log('点到线的距离为： ' + dis)
                                 if (dis <= lineDis) {
-                                    this.pointList.splice(index, 1)
-                                    console.log('线--------删除线下标为:' + index)
-                                    this.renderCanvas()
+                                    this.removeLine(index)
                                     this.sendData(e, 4, index)
                                     break
                                 }
@@ -644,9 +619,13 @@ import { write, receive } from './workerSend'
                 }
                 // 这是干啥的--画=>图片和 线  移动
                 const type = this.startPoint ? this.startPoint.type : null
-                if (type && this.getCoordinateByEvent(e)) {
+                if (type) { // && this.getCoordinateByEvent(e)
                     this[type](this.getCoordinateByEvent(e))
                 }
+            },
+            removeLine(index) {
+                this.pointList.splice(index, 1)
+                this.renderCanvas()
             },
             //  取整、、
             // getInt(num) { 
@@ -682,14 +661,6 @@ import { write, receive } from './workerSend'
             handleEnd(e){
                 this.clearCtx2()
                 if(!this.sendData(e, 3)) return
-                // 判断是不是 第一次触发 新动作
-                if (!this.checkState) {
-                    // console.log(123)
-                    this.checkState = true
-                    return
-                }
-
-                
                 // 有两种 动作  画笔 和 橡皮
                 if (this.changeDrawAction == -1) return
                 
@@ -832,10 +803,10 @@ import { write, receive } from './workerSend'
                 if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
                     this.log('点击了画笔')
                     if (this.changeDrawAction == 1) {
-                        this.checkState = false
+                        
                         this.changeDrawAction = -1
                     } else {
-                        this.checkState = false
+                        
                         this.changeDrawAction = 1
                     }
                     this.renderCanvas()
@@ -845,10 +816,8 @@ import { write, receive } from './workerSend'
                     // 橡皮
                     this.log('点击了橡皮')
                     if (this.changeDrawAction == 2) {
-                         this.checkState = false
                         this.changeDrawAction = -1
                     } else {
-                        this.checkState = false
                         this.changeDrawAction = 2
                     }
                     this.renderCanvas()
@@ -860,48 +829,7 @@ import { write, receive } from './workerSend'
                     this.renderCanvas()
                     return
                     
-                } else if (this.touchBar && this.checkRegion(x, y, this.touchBar)) {
-                    // 旋转后的角度 每次
-                    this.rotateAngle =  (this.rotateAngle + this.angle ) % 360
-                    this.renderCanvas()
-                    return
-                } else if( this.changeDrawAction !== -1){
-                    // 有动作
-                    return
-                } else if (shape === 'arc' && this.checkArc(x, y)) {
-                    t.type = 'handleArcMove'
-                }
-                // 四个角移动         
-                else if (shape !== 'arc' && this.points.some((point,i) => {
-                    index = i
-                    return this.checkRegion(x,y,point)
-                })
-                ) {
-                    t.type = 'handlePointMove'
-                    this.index = index
-                }
-                // 四根线移动
-                else if (shape === 'rect' && this.lines.some((line,i) => {
-                    index = i
-                    return this.checkRegion(x,y,line)
-                }) 
-                ) {
-                    t.type = 'handleLineMove'
-                    this.index = index
-                }
-                // else if (
-                // cropper &&
-                // x > cropper.x &&
-                // x < cropper.x + cropper.width &&
-                // y > cropper.y &&
-                // y < cropper.y + cropper.height
-                // ) {
-                // t.offsetX = x - cropper.x;
-                // t.offsetY = y - cropper.y;
-                // t.type = 'handleCropperMove'
-                // }
-                // 图片移动
-                else if (this.checkRegion(x,y,image)) {
+                } else if (this.checkRegion(x, y, image)) {
                     t.offsetX = x - image.x
                     t.offsetY = y - image.y
                     t.type = 'handleImageMove' 
@@ -992,11 +920,21 @@ import { write, receive } from './workerSend'
             },
 
             sendData(e = {}, actionTypes, value) {
+
+                /**
+                 *  类型： 
+                 *  1. 读权限 不做任何操作 不会发送 socket ( 不做橡皮检测  不做缩放检测)  原生操作要全部屏蔽掉
+                 *  2. 本体写 (橡皮检测  缩放检测)
+                 *  3. 和读权限 多一个 发送 socket
+                 * 
+                 */
             //    return false
                 // this.type  1 读  2 写
                 // console.log(this.options)
                 this.log(this.type == 1 ? '读读读读读读读读读读': '写写写写写写写写写写')
                 this.log('发送数据---actionTypes:' + actionTypes + ',value:' + value)
+
+                this.$emit('change', {e, actionTypes, value})
                 // if (this.rubberAction && actionTypes == 2) return false
                 // 缩放 和 删除 是没有 e.type
 
@@ -1020,7 +958,7 @@ import { write, receive } from './workerSend'
                 * 5 scale 缩放 { scale: 3 }
                 */
 
-                // 优化数据结构 加快传输  我觉得没必要
+                // 优化数据结构 加快传输  我觉得没必要 
                 const data = {
                     // 不放进来 很多东西 要写三遍 
                     value: value || Array.from(e.touches).map(e => ({clientX: e.clientX, clientY: e.clientY})),
@@ -1030,14 +968,13 @@ import { write, receive } from './workerSend'
                     // 画笔  起笔  缩放
                     data.scale = this.scale
                 }
-                if (data.actionTypes == 4) {
-                    console.log('======发送删除线下标为:' + data.value)
-                }
-               
                 // this.recordData.push(data)
-                write({data, event: 'message'})
+                this.socketInstance.write({data, event: 'message'})
                 return true
             },
+            /**
+             *  return  橡皮canvas ctx  笔记canvas ctx    canvas  getBoundingClientRect
+             */
             createCanvas() {    
                 // 解决 字体模糊
                 const { mountNode } = this.$refs
@@ -1127,12 +1064,12 @@ import { write, receive } from './workerSend'
                 //     for (let i = 0; i < array.length; i++) {
                 //         const element = array[i]
                 //         const originPoint = this.restPoint(element, image, scale)
+                if (this.type == 2) return data
                 if (Array.isArray(data)) return data.map(item => ({ clientX: item.clientX * this.kScale, clientY: item.clientY * this.kScale }))
                 return data * this.kScale
             },
             replay(id) {
                 this.isReplay = true
-                if (!this.checkState) return // 不用发送 无意义的数据
                 if (this.type == 1) {
                     return
                 }
@@ -1154,10 +1091,9 @@ import { write, receive } from './workerSend'
                 // console.log(dataJSON[0])
                this.replayIndex = 0 // 会迁入 初始化
                 // console.log(dataJSON)
-                const self = this
-                function step(timestamp) {
-                    const data = dataJSON[self.replayIndex]
-                    const time = dataJSON[self.replayIndex].time
+                const step =  (timestamp) => {
+                    const data = dataJSON[this.replayIndex]
+                    const time = dataJSON[this.replayIndex].time
 
                     // 初始化时间
                     if (!startTime) startTime = timestamp
@@ -1168,60 +1104,63 @@ import { write, receive } from './workerSend'
                         // true
                         progress >= time 
                     ) {
-                        self.replayIndex += 1
-                        write({data:  data.data, event: 'message'})
-                        const { actionTypes, value } = data.data
-                        // console.log(actionTypes)
-                        switch (actionTypes) {
-                            case 1: 
-                                self.handleStart({ touches: value })
-                                // self.log(' 开始', 'red', 3)
-                                break
-                            case 2: 
-                                self.handleMove({ touches: value })
-                                // self.log('移动', 'red', 3)
-                                break
-                            case 3: 
-                                self.handleEnd({ touches: value })
-                                // self.log('结束', 'red', 3)
-                                break
-                            case 4: 
-                                self.pointList.splice(value, 1)
-                                self.renderCanvas()
-                                // self.log('删除线', 'orange', 3)
-                                break
-                            case 5: 
-                                self.scaleImage(value)
-                                // self.log('缩放', 'orange')
-                                break
-                            case 6: 
-                                self.handleRubber()
-                                // self.log('橡皮', 'pink', 3)
-                                break
-                            case 7: 
-                                self.handlePen()
-                                // self.log('画笔', '#f60bbb', 3)
-                                break
-                            case 8: 
-                                self.handleMatching()
-                                // self.log('调色板', '#f60rrr', 3)
-                                break
-                            default:
-                                break
-                        }
-                        // console.log(self.replayIndex < len)
+                        this.replayIndex += 1
+                        this.socketInstance.write({data: data.data, event: 'message'})
+                        // 分发数据
+                        this.distributeEvent(data.data)
                     }
-                    if (self.replayIndex >= len) {
-                        self.isReplay = false
+                    if (this.replayIndex >= len) {
+                        this.isReplay = false
                         return
                     }
-                    self.RAFID = window.requestAnimationFrame(step)
+                    this.RAFID = window.requestAnimationFrame(step)
                 }
                 this.RAFID = window.requestAnimationFrame(step)
                 return () => {
                     window.cancelAnimationFrame(this.RAFID)
                     this.RAFID = null
+                    // return
                 }
+            },
+            distributeEvent(data) {
+                const { actionTypes, value } = data
+                 switch (actionTypes) {
+                        case 1: 
+                            this.handleStart({ touches: this.dataScale(value) })
+                            this.log(' 开始', 'red', 3)
+                            break
+                        case 2: 
+                            this.handleMove({ touches: this.dataScale(value) })
+                            this.log('移动', 'red', 3)
+                            break
+                        case 3: 
+                            this.handleEnd({ touches: this.dataScale(value) })
+                            this.log('结束', 'red', 3)
+                            break
+                        case 4: 
+                            this.pointList.splice(value, 1)
+                            this.renderCanvas()
+                            this.log('删除线', 'orange', 3)
+                            break
+                        case 5: 
+                            this.scaleImage(this.dataScale(value))
+                            this.log('缩放', 'orange')
+                            break
+                        case 6: 
+                            this.log('橡皮', 'pink', 3)
+                            this.handleRubber()
+                            break
+                        case 7: 
+                            this.log('画笔', '#f60bbb', 3)
+                            this.handlePen()
+                            break
+                        case 8: 
+                            this.log('调色板', '#f60rrr', 3)
+                            this.handleMatching()
+                            break
+                        default:
+                            break
+                    }
             }
         },
         mounted() {
@@ -1267,53 +1206,18 @@ import { write, receive } from './workerSend'
             })
 
 
-            // --------------------------------------------------------------------------------------------------------------
-            // 需要有个type  判断是主动还是被动
-
-            //
-            //连接websocket后端服务器
-            // this.socket = io.connect('ws://192.168.81.126:3000/');
- 
-            //告诉服务器端有用户登录
-            // this.socket.emit('login', {userid:this.userid, username: 111});
- 
-            // //监听新用户登录
-            // this.socket.on('login', function(msg){
-            //    this.log('有用户进入')
-            //    this.log(msg)
-            // });
- 
-            // //监听用户退出
-            // this.socket.on('logout', function(o){
-            //     this.log('有用户退出')
-            //     this.log(msg)
-            // });
-            // // 发送消息
-            // // this.socket.emit('message', obj);
-            // // 接受消息
-            // this.socket.on('message', function(obj){})
-            // set
         },
         created() {
-        
-           
-           function getQuery() {
-                let re = location.href.match(/[\\?&]\w+=\w*/g);
-                let result = {};
-                if (re)
-                    re.forEach(i => {
-                        i = i.slice(1);
-                        let value = i.split('=');
-                        result[value[0]] = value[1]
-                    });
-                return result
-            }
+        // 初始化 socket
+        //  socketInit('ws://192.168.81.126:3000/')
+        this.socketInstance = new BlgSocket({ url: 'ws://192.168.81.126:3000/',  writeEvent: ['login', 'message', 'toOne', 'writeIn'], readEvent: ['message', 'toOne'] })
 
-            this.type = getQuery().them ? 2 : 1
+
+            // this.type = getQuery().them ? 2 : 1
             // '1读读读读读读读读读读' '2写写写写写写写写写写'
             // this.log(this.type)
             // 如果是写的  不用建立这个 链接
-            write({data: {userid: new Date().getTime(), username: this.type == 2 ? '老师' : '学生', type: this.type}, event: 'login'})
+            this.socketInstance.write({data: {userid: new Date().getTime(), username: this.type == 2 ? '老师' : '学生', type: this.type}, event: 'login'})
             // if (this.type == 2)  return
             // this.log('如果是写 -- 不会走到这里的')
             // console.log(this.type)
@@ -1330,12 +1234,15 @@ import { write, receive } from './workerSend'
                 * 7 画笔 ''
                 */ 
 
-            //    还原坐标位置  有两种方式 - 1.求出来一个缩放比算出位置   2. 把图片定位好 根据图片算出位置
-            //  目前两种都用到了 1. 画图 和 橡皮 图片拖动   2. 复原老师笔记
-            receive((e) => {
+            //   还原坐标位置  有两种方式 - 1.求出来一个缩放比算出位置   2. 把图片定位好 根据图片算出位置
+            //   目前两种都用到了 1. 画图 和 橡皮 图片拖动   2. 复原老师笔记
+            this.socketInstance.read((e) => {
                 // console.log(e)
                 // 暂时只有 --
-                if (e.event == 'toOne') {
+                if (e.event == 'message') {
+                    // 分发数据
+                    this.distributeEvent(e.data)
+                } else if (e.event == 'toOne') {
                     //  望=给这个 同学同步数据
                     // 当前有没有在 正在画数据
                     if (this.type == 2) {
@@ -1352,11 +1259,9 @@ import { write, receive } from './workerSend'
                             drawPoint: this.drawPoint,
 
 
-
-
                             straightLine: this.straightLine
                         }
-                        write({data, event: 'toOne'})
+                        this.socketInstance.write({data, event: 'toOne'})
                         this.log('给新加入的学生推送自己的状态数据', 'red', 5)
                         // console.log('发出数据')
                     } else {
@@ -1372,8 +1277,7 @@ import { write, receive } from './workerSend'
                         this.pointList = originData.pointList
                         this.pointLine = originData.pointLine
                         // 原始数据
-
-
+                        // console.log(this.image)
                         this.image.x = this.dataScale(originData.imageX)
                         this.image.y = this.dataScale(originData.imageY)
 
@@ -1390,49 +1294,8 @@ import { write, receive } from './workerSend'
                         this.scaleImage(this.dataScale(originData.scale))
                         // this.renderCanvas()
                     }
-                }
-                if (e.event == 'message') {
-                    const { actionTypes, value } = e.data
-                    switch (actionTypes) {
-                        case 1: 
-                            this.handleStart({ touches: this.dataScale(value) })
-                            this.log(' 开始', 'red', 3)
-                            break
-                        case 2: 
-                            this.handleMove({ touches: this.dataScale(value) })
-                            this.log('移动', 'red', 3)
-                            break
-                        case 3: 
-                            this.handleEnd({ touches: this.dataScale(value) })
-                            this.log('结束', 'red', 3)
-                            break
-                        case 4: 
-                            this.pointList.splice(value, 1)
-                            this.renderCanvas()
-                            this.log('删除线', 'orange', 3)
-                            break
-                        case 5: 
-                            this.scaleImage(this.dataScale(value))
-                            this.log('缩放', 'orange')
-                            break
-                        case 6: 
-                            this.log('橡皮', 'pink', 3)
-                            this.handleRubber()
-                            break
-                        case 7: 
-                            this.log('画笔', '#f60bbb', 3)
-                            this.handlePen()
-                            break
-                        case 8: 
-                            this.log('调色板', '#f60rrr', 3)
-                            this.handleMatching()
-                            break
-                        default:
-                            break
-                    }
-                }
-
-            })            
+                } 
+            })         
         },
     }
 </script>

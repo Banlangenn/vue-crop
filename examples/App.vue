@@ -1,86 +1,9 @@
 <template>
   <div id="app">
-   <!-- <span  style="color:#4ec973">（顶部小提示：UI只是掩饰功能）</span>
-      <p class="watermark">
-          <span>输入水印文字：</span>
-          <input type="text" placeholder="可以输入水印" v-model="textWatermark"  :style="{color}">
-      </p>
-    <p class="watermark">
-        <span>输入水印颜色：</span>
-        <input type="text" placeholder="可以输入水印" :style="{color}" v-model="color" >      
-    </p>
-    <p class="range">
-        <span>水印X方位：{{option[0]}}%</span>
-        <range
-          v-model="option[0]"
-          :min="0"
-          :max="100"
-          :step="1"
-          :bar-height="2">
-        </range>
-    </p>
-    <p class="range">
-     <span>水印Y方位：{{option[1]}}%</span>
-      <range
-        v-model="option[1]"
-        :min="0"
-        :max="100"
-        :step="1"
-        :bar-height="2">
-      </range>
-    </p>
-       <p class="range">
-     <span>水印大小：{{option[2]}}</span>
-      <range
-        v-model="option[2]"
-        :min="0"
-        :max="100"
-        :step="1"
-        :bar-height="2">
-      </range>
-    </p>
-     <p class="range">
-     <span>水印角度：{{option[3]}}°</span>
-      <range
-        v-model="option[3]"
-        :min="0"
-        :max="360"
-        :step="1"
-        :bar-height="2">
-      </range>
-    </p>
-    <p class="range">
-      <span>图片角度：{{rotation}}°</span>
-      <range
-        v-model="rotation"
-        :min="0"
-        :max="360"
-        :step="1"
-        :bar-height="2">
-      </range>
-    </p>
-    <p class="operation">
-      <button @click="shape='imgage'" :class="{blue: shape == 'imgage'}" >整图片裁剪</button>
-      <button @click="shape='rect'" :class="{blue: shape == 'rect'}" >矩形裁剪框</button>
-      <button @click="shape='arc'"  :class="{blue: shape == 'arc'}">圆形裁剪框</button>
-      <br/>
-      <button class="blue" @click="crop.changeImage()">点我换图</button>
-      <button class="blue operationButton"  @click="getImageData" >生成图片</button>
-    </p> -->
-
     <crop
       style="width:100%;height:100%;background-color: #f1f3f5;"
-      v-model="crop"
-      :position="option"
-      :textWatermark = "textWatermark"
-      :angle="15"
-      :imageWatermark="imgWatermark"
-      :color=color
-      :shape=shape
-      @imgLoaded="imgLoaded"
-      :revokeBtn="true"
-      :penBtn="true"
-      :rotation="rotation"
+      @change="change"
+      :type="type"
     >
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
@@ -93,47 +16,27 @@
       </template>
 
      </crop>
-    <!-- <div style="text-align:center" v-if="cropAction">
-          <p>长按保存图片</p>
-          <img v-if="cropAction" :src="imageData" alt="" style="width:70%">
-    </div> -->
 
-      <v-dialog  :visible.sync= "cropAction">
-            <img :src="imageData" alt="小程序码">
-            <p slot="desc">
-                <span>长按保存分享图片哦~</span>
-            </p>
-        </v-dialog>
   </div>
 </template>
 
 <script>
-// import range from './Range'
-import dialog from './signDialog'
 export default {
   name: 'app',
   data() {
     return {
-        option: [50, 50, 20, 0],
-        color:'#f14864',
-        imgWatermark: '', // require('./assets/logo.png')
-        textWatermark: '板蓝根出品，必属精品',
-        crop:{},
-        cropAction: false,
-        imageData: null,
-        shape: 'rect',
-        rangeValue: 50,
-        rotation: 0
+        type: 2
     }
   },
   components: {
       // range,
-      'v-dialog': dialog
+      // 'v-dialog': dialog
   },
   created(){
-      if(!this.isMobile()){
-        console.log('手机上才能图片缩放，保存')
-      }
+      // if(!this.isMobile()){
+      //   console.log('手机上才能图片缩放，保存')
+      // }
+      this.type = this.getQuery().them ? 2 : 1
   },
   methods: {
     imgLoaded(){
@@ -144,18 +47,21 @@ export default {
     uploadImg(e) {
         this.imgWatermark = e.target.files[0]
     },
-    isMobile() {
-        return (navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i))
+    change() {
+      // console.log('123')
     },
-    getImageData() {
-       this.crop.getImage('Base64', 'image/jpg', 2).then(imageData => {
-         if (Object.prototype.toString.call(imageData) === '[object Blob]') {
-              imageData =  window.URL.createObjectURL(imageData)
-          }
-          this.imageData = imageData
-          this.cropAction = true
-       }) 
+    getQuery() {
+        let re = location.href.match(/[\\?&]\w+=\w*/g);
+        let result = {};
+        if (re)
+            re.forEach(i => {
+                i = i.slice(1);
+                let value = i.split('=');
+                result[value[0]] = value[1]
+            });
+        return result
     }
+    
   }
 }
 </script>
