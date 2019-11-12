@@ -1,4 +1,4 @@
-<style>
+<style lang="scss">
     .draw-action-bar {
         width: 100%;
         /* background: #ffc9c9; */
@@ -12,24 +12,34 @@
         color: red;
         /* pointer-events: none */
     }
-    .draw-icon-list {
-        padding: 2px 31px;
-        /* background-color: rgba(239, 238, 238, 0.3);
-        9, 24, 62 */
-        background-color: rgba(9, 24, 62, 0.3);
-        /* position: absolute;
-        left: 0;
-        right: 0;
-        top: 0; */
-       
-        border-radius: 20px;
-        /* tex */
-    }
     .draw-icon-wrap {
         padding: 10px 0;
         position: absolute;
         top: 0;
         /* left: 0; */
+    }
+    .draw-icon-list {
+        padding: 2px 31px;
+        background-color: rgba(9, 24, 62, 0.3);
+        border-radius: 20px;
+        position: relative;
+        color: #fff;
+        font-size: 22px;
+       .triangle {
+            position: absolute;
+            left: 50px;
+            top: 32px;
+            float: left;
+            width: 0; 
+            height: 0;
+            border-width: 10px;
+            border-style: solid;
+            border-color: transparent #3c3838 transparent transparent;
+            transform: rotate(90deg); /*顺时针旋转90°*/
+        }
+        .active {
+            background: #000;
+        }
     }
     .draw-icon {
         color: #ccc;
@@ -41,7 +51,72 @@
     }
     .draw-matching-wrap {
         position: absolute;
+        left: 16px;
+        top: 52px;
+
+        display: flex;
+        width: 290px;
+        height: 200px;
+        background: #3c3838;
+        border-radius: 5px;
+        box-shadow: 5px 10px 15px 2px rgba(0,0,0, .4); //1.水平阴影  2.垂直阴影 3.模糊距离，改虚实 4.阴影尺寸
+        & > div {
+            flex: 1;
+            border-left: 1px solid rgba(162, 153, 162, 0.3);
+        }
+        & > div:first-child {
+             border-left: none;
+        }
     }
+    .writing-style {
+         display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+        span {
+            width: 100%;
+        }
+    }
+    .colors {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+        padding: 20px 0;
+        span  {
+            display: inline-block;
+            padding: 5px;
+             height: 27px;
+            i {
+                display: inline-block;
+                width: 22px;
+                height: 22px;
+                border-radius: 100px;
+                border: 2px solid #fff;
+            }
+        }
+    }
+    .pen-weight {
+         display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: center;
+        span {
+            width: 100%;
+        }
+    }
+    .draw-mount-node {
+        .mask {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: 4;
+            // background: red;
+        }
+    }
+
     /* .rubber {
         padding: 0 20px;
     } */
@@ -49,64 +124,82 @@
 <template>
     <div ref="mountNode" 
         class="draw-mount-node" 
-        @touchstart="handleStart($event)"
-        @touchmove="handleMove($event)"
-        @touchend="handleEnd($event)"
+        @touchstart.stop="handleStart($event)"
+        @touchmove.stop="handleMove($event)"
+        @touchend.stop="handleEnd($event)"
         style="overflow: hidden;"
         :style="{width: options.width + 'px', height: options.height + 'px'}"
     >
-    <div class="draw-action-bar" :style="{width: options.width + 'px', height: options.height + 'px'}">
-        <!-- <button @touchstart="clickHandle">1213 </button> -->
-        <div class="draw-icon-wrap"
-        @touchstart.stop="()=>{}"
-        @touchmove.stop="()=>{}"
-        @touchend.stop="()=>{}">
-            <div class="draw-icon-list">
-                <svg
-                    @touchstart="handleMatching($event)"
-                    class="draw-icon matching"
-                    t="1573095231171"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2503" width="128" height="128"><path d="M503.2 902.2c-18.5 0-34.1-14.8-35-33.4-4.3-88.7-75-158.3-161-158.3-66.1 0-128.5-17.5-175.8-49.2-23.9-16.1-42.9-35-56.2-56.3-14.5-23-21.8-47.6-21.8-73.2 0-50.6 11.9-99.7 35.3-145.8 22.5-44.2 54.5-83.8 95.3-117.7 82.9-69 192.8-107 309.5-107 116.7 0 226.6 38 309.5 107 40.7 33.9 72.8 73.5 95.3 117.7 23.4 46.1 35.3 95.2 35.3 145.8 0 49.9-11.6 98.3-34.4 143.8-21.8 43.7-53.1 82.9-92.8 116.7-80.6 68.5-188 107.5-302.5 109.8-0.3 0.1-0.5 0.1-0.7 0.1z m-9.8-690.8c-215.1 0-390.1 143.7-390.1 320.4 0 32.5 19.9 63.7 55.9 87.9 39.1 26.3 91.7 40.7 147.9 40.7 107.9 0 197.4 82.8 209.8 191.2 203.4-10.1 366.5-151.2 366.5-319.8 0.1-176.7-174.9-320.4-390-320.4z" p-id="2504"></path><path d="M602.5 767.8c-19.4 0-38.8-7.4-53.6-22.2-14.3-14.3-22.2-33.3-22.2-53.6s7.9-39.3 22.2-53.6c29.5-29.5 77.6-29.5 107.1 0s29.5 77.6 0 107.1c-14.7 14.9-34.1 22.3-53.5 22.3z m0-131.5c-14.3 0-28.6 5.4-39.4 16.3-10.5 10.5-16.3 24.5-16.3 39.4s5.8 28.9 16.3 39.4c21.7 21.7 57.1 21.7 78.9 0 21.7-21.7 21.7-57.1 0-78.9-10.9-10.8-25.2-16.2-39.5-16.2z" fill="#dbdbdb" p-id="2505"></path><path d="M738.9 383.8m-64.3 0a64.3 64.3 0 1 0 128.6 0 64.3 64.3 0 1 0-128.6 0Z" fill="#dbdbdb" p-id="2506"></path><path d="M557.8 285.2m-40.9 0a40.9 40.9 0 1 0 81.8 0 40.9 40.9 0 1 0-81.8 0Z" fill="#dbdbdb" p-id="2507"></path><path d="M376.6 285.4m-31.2 0a31.2 31.2 0 1 0 62.4 0 31.2 31.2 0 1 0-62.4 0Z" fill="#dbdbdb" p-id="2508"></path></svg>
-                <svg
-                    @touchstart="handlePen($event)"
-                    class="draw-icon pen"
-                    :style="{fill: changeDrawAction == 1 ? '#f14864': ''}" 
-                    t="1573031834722"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4617" width="128" height="128"><path d="M79.36 916.48h343.04v51.2H79.36z" fill="" p-id="4618"></path><path d="M550.4 916.48h376.32v51.2H550.4z" fill="" p-id="4619"></path><path d="M629.76 158.72l215.04 215.04L373.76 844.8l-215.04-215.04L629.76 158.72z m0 0" fill="" p-id="4620"></path><path d="M716.8 74.24l215.04 215.04-64 64-215.04-215.04L716.8 74.24z m0 0" fill="" p-id="4621"></path><path d="M138.24 652.8l215.04 215.04L51.2 952.32l87.04-299.52z m0 0" fill="" p-id="4622"></path><path d="M798.72 71.68L931.84 204.8c23.04 23.04 20.48 58.88-2.56 81.92-23.04 23.04-61.44 25.6-81.92 2.56l-133.12-133.12c-23.04-20.48-23.04-58.88 2.56-81.92 23.04-23.04 58.88-25.6 81.92-2.56z m0 0" fill="" p-id="4623"></path></svg>
-                <svg
-                    @touchstart="handleRubber($event)"
-                    class="draw-icon rubber"
-                    :style="{fill: changeDrawAction == 2 ? '#f14864': ''}"
-                    t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
-                <svg
-                     @touchend="replay()"
-                    class="draw-icon replay"
-                    t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782" fill="#dbdbdb"></path></svg>
+        <div class="draw-action-bar" :style="{width: options.width + 'px'}">
+            <!-- <button @touchstart="clickHandle">1213 </button> -->
+            <div class="draw-icon-wrap"
+            @touchstart.stop="()=>{}"
+            @touchmove.stop="()=>{}"
+            @touchend.stop="()=>{}">
+                <div class="draw-icon-list">
+                    <svg
+                        @touchstart="handleMatching($event)"
+                        class="draw-icon matching"
+                        t="1573095231171"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2503" width="128" height="128"><path d="M503.2 902.2c-18.5 0-34.1-14.8-35-33.4-4.3-88.7-75-158.3-161-158.3-66.1 0-128.5-17.5-175.8-49.2-23.9-16.1-42.9-35-56.2-56.3-14.5-23-21.8-47.6-21.8-73.2 0-50.6 11.9-99.7 35.3-145.8 22.5-44.2 54.5-83.8 95.3-117.7 82.9-69 192.8-107 309.5-107 116.7 0 226.6 38 309.5 107 40.7 33.9 72.8 73.5 95.3 117.7 23.4 46.1 35.3 95.2 35.3 145.8 0 49.9-11.6 98.3-34.4 143.8-21.8 43.7-53.1 82.9-92.8 116.7-80.6 68.5-188 107.5-302.5 109.8-0.3 0.1-0.5 0.1-0.7 0.1z m-9.8-690.8c-215.1 0-390.1 143.7-390.1 320.4 0 32.5 19.9 63.7 55.9 87.9 39.1 26.3 91.7 40.7 147.9 40.7 107.9 0 197.4 82.8 209.8 191.2 203.4-10.1 366.5-151.2 366.5-319.8 0.1-176.7-174.9-320.4-390-320.4z" p-id="2504"></path><path d="M602.5 767.8c-19.4 0-38.8-7.4-53.6-22.2-14.3-14.3-22.2-33.3-22.2-53.6s7.9-39.3 22.2-53.6c29.5-29.5 77.6-29.5 107.1 0s29.5 77.6 0 107.1c-14.7 14.9-34.1 22.3-53.5 22.3z m0-131.5c-14.3 0-28.6 5.4-39.4 16.3-10.5 10.5-16.3 24.5-16.3 39.4s5.8 28.9 16.3 39.4c21.7 21.7 57.1 21.7 78.9 0 21.7-21.7 21.7-57.1 0-78.9-10.9-10.8-25.2-16.2-39.5-16.2z" fill="#dbdbdb" p-id="2505"></path><path d="M738.9 383.8m-64.3 0a64.3 64.3 0 1 0 128.6 0 64.3 64.3 0 1 0-128.6 0Z" fill="#dbdbdb" p-id="2506"></path><path d="M557.8 285.2m-40.9 0a40.9 40.9 0 1 0 81.8 0 40.9 40.9 0 1 0-81.8 0Z" fill="#dbdbdb" p-id="2507"></path><path d="M376.6 285.4m-31.2 0a31.2 31.2 0 1 0 62.4 0 31.2 31.2 0 1 0-62.4 0Z" fill="#dbdbdb" p-id="2508"></path></svg>
+                    <svg
+                        @touchstart="handlePen($event)"
+                        class="draw-icon pen"
+                        :style="{fill: changeDrawAction == 1 ? '#f14864': ''}" 
+                        t="1573031834722"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4617" width="128" height="128"><path d="M79.36 916.48h343.04v51.2H79.36z" fill="" p-id="4618"></path><path d="M550.4 916.48h376.32v51.2H550.4z" fill="" p-id="4619"></path><path d="M629.76 158.72l215.04 215.04L373.76 844.8l-215.04-215.04L629.76 158.72z m0 0" fill="" p-id="4620"></path><path d="M716.8 74.24l215.04 215.04-64 64-215.04-215.04L716.8 74.24z m0 0" fill="" p-id="4621"></path><path d="M138.24 652.8l215.04 215.04L51.2 952.32l87.04-299.52z m0 0" fill="" p-id="4622"></path><path d="M798.72 71.68L931.84 204.8c23.04 23.04 20.48 58.88-2.56 81.92-23.04 23.04-61.44 25.6-81.92 2.56l-133.12-133.12c-23.04-20.48-23.04-58.88 2.56-81.92 23.04-23.04 58.88-25.6 81.92-2.56z m0 0" fill="" p-id="4623"></path></svg>
+                    <svg
+                        @touchstart="handleRubber($event)"
+                        class="draw-icon rubber"
+                        :style="{fill: changeDrawAction == 2 ? '#f14864': ''}"
+                        t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
+                    <svg
+                        @touchend="replay()"
+                        class="draw-icon replay"
+                        t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782" fill="#dbdbdb"></path></svg>
+                    <!-- 三角形 -->
+                    <div  v-show="showMatching" class="triangle"></div>
+                    <!-- 颜色  直线 虚线   粗细 -->
+                    <div v-show="showMatching" class="draw-matching-wrap">
+                        <div class="writing-style">
+                            <span 
+                            v-for="item of penWriting"
+                            :key="item.lable"
+                            @touchstart="handlePenWriting($event,item.value)"
+                            :class="{active: writing == item.value}"
+                            > {{item.lable}}</span>
+                        </div>
+                        <div class="colors">
+                            <span 
+                                v-for="item of penColor"
+                                :key="item" 
+                                @touchstart="handlePenColor($event,item)"
+                                :class="{active: color == item}"
+                            >
+                                <i :style="{background: item}"></i>
+                            </span>
+                        </div>
+                        <div class="pen-weight">
+                            <span 
+                                v-for="item of penWeight"
+                                :key="item.lable"
+                                @touchstart="handlePenWeight($event, item.value)"
+                                :class="{active: weight == item.value}"
+                                > {{item.lable}}</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <!-- 颜色  直线 虚线   粗细 -->
-        <div v-show="showMatching" class="draw-matching-wrap" :style="matchingWrapStyle">
-            <span>
-                <button>书写</button>
-                <button>直线</button>
-            </span>
-            <span>
-             <button>颜色1</button>
-             <button>颜色2</button>
-             <button>颜色3</button>
-             <button>颜色4</button>
-             <button>颜色5</button>
-             <button>颜色6</button>
-             <button>颜色7</button>
-             <button>颜色8</button>
-             </span>
-            <span>
-                <button>细笔</button>
-                <button>粗笔</button>
-                <button>超粗笔</button>
-            </span>
+        <!--  蒙层 -->
+        <div class="mask"
+            :style="{width: options.width + 'px', height: options.height + 'px'}"
+            @touchstart.stop="handleMatching($event)" 
+            @touchmove.stop="()=>{}"
+            @touchend.stop="()=>{}"
+            v-show="showMatching"
+        >
         </div>
-    </div>
          <!-- style=" overflow: hidden;" -->
-    <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
+        <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
         <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
@@ -135,11 +228,38 @@ import { BlgSocket } from './workerSend'
           ],
         data() {
             return {
-                color: '#f14864',  // 颜色
+                // 颜色
+                penColor: [
+                    '#000',
+                    '#f14864',
+                    'blue',
+                    'lightblue',
+                    'green',
+                    'greenyellow',
+                    'orange',
+                    'red',
+                ],
+                // 笔的粗细
+                penWeight: [
+                    {lable: '细笔', value: 1},
+                    {lable: '粗笔', value: 2},
+                    {lable: '超粗笔', value: 4}
+                ],
+                // 书写风格
+                penWriting: [
+                    {lable: '书写', value: 1},
+                    {lable: '直线', value: 2},
+                    {lable: '虚线', value: 3},
+                    {lable: '虚直线', value: 4}
+                ],
+
+                // ----------------------------------------------------------------------
+
+
+
                 changeDrawAction: -1,
                 // penColor: '',
                 //   penColor: '',
-                straightLine: false, // 直线
                 debug: false, // debug
                 logLevel: 0,
                 
@@ -163,14 +283,15 @@ import { BlgSocket } from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                lineWidth: 2,
+                weight: 2,
+                writing: 1, // 书写线的 风格
+                color: '#f14864',  // 颜色
+                showMatching: false,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
                 // revokeBar: null,
                 // rubberBar: null
-                matchingWrap: null,
-                showMatching: false
                
             }
         },
@@ -206,6 +327,7 @@ import { BlgSocket } from './workerSend'
 
                 const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
                 this.maxRadius = Math.min(width, height) / 2
+                this.ctx.strokeStyle = this.color
                 this.renderCanvas()
 
                 // if (this.type == 2) {
@@ -234,8 +356,19 @@ import { BlgSocket } from './workerSend'
                 pointList.forEach(el => {
                     const scale = this.scale / el.scale
 
-                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15) + 1
+                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+
                     ctx.beginPath()
+                    //  {lable: '书写', value: 1},
+                    // {lable: '直线', value: 2},
+                    // {lable: '虚线', value: 3},
+                    // {lable: '虚直线', value: 4}
+                    // 虚线
+                    if (el.writing == 3 || el.writing == 4) {
+                        ctx.setLineDash([5, 10])  // 虚线
+                    } else {
+                        ctx.setLineDash([]) // 实线
+                    }
                     ctx.strokeStyle = el.color
                     const array = el.pointLine
                     for (let i = 0; i < array.length; i++) {
@@ -341,26 +474,34 @@ import { BlgSocket } from './workerSend'
                 // move 到边
                 return coordinate
             },
+            // 所有的点击事件
             handleMatching(e) {
-            // 1）touches：当前位于屏幕上的所有手指的列表。
-            // 2）targetTouches：位于当前DOM元素上手指的列表。
-            // 3）changedTouches：涉及当前事件手指的列表。 
-                const point = e.touches[0]
-                console.log(point)
-                this.matchingWrapStyle = {
-                    top: point.pageY + 'px',
-                    left: point.pageX + 'px'
+                // 1）touches：当前位于屏幕上的所有手指的列表。
+                // 2）targetTouches：位于当前DOM元素上手指的列表。
+                // 3）changedTouches：涉及当前事件手指的列表。 
+                if ( this.showMatching) {
+                    this.showMatching = false
+                } else {
+                    this.changeDrawAction = 1
+                    this.showMatching = true
                 }
-                this.showMatching = true
-                // const  this.getCoordinateByEvent(e)
-
-
-                //  切换
-                // this.log('点击了调色板')
-                // this.straightLine = !this.straightLine
-                // this.sendData(e, 8, '')
-
-                // this.socketInstance.write({data: {}, event:'writeIn'}) // 写入
+                this.sendData(e, 8, '')
+            },
+            //  笔粗细 8
+            handlePenWeight(e, weight) {
+                this.weight = weight
+                this.sendData(e, 11, weight)
+            },
+            // 
+            handlePenColor(e, color) {
+                this.color = color
+                this.ctx.strokeStyle = color
+                this.sendData(e, 10, color)
+            },
+            handlePenWriting(e, writing) {
+                // 目前只有直线和 曲线
+                this.writing = writing
+                this.sendData(e, 9, writing)
             },
             handlePen(e) {
                 this.log('点击了画笔')
@@ -369,6 +510,7 @@ import { BlgSocket } from './workerSend'
                 } else {
                     this.changeDrawAction = 1
                 }
+                // 这个有e吗
                 this.sendData(e, 7, '')
             },
             handleRubber(e) {
@@ -406,22 +548,6 @@ import { BlgSocket } from './workerSend'
                     this.firstPoint = this.drawPoint
                 }
             },
-            scaleImage(scale, isRenderCanvas = true) {
-                this.scale = scale
-                const image = this.image
-
-                const width = image.clientWidth * scale
-                const height = image.clientHeight * scale
-
-                this.image.x += (image.width - width) / 2
-                this.image.y += (image.height - height) / 2
-                this.image.width = width
-                this.image.height = height
-
-                if (isRenderCanvas) {
-                    this.renderCanvas()
-                }
-            },
             handleMove (e) {
                 // 判断是不是 读的一端
                 if(!this.sendData(e, 2)) return
@@ -455,14 +581,29 @@ import { BlgSocket } from './workerSend'
                     // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
                     const color =  this.color
-                    const lineWidth = this.limit(this.lineWidth, 1, 15)
-                    ctx.strokeStyle = color
+                    const lineWidth = this.limit(this.weight, 1, 15)
                     ctx.lineCap = 'round'
                     
                     // 划线  第一个点 用beginPath
-                    if (this.straightLine) { // 是直线
-                        this.renderCanvas()
+                    if (this.writing == 2 || this.writing == 4) { // 是直线
+
+                        // 直线 有延迟
+                        // const ctx = this.ctx2
+                        //  可以考虑把 -- 
+                        //  {lable: '书写', value: 1},
+                        // {lable: '直线', value: 2},
+                        // {lable: '虚线', value: 3},
+                        // {lable: '虚直线', value: 4}
+                        this.renderCanvas() //  能不能在 第二个canvas 上画
+                        // 把 之前的所有点画上
+
+                        if (this.writing == 4) {
+                            ctx.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
+                        } else {
+                            ctx.setLineDash([1,0])
+                        }
                         ctx.beginPath()
+                        ctx.strokeStyle = this.color
                         ctx.lineWidth = lineWidth
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
                         ctx.lineTo(current.x, current.y)
@@ -484,8 +625,13 @@ import { BlgSocket } from './workerSend'
                     } else {
                         // console.log('----------90909090--------------------------------')
                         // console.log(drawPoint)
-                        if (this.pointLine.length === 0) {
-                            this.ctx.beginPath()
+                        if (this.pointLine.length == 0) {
+                            if (this.writing == 3) {
+                                ctx.setLineDash([5, 10])
+                            } else {
+                                ctx.setLineDash([])
+                            }
+                            ctx.beginPath()
                             ctx.lineWidth = lineWidth                
                             this.ctx.moveTo(drawPoint.x, drawPoint.y)
                         } else {
@@ -536,7 +682,7 @@ import { BlgSocket } from './workerSend'
                     this.clearCtx2()
                     this.renderRubber(x, y, radius)
 
-                    if (this.type == 1 || this.isReplay) { // 回放 橡皮不做判断
+                    if (this.type == 1 || this.isReplay) { // 回放 或则 读  橡皮不做判断
                         return
                     }
 
@@ -622,7 +768,7 @@ import { BlgSocket } from './workerSend'
                             //         // this.log('--------------快速橡皮删除的', '', 2)
                             //         break
                             //     }
-                            // } 
+                            // }
                         }
 
 
@@ -639,6 +785,22 @@ import { BlgSocket } from './workerSend'
                 const type = this.startPoint ? this.startPoint.type : null
                 if (type) { // && this.getCoordinateByEvent(e)
                     this[type](this.getCoordinateByEvent(e))
+                }
+            },
+            scaleImage(scale, isRenderCanvas = true) {
+                this.scale = scale
+                const image = this.image
+
+                const width = image.clientWidth * scale
+                const height = image.clientHeight * scale
+
+                this.image.x += (image.width - width) / 2
+                this.image.y += (image.height - height) / 2
+                this.image.width = width
+                this.image.height = height
+
+                if (isRenderCanvas) {
+                    this.renderCanvas()
                 }
             },
             removeLine(index) {
@@ -695,35 +857,38 @@ import { BlgSocket } from './workerSend'
                     // 给个正方形----- 
                     //  加个 maxX maxY  minX minY
                     const array = this.pointLine
-                    // 会有 明明在范围内 检测不到--- 范围太小了 加一点
-                    const offset = 6
+                   
+                   
                     //  初始化第一个  --不能默认0  有负值存在
                     let maxX = array[0].x, maxY = array[0].y,  minX = array[0].x, minY = array[0].y
                     for (let index = 1; index < array.length; index++) {
                         const element = array[index]
                         if (element.x < minX) {
-                            minX = element.x - offset
+                            minX = element.x
                         }
                         if (element.y < minY) {
-                            minY = element.y - offset
+                            minY = element.y
                         }
                         if (element.x > maxX) {
-                            maxX = element.x + offset
+                            maxX = element.x
                         }
                         if (element.y > maxY) {
-                            maxY = element.y + offset
+                            maxY = element.y
                         }
                     }
+                     // 会有 明明在范围内 检测不到--- 范围太小了 加一点
+                    const offset = 6
                     const pointObj = {
                         pointLine: this.pointLine,
                         scale: e.scale || this.scale,
-                        lineWidth: this.lineWidth,
+                        lineWidth: this.weight,
                         color: this.color,
+                        writing: this.writing,
                         // rotateAngle : this.rotateAngle,
-                        maxX,
-                        maxY,
-                        minX,
-                        minY
+                        maxX: maxX + offset,
+                        maxY: maxY + offset,
+                        minX: minX - offset,
+                        minY: minY - offset,
                     }
                     this.pointList.push(pointObj)
                     // console.log(this.pointList)
@@ -734,27 +899,6 @@ import { BlgSocket } from './workerSend'
                     this.renderCanvas()
                 }
                 
-            },
-            clearCtx2() {
-                const { width, height } = this.options
-                // 避免预览到背景
-                // canvas init
-                this.ctx2.clearRect(0, 0, width, height)
-            },
-            renderRubber(x, y, radius) {
-                this.log('橡皮的半径' + ('' + radius))
-                // 考虑 只做检测  不做渲染
-                // this.renderCanvas()
-                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
-                // console.log('画画橡皮')
-                // this.clearCtx2()
-                const rubberCtx = this.ctx2
-                const color = this.color
-                rubberCtx.strokeStyle = this.color
-                rubberCtx.fillStyle = color
-                rubberCtx.beginPath()
-                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
-                rubberCtx.fill()
             },
            distanceOfPoint2Line(p1, p2, { x, y }) {
                 const A = x - p1.x
@@ -808,23 +952,20 @@ import { BlgSocket } from './workerSend'
                 ctx.stroke()
                 // ctx.stroke() 
                 return (ctx.isPointInPath(x * this.pixelRatio, y * this.pixelRatio)
-                 && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
+                && this.getDistance({pageX: x, pageY: y}, {pageX: this.arc.x, pageY: this.arc.y}) >  this.arc.r - ctx.lineWidth / 2)
             },
             // start 就触发
             getPointByCoordinate({x, y}) {
                 this.log('触发检测 点击区域')
-                const image = this.image,
-                shape = this.shape || 'rect'
+                const image = this.image
                 let t = {}
                 let index = 0
                 //  旋转
                 if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
                     this.log('点击了画笔')
                     if (this.changeDrawAction == 1) {
-                        
                         this.changeDrawAction = -1
                     } else {
-                        
                         this.changeDrawAction = 1
                     }
                     this.renderCanvas()
@@ -1153,7 +1294,38 @@ import { BlgSocket } from './workerSend'
                     * 5 scale 缩放 { scale: number }
                     * 6 橡皮 ''
                     * 7 画笔 ''
+                    * 
                     */ 
+
+            //         handleMatching() {
+            //     // 1）touches：当前位于屏幕上的所有手指的列表。
+            //     // 2）targetTouches：位于当前DOM元素上手指的列表。
+            //     // 3）changedTouches：涉及当前事件手指的列表。 
+            //     if ( this.showMatching) {
+            //         this.showMatching = false
+            //     } else {
+            //         this.changeDrawAction = 1
+            //         this.showMatching = true
+            //     }
+            //     this.sendData({}, 12, '')
+                
+            // },
+            // //  笔粗细 8
+            // handlePenWeight(weight) {
+            //     this.weight = weight
+            //     this.sendData({}, 11, weight)
+            // },
+            // // 
+            // handlePenColor(color) {
+            //     this.color = color
+            //     this.ctx.strokeStyle = color
+            //     this.sendData({}, 10, color)
+            // },
+            // handlePenWriting(writing) {
+            //     // 目前只有直线和 曲线
+            //     this.writing = writing
+            //     this.sendData({}, 9, writing)
+            // },
                 const { actionTypes, value } = data
                 switch (actionTypes) {
                     case 1: 
@@ -1187,7 +1359,19 @@ import { BlgSocket } from './workerSend'
                         break
                     case 8: 
                         this.log('调色板', '#f60rrr', 3)
-                        this.handleMatching()
+                        this.handleMatching({})
+                        break
+                    case 9: 
+                        this.log('线段风格', '#f60rrr', 3)
+                        this.handlePenWriting({}, value)
+                        break
+                    case 10: 
+                        this.log('笔颜色', '#f60rrr', 3)
+                        this.handlePenColor({}, value)
+                        break
+                    case 11: 
+                        this.log('笔粗细', '#f60rrr', 3)
+                        this.handlePenWeight({}, value)
                         break
                     default:
                         break
@@ -1216,25 +1400,24 @@ import { BlgSocket } from './workerSend'
                             const data =  {
                                 id: e.data.id,
 
-                                pointList: this.pointList,
-                                pointLine: this.pointLine,
-                                changeDrawAction: this.changeDrawAction,
-                                scale: this.scale,
-                                imageX: this.image.x,
-                                imageY: this.image.y,
-                                drawPoint: this.drawPoint,
+                                pointList: this.pointList, // 线 集合
+                                pointLine: this.pointLine, // 点 集合
+                                changeDrawAction: this.changeDrawAction, // 目前动作
+                                scale: this.scale, // 缩放
+                                imageX: this.image.x, // 
+                                imageY: this.image.y, // 图片你位置
+                                drawPoint: this.drawPoint, // 前一个点
 
-
-                                straightLine: this.straightLine
+                                weight: this.weight, // 线粗细
+                                writing: this.writing, // 书写线的 风格
+                                color: this.color,  // 颜色
+                                showMatching: this.showMatching, // 调色盘
                             }
                             this.socketInstance.write({data, event: 'toOne'})
                             this.log('给新加入的学生推送自己的状态数据', 'red', 5)
                             // console.log('发出数据')
                         } else {
-                            // console.log(e.data.pointList)
-                            // console.log(e.data)
                             // 学生收数据
-                            // 这个数据过去 是很正确的------------------------
                             this.log('数据还原', 'red', 5)
                             const originData = e.data
                             this.changeDrawAction = originData.changeDrawAction
@@ -1255,7 +1438,10 @@ import { BlgSocket } from './workerSend'
                                 }
                             }
 
-                            this.straightLine = originData.straightLine
+                            this.weight = originData.weight
+                            this.writing = originData.writing
+                            this.color = originData.color
+                            this.showMatching = originData.showMatching
                             // 自带renderCanvas
                             this.scaleImage(this.dataScale(originData.scale))
                             // this.renderCanvas()
