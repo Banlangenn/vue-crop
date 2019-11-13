@@ -47,9 +47,6 @@ export class BlgSocket {
     }
     write(value){
         // 多次调用 会自动覆盖
-        // 怎么循环
-        // 发送太大了  用循环 不理想
-
         if (this.capableWorker) {
             this.worker.postMessage(value)
             return

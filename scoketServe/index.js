@@ -5,7 +5,7 @@ const fs =  require('fs')
 app.get('/', function(req, res){
     res.send('<h1>Welcome Realtime Server</h1>');
 });
- 
+let actionList = [] // 操作记录
 //在线用户
 var onlineUsers = {};
 //当前在线人数
@@ -27,7 +27,9 @@ io.on('connection', function(socket){
             onlineCount++;
         }
         if (obj.type == 2) {
+            // 老师上线
             groupOwnerId = ID
+            actionList = []
         } else {
             // 学生向老师 发送自己的id  老师socket
             console.log('学生向老师 发送自己的id  老师socket')
@@ -74,7 +76,6 @@ io.on('connection', function(socket){
     // 开始事件
 
     let startTime = 0
-    let actionList = []
     socket.on('message', function(obj){
         //向所有客户端广播发布的消息
         // io.emit('message', obj);

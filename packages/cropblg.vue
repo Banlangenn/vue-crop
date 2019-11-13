@@ -140,21 +140,31 @@
                     <svg
                         @touchstart="handleMatching($event)"
                         class="draw-icon matching"
-                        t="1573095231171"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2503" width="128" height="128"><path d="M503.2 902.2c-18.5 0-34.1-14.8-35-33.4-4.3-88.7-75-158.3-161-158.3-66.1 0-128.5-17.5-175.8-49.2-23.9-16.1-42.9-35-56.2-56.3-14.5-23-21.8-47.6-21.8-73.2 0-50.6 11.9-99.7 35.3-145.8 22.5-44.2 54.5-83.8 95.3-117.7 82.9-69 192.8-107 309.5-107 116.7 0 226.6 38 309.5 107 40.7 33.9 72.8 73.5 95.3 117.7 23.4 46.1 35.3 95.2 35.3 145.8 0 49.9-11.6 98.3-34.4 143.8-21.8 43.7-53.1 82.9-92.8 116.7-80.6 68.5-188 107.5-302.5 109.8-0.3 0.1-0.5 0.1-0.7 0.1z m-9.8-690.8c-215.1 0-390.1 143.7-390.1 320.4 0 32.5 19.9 63.7 55.9 87.9 39.1 26.3 91.7 40.7 147.9 40.7 107.9 0 197.4 82.8 209.8 191.2 203.4-10.1 366.5-151.2 366.5-319.8 0.1-176.7-174.9-320.4-390-320.4z" p-id="2504"></path><path d="M602.5 767.8c-19.4 0-38.8-7.4-53.6-22.2-14.3-14.3-22.2-33.3-22.2-53.6s7.9-39.3 22.2-53.6c29.5-29.5 77.6-29.5 107.1 0s29.5 77.6 0 107.1c-14.7 14.9-34.1 22.3-53.5 22.3z m0-131.5c-14.3 0-28.6 5.4-39.4 16.3-10.5 10.5-16.3 24.5-16.3 39.4s5.8 28.9 16.3 39.4c21.7 21.7 57.1 21.7 78.9 0 21.7-21.7 21.7-57.1 0-78.9-10.9-10.8-25.2-16.2-39.5-16.2z" fill="#dbdbdb" p-id="2505"></path><path d="M738.9 383.8m-64.3 0a64.3 64.3 0 1 0 128.6 0 64.3 64.3 0 1 0-128.6 0Z" fill="#dbdbdb" p-id="2506"></path><path d="M557.8 285.2m-40.9 0a40.9 40.9 0 1 0 81.8 0 40.9 40.9 0 1 0-81.8 0Z" fill="#dbdbdb" p-id="2507"></path><path d="M376.6 285.4m-31.2 0a31.2 31.2 0 1 0 62.4 0 31.2 31.2 0 1 0-62.4 0Z" fill="#dbdbdb" p-id="2508"></path></svg>
+                        :style="{fill: showMatching == 1 ? color: ''}"
+                        t="1573621984209"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1926" width="128" height="128"><path d="M810.666667 384a128 128 0 0 0-120.32 85.333333H128a42.666667 42.666667 0 0 0 0 85.333334h562.346667A128 128 0 1 0 810.666667 384zM128 298.666667h50.346667a128 128 0 0 0 240.64 0H896a42.666667 42.666667 0 0 0 0-85.333334H418.986667a128 128 0 0 0-240.64 0H128a42.666667 42.666667 0 0 0 0 85.333334zM896 725.333333h-306.346667a128 128 0 0 0-240.64 0H128a42.666667 42.666667 0 0 0 0 85.333334h221.013333a128 128 0 0 0 240.64 0H896a42.666667 42.666667 0 0 0 0-85.333334z" p-id="1927"></path></svg>
                     <svg
                         @touchstart="handlePen($event)"
                         class="draw-icon pen"
-                        :style="{fill: changeDrawAction == 1 ? '#f14864': ''}" 
+                        :style="{fill: changeDrawAction == 1 ? color: ''}" 
                         t="1573031834722"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4617" width="128" height="128"><path d="M79.36 916.48h343.04v51.2H79.36z" fill="" p-id="4618"></path><path d="M550.4 916.48h376.32v51.2H550.4z" fill="" p-id="4619"></path><path d="M629.76 158.72l215.04 215.04L373.76 844.8l-215.04-215.04L629.76 158.72z m0 0" fill="" p-id="4620"></path><path d="M716.8 74.24l215.04 215.04-64 64-215.04-215.04L716.8 74.24z m0 0" fill="" p-id="4621"></path><path d="M138.24 652.8l215.04 215.04L51.2 952.32l87.04-299.52z m0 0" fill="" p-id="4622"></path><path d="M798.72 71.68L931.84 204.8c23.04 23.04 20.48 58.88-2.56 81.92-23.04 23.04-61.44 25.6-81.92 2.56l-133.12-133.12c-23.04-20.48-23.04-58.88 2.56-81.92 23.04-23.04 58.88-25.6 81.92-2.56z m0 0" fill="" p-id="4623"></path></svg>
                     <svg
                         @touchstart="handleRubber($event)"
                         class="draw-icon rubber"
-                        :style="{fill: changeDrawAction == 2 ? '#f14864': ''}"
+                        :style="{fill: changeDrawAction == 2 ? color: ''}"
                         t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
                     <svg
+                        v-if="isReplay"
                         @touchend="replay()"
                         class="draw-icon replay"
-                        t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782" fill="#dbdbdb"></path></svg>
+                        :style="{fill: isReplay ? color: ''}"
+                        t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782"></path></svg>
+                    
+                    <svg
+                        v-else
+                        :style="{fill: !isReplay ? color: ''}"
+                        @touchend="finish()"
+                        class="draw-icon finish"
+                        t="1573621583188"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1055" width="128" height="128"><path d="M678.528 642.304c0 17.6-14.4 32-32 32h-268.992a32 32 0 0 1-32-32V381.696a32 32 0 0 1 32-32h268.992c17.6 0 32 14.4 32 32v260.608z" p-id="1056"></path><path d="M1015.552 512.128a502.656 502.656 0 0 0-503.68-503.68 502.208 502.208 0 0 0-356.096 147.264 502.016 502.016 0 0 0-147.328 356.416 500.288 500.288 0 0 0 146.816 356.736 499.584 499.584 0 0 0 356.544 146.688c277.312-2.816 503.744-226.24 503.744-503.424z m-947.968 0a444.288 444.288 0 0 1 444.288-444.544c246.976 0 447.296 200.128 447.296 444.544 0 244.032-200.32 444.416-447.296 444.416a442.304 442.304 0 0 1-444.288-444.416z" p-id="1057"></path></svg>
                     <!-- 三角形 -->
                     <div  v-show="showMatching" class="triangle"></div>
                     <!-- 颜色  直线 虚线   粗细 -->
@@ -225,6 +235,7 @@ import { BlgSocket } from './workerSend'
         //1. props 验证   2.支持pc
         props:[
             'type',
+            'isReplay'
           ],
         data() {
             return {
@@ -297,6 +308,8 @@ import { BlgSocket } from './workerSend'
         },
         methods: {
             init(img){
+                // 连接--socket
+                this.socketInit()
                 // 初始化默认值
                 this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
                 this.pointLine = [] // 线 
@@ -330,9 +343,9 @@ import { BlgSocket } from './workerSend'
                 this.ctx.strokeStyle = this.color
                 this.renderCanvas()
 
-                // if (this.type == 2) {
-                //     this.replay()
-                // }
+                if (this.isReplay) {
+                    this.replay()
+                }
             },
             renderCanvas() {
                 const { width, height } = this.options
@@ -453,11 +466,6 @@ import { BlgSocket } from './workerSend'
                 //     y: this.limit(touch.pageY - rect.top, 2, height - 2) ,
                 // }
 
-                // 修改
-                // if (e) {
-                //     e.type 
-                    
-                // }
 
                 // TODO: 为什么定位了  位置就不准了  我猜测是  偏移位置也需要  缩放
                 const boundingClientRect = this.boundingClientRect
@@ -475,7 +483,11 @@ import { BlgSocket } from './workerSend'
                 return coordinate
             },
             // 所有的点击事件
+            finish() {
+                this.socketInstance.write({data: {}, event: 'writeIn'})
+            },
             handleMatching(e) {
+                 if(!this.sendData(e, 8)) return
                 // 1）touches：当前位于屏幕上的所有手指的列表。
                 // 2）targetTouches：位于当前DOM元素上手指的列表。
                 // 3）changedTouches：涉及当前事件手指的列表。 
@@ -485,36 +497,35 @@ import { BlgSocket } from './workerSend'
                     this.changeDrawAction = 1
                     this.showMatching = true
                 }
-                this.sendData(e, 8, '')
             },
             //  笔粗细 8
             handlePenWeight(e, weight) {
+                 if(!this.sendData(e, 11, weight)) return
                 this.weight = weight
-                this.sendData(e, 11, weight)
             },
             // 
             handlePenColor(e, color) {
+                 if(!this.sendData(e, 10, color)) return
                 this.color = color
                 this.ctx.strokeStyle = color
-                this.sendData(e, 10, color)
             },
             handlePenWriting(e, writing) {
+                 if(!this.sendData(e, 9, writing)) return
                 // 目前只有直线和 曲线
                 this.writing = writing
-                this.sendData(e, 9, writing)
             },
             handlePen(e) {
+                 if(!this.sendData(e, 7)) return
                 this.log('点击了画笔')
                 if (this.changeDrawAction == 1) {
                     this.changeDrawAction = -1
                 } else {
                     this.changeDrawAction = 1
                 }
-                // 这个有e吗
-                this.sendData(e, 7, '')
+                // 这个有e吗    
             },
             handleRubber(e) {
-                // e.preventDefault()
+                if(!this.sendData(e, 6)) return
                 // alert(123)
                 this.log('点击了橡皮')
                 if (this.changeDrawAction == 2) {
@@ -522,8 +533,6 @@ import { BlgSocket } from './workerSend'
                 } else {
                     this.changeDrawAction = 2
                 }
-                this.sendData(e, 6, '')
-                // this.renderCanvas()
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
@@ -557,17 +566,6 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                  // 画笔
                 if (this.changeDrawAction == 1) {
-
-
-                    /**
-                     *  直线
-                     */
-
-                    // 手动导入
-                    //  最新的终点
-                    // 只需要跑那根线就好了
-                    // this.handleEnd(this.getCoordinateByEvent(e))
-                   
                     
                     /**
                      *  画笔 
@@ -611,17 +609,10 @@ import { BlgSocket } from './workerSend'
                         ctx.stroke()
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         if (this.pointLine.length === 0) {
-                            try {
-                                this.pointLine.push({
-                                    x: drawPoint.x - image.x,
-                                    y: drawPoint.y - image.y
-                                })
-                            } catch (error) {
-                                console.error(error)
-                                console.error(drawPoint)
-                                console.error(image)
-                                throw error
-                            }
+                            this.pointLine.push({
+                                x: drawPoint.x - image.x,
+                                y: drawPoint.y - image.y
+                            })
                         }
                     } else {
                         // console.log('----------90909090--------------------------------')
@@ -641,17 +632,10 @@ import { BlgSocket } from './workerSend'
                         }
 
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        try {
-                            this.pointLine.push({
-                                x: drawPoint.x - image.x,
-                                y: drawPoint.y - image.y
-                            })
-                        } catch (error) {
-                            console.error(error)
-                            console.error(drawPoint)
-                            console.error(image)
-                            throw error
-                        }
+                        this.pointLine.push({
+                            x: drawPoint.x - image.x,
+                            y: drawPoint.y - image.y
+                        })
                     }
                     this.drawPoint = current
                     return
@@ -687,16 +671,6 @@ import { BlgSocket } from './workerSend'
                         return
                     }
 
-                    /**
-                     *  优化 橡皮移动过快造成 经过线 也没有删除
-                     *  TODO:  橡皮移动过 收益不大  --影响检查速度
-                     */
-                    // 上一个点  复制一下 是为了保存当前点  --但是上一个点 检测还要用到
-                    // const preve = { x: this.drawPoint.x, y: this.drawPoint.y }
-                    // this.drawPoint = { x, y }
-                    // const isFast = this.getDistance({pageX: x, pageY: y}, {pageX: preve.x, pageY: preve.y}) >= radius
-
-                    // const ctx  = this.ctx
                     const pointList = this.pointList
                     const image = this.image
                     this.log('进入橡皮先生' + '我是写' + '--type:' + this.type)
@@ -708,15 +682,10 @@ import { BlgSocket } from './workerSend'
                         const lineDis = element.lineWidth / 2 + radius
                         const lineLength = pointLine.length
                         // 还原最大 最小值
-                        const maxPonit = this.restPoint({x: element.maxX, y: element.maxY}, image, scale)
-                        const minPonit = this.restPoint({x: element.minX, y: element.minY}, image, scale)
-                        // 是 直线  > == 2
-                        // 是曲线 > 5
-                        // let number = 5  // 矩形宽高
-                        // (maxPonit.x - minPonit.x > number  || maxPonit.y - minPonit.y > number) &&
-                        //  直线如果距离太小也会 被拦下来
+                        const maxPonit = this.restPoint({ x: element.maxX, y: element.maxY }, image, scale)
+                        const minPonit = this.restPoint({ x: element.minX, y: element.minY }, image, scale)
+                        //  直线如果距离太小也会 被拦下来  处理放在了 计算 min和max 了
                         const time1 = new Date().getTime()
-                        // (Math.abs(maxPonit.x - minPonit.x) > number  &&  Math.abs(maxPonit.y - minPonit.y) > number) &&
                         if (
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
@@ -756,23 +725,7 @@ import { BlgSocket } from './workerSend'
                                     break
                                 }
                             }
-                            
-                            // TODO:  橡皮移动过 收益不大  --影响检查速度
-                            // if (isFast) {
-                            //     //  橡皮檫的距离大于 检测距离
-                            //     const rubberDis = this.distanceOfPoint2Line(preve, {x, y}, originPoint)
-                            //     // this.log( '橡皮跑的比较快了,线离当前点的距离为' + rubberDis + 'px' + '', 'red', 2)
-                            //         if (rubberDis <= lineDis) {
-                            //         this.sendData(e, 4, index)
-                            //         this.pointList.splice(index, 1)
-                            //         this.renderCanvas()
-                            //         // this.log('--------------快速橡皮删除的', '', 2)
-                            //         break
-                            //     }
-                            // }
                         }
-
-
                         this.log('index:' + index + ',这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
                         // 20
                     }
@@ -808,8 +761,6 @@ import { BlgSocket } from './workerSend'
                     // 给个正方形----- 
                     //  加个 maxX maxY  minX minY
                     const array = this.pointLine
-                   
-                   
                     //  初始化第一个  --不能默认0  有负值存在
                     let maxX = array[0].x, maxY = array[0].y,  minX = array[0].x, minY = array[0].y
                     for (let index = 1; index < array.length; index++) {
@@ -831,7 +782,7 @@ import { BlgSocket } from './workerSend'
                     const offset = 6
                     const pointObj = {
                         pointLine: this.pointLine,
-                        scale: e.scale || this.scale,
+                        scale: this.scale, //  e.scale || this.scale, 为什么 e.scale
                         lineWidth: this.weight,
                         color: this.color,
                         writing: this.writing,
@@ -842,7 +793,6 @@ import { BlgSocket } from './workerSend'
                         minY: minY - offset,
                     }
                     this.pointList.push(pointObj)
-                    // console.log(this.pointList)
                     this.pointLine = []
                 }
 
@@ -1071,7 +1021,6 @@ import { BlgSocket } from './workerSend'
                 img.src = this.getFileSrc(imgfile)
                 img.onload = () => { // 等到图片加载进来之后
                     getImageDirection(img).then(res => {
-                        this.socketInit()
                         if (res === 1) {
                             this.init(img)
                             this.$emit('imgLoaded')
@@ -1118,22 +1067,20 @@ import { BlgSocket } from './workerSend'
                 }
                 if (this.type === 1) {  // 是读  并且  原生操作   中断执行
                     return false
-                } 
-                
-               /**
-                * actionTypes
-                * 
-                * 1 start {touches: []}
-                * 2 move {touches: []}
-                * 3 end  {touches: []}
-                * 4 delete线  { index: 3 }
-                * 5 scale 缩放 { scale: 3 }
-                */
+                }
+                if (this.isReplay) {  // 是读  并且  原生操作   中断执行
+                    return false
+                }
+
+                // 是start move end 才需要记录坐标点
+                if (actionTypes == 2 || actionTypes == 1) {
+                    value =  Array.from(e.touches).map(e => ({pageX: e.pageX, pageY: e.pageY}))
+                }
 
                 // 优化数据结构 加快传输  我觉得没必要 
                 const data = {
                     // 不放进来 很多东西 要写三遍 
-                    value: value || Array.from(e.touches).map(e => ({pageX: e.pageX, pageY: e.pageY})),
+                    value,
                     actionTypes
                 }
                 if (actionTypes == 5) {
@@ -1241,23 +1188,24 @@ import { BlgSocket } from './workerSend'
                 return data * this.kScale
             },
             replay(id) {
-                this.isReplay = true
                 if (this.type == 1) {
                     return
                 }
                 if (this.RAFID) {
-                    window.cancelAnimationFrame(this.RAFID)
-                    this.RAFID = null
+                    return
                 }
+                // if (this.RAFID) {
+                //     window.cancelAnimationFrame(this.RAFID)
+                //     this.RAFID = null
+                // }
                  
 
                 // 先克隆数据  然后 初始化 所有状态
                 // -----
                 // const dataJSON = JSON.parse(JSON.stringify(this.recordData))
                 // 要捕捉所有动作
-                this.init(this.image.element)
                 // 初始化
-                const dataJSON = require('./time-1573197145646.json')
+                const dataJSON = require('./time-1573622474918.json')
                 const len = dataJSON.length
                 let startTime = null
                 // console.log(dataJSON[0])
@@ -1307,38 +1255,11 @@ import { BlgSocket } from './workerSend'
                     * 5 scale 缩放 { scale: number }
                     * 6 橡皮 ''
                     * 7 画笔 ''
-                    * 
+                    * 8 调色板
+                    * 9 线段风格
+                    * 10 笔颜色
+                    * 11 笔粗细
                     */ 
-
-            //         handleMatching() {
-            //     // 1）touches：当前位于屏幕上的所有手指的列表。
-            //     // 2）targetTouches：位于当前DOM元素上手指的列表。
-            //     // 3）changedTouches：涉及当前事件手指的列表。 
-            //     if ( this.showMatching) {
-            //         this.showMatching = false
-            //     } else {
-            //         this.changeDrawAction = 1
-            //         this.showMatching = true
-            //     }
-            //     this.sendData({}, 12, '')
-                
-            // },
-            // //  笔粗细 8
-            // handlePenWeight(weight) {
-            //     this.weight = weight
-            //     this.sendData({}, 11, weight)
-            // },
-            // // 
-            // handlePenColor(color) {
-            //     this.color = color
-            //     this.ctx.strokeStyle = color
-            //     this.sendData({}, 10, color)
-            // },
-            // handlePenWriting(writing) {
-            //     // 目前只有直线和 曲线
-            //     this.writing = writing
-            //     this.sendData({}, 9, writing)
-            // },
                 const { actionTypes, value } = data
                 switch (actionTypes) {
                     case 1: 
@@ -1350,7 +1271,7 @@ import { BlgSocket } from './workerSend'
                         this.log('移动', 'red', 3)
                         break
                     case 3: 
-                        this.handleEnd({ touches: this.dataScale(value) })
+                        this.handleEnd()
                         this.log('结束', 'red', 3)
                         break
                     case 4: 
@@ -1372,7 +1293,7 @@ import { BlgSocket } from './workerSend'
                         break
                     case 8: 
                         this.log('调色板', '#f60rrr', 3)
-                        this.handleMatching({})
+                        this.handleMatching()
                         break
                     case 9: 
                         this.log('线段风格', '#f60rrr', 3)
@@ -1393,7 +1314,11 @@ import { BlgSocket } from './workerSend'
             socketInit() {
                 // 初始化 socket
                 //  socketInit('ws://192.168.81.126:3000/')
-                this.socketInstance = new BlgSocket({ url: 'ws://192.168.81.126:3000/',  writeEvent: ['login', 'message', 'toOne', 'writeIn'], readEvent: ['message', 'toOne'] })
+                this.socketInstance = new BlgSocket({
+                    url: 'ws://192.168.81.126:3000/',
+                    writeEvent: ['login', 'message', 'toOne', 'writeIn'],
+                    readEvent: ['message', 'toOne']
+                })
 
                 this.socketInstance.write({data: {userid: new Date().getTime(), username: this.type == 2 ? '老师' : '学生', type: this.type}, event: 'login'})
 
