@@ -586,7 +586,7 @@ import { BlgSocket } from './workerSend'
                     
                     // 划线  第一个点 用beginPath
                     if (this.writing == 2 || this.writing == 4) { // 是直线
-
+                        const ctx = this.ctx2
                         // 直线 有延迟
                         // const ctx = this.ctx2
                         //  可以考虑把 -- 
@@ -594,14 +594,15 @@ import { BlgSocket } from './workerSend'
                         // {lable: '直线', value: 2},
                         // {lable: '虚线', value: 3},
                         // {lable: '虚直线', value: 4}
-                        this.renderCanvas() //  能不能在 第二个canvas 上画
-                        // 把 之前的所有点画上
+                        // this.renderCanvas() //  能不能在 第二个canvas 上画
+                        this.clearCtx2()
 
                         if (this.writing == 4) {
                             ctx.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
                         } else {
-                            ctx.setLineDash([1,0])
+                            ctx.setLineDash([])
                         }
+
                         ctx.beginPath()
                         ctx.strokeStyle = this.color
                         ctx.lineWidth = lineWidth
@@ -787,59 +788,9 @@ import { BlgSocket } from './workerSend'
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
-            scaleImage(scale, isRenderCanvas = true) {
-                this.scale = scale
-                const image = this.image
 
-                const width = image.clientWidth * scale
-                const height = image.clientHeight * scale
-
-                this.image.x += (image.width - width) / 2
-                this.image.y += (image.height - height) / 2
-                this.image.width = width
-                this.image.height = height
-
-                if (isRenderCanvas) {
-                    this.renderCanvas()
-                }
-            },
-            removeLine(index) {
-                this.pointList.splice(index, 1)
-                this.renderCanvas()
-            },
-            //  取整、、
-            // getInt(num) { 
-            //     let rounded;   
-            //     rounded = (0.5 + num) | 0
-            //     // A double bitwise not.
-            //     rounded = ~~ (0.5 + num)
-            //     // Finally, a left bitwise shift.
-            //     rounded = (0.5 + num) << 0
-            //     return rounded
-            // },
-            // 第二 画布 清屏
-            clearCtx2() {
-                const { width, height } = this.options
-                // 避免预览到背景
-                // canvas init
-                this.ctx2.clearRect(0, 0, width, height)
-            },
-            renderRubber(x, y, radius) {
-                this.log('橡皮的半径' + ('' + radius))
-                // 考虑 只做检测  不做渲染
-                // this.renderCanvas()
-                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
-                this.clearCtx2()
-                const rubberCtx = this.ctx2
-                const color = this.color
-                rubberCtx.strokeStyle = this.color
-                rubberCtx.fillStyle = color
-                rubberCtx.beginPath()
-                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
-                rubberCtx.fill()
-            },
             handleEnd(e){
-                this.clearCtx2()
+               
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
                 if (this.changeDrawAction == -1) return
@@ -894,11 +845,73 @@ import { BlgSocket } from './workerSend'
                     // console.log(this.pointList)
                     this.pointLine = []
                 }
-                // 最后把橡皮去掉
-                if (this.rubberAction) {
+
+
+                // 清除第二canvas 画布
+                if (this.changeDrawAction == 2 || this.writing == 2 || this.writing == 4) {
+                    this.clearCtx2()
+                }
+
+                // 直线的 橡皮画在-- 第二个canvas上
+                if(this.changeDrawAction == 1 && (this.writing == 2 || this.writing == 4)) {
                     this.renderCanvas()
                 }
+                // 解决橡皮插  会改变全局ctx.strokeStyle
+                if(this.changeDrawAction == 2) {
+                   this.ctx.strokeStyle = this.color
+                }
                 
+            },
+            scaleImage(scale, isRenderCanvas = true) {
+                this.scale = scale
+                const image = this.image
+
+                const width = image.clientWidth * scale
+                const height = image.clientHeight * scale
+
+                this.image.x += (image.width - width) / 2
+                this.image.y += (image.height - height) / 2
+                this.image.width = width
+                this.image.height = height
+
+                if (isRenderCanvas) {
+                    this.renderCanvas()
+                }
+            },
+            removeLine(index) {
+                this.pointList.splice(index, 1)
+                this.renderCanvas()
+            },
+            //  取整、、
+            // getInt(num) { 
+            //     let rounded;   
+            //     rounded = (0.5 + num) | 0
+            //     // A double bitwise not.
+            //     rounded = ~~ (0.5 + num)
+            //     // Finally, a left bitwise shift.
+            //     rounded = (0.5 + num) << 0
+            //     return rounded
+            // },
+            // 第二 画布 清屏
+            clearCtx2() {
+                const { width, height } = this.options
+                // 避免预览到背景
+                // canvas init
+                this.ctx2.clearRect(0, 0, width, height)
+            },
+            renderRubber(x, y, radius) {
+                this.log('橡皮的半径' + ('' + radius))
+                // 考虑 只做检测  不做渲染
+                // this.renderCanvas()
+                // //直接在这里画了  x y 全有  橡皮差 跟随 鼠标
+                this.clearCtx2()
+                const rubberCtx = this.ctx2
+                const color = this.color
+                rubberCtx.strokeStyle = this.color
+                rubberCtx.fillStyle = color
+                rubberCtx.beginPath()
+                rubberCtx.arc(x , y, radius, 0, Math.PI * 2, false)
+                rubberCtx.fill()
             },
            distanceOfPoint2Line(p1, p2, { x, y }) {
                 const A = x - p1.x
