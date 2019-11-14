@@ -290,7 +290,7 @@ import { BlgSocket } from './workerSend'
                 // lines: [],
                 // cropper: {},
                 // corePoint: {},
-                // startPoint: {},
+                // beginPoint: {},
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
@@ -340,7 +340,12 @@ import { BlgSocket } from './workerSend'
 
                 const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
                 this.maxRadius = Math.min(width, height) / 2
+
                 this.ctx.strokeStyle = this.color
+                this.ctx.lineJoin = 'round'
+                this.ctx.lineCap = 'round'
+                this.ctx.lineWidth = this.limit(this.weight, 1, 15)
+                
                 this.renderCanvas()
 
                 if (this.isReplay) {
@@ -365,7 +370,6 @@ import { BlgSocket } from './workerSend'
                 const pointList = this.pointList
                 const image = this.image
                 if (pointList.length == 0) return
-                ctx.lineCap = 'round'
                 pointList.forEach(el => {
                     const scale = this.scale / el.scale
 
@@ -384,26 +388,40 @@ import { BlgSocket } from './workerSend'
                     }
                     ctx.strokeStyle = el.color
                     const points = el.pointLine
-                    for (let i = 0; i < points.length; i++) {
-                        const element = points[i]
-                        const originPoint = this.restPoint(element, image, scale)
-                        if (i === 0) {
-                            // 要相对于图片的位置 才是对的  不能相对于 画布
-                            ctx.moveTo(originPoint.x, originPoint.y)
-                            continue
+                    // for (let i = 0; i < points.length; i++) {
+                        // const element = points[i]
+                        // const originPoint = this.restPoint(element, image, scale)
+                        // if (i === 0) {
+                        //     // 要相对于图片的位置 才是对的  不能相对于 画布
+                        //     ctx.moveTo(originPoint.x, originPoint.y)
+                        //     continue
+                        // }
+                        // ctx.lineTo(originPoint.x, originPoint.y)
+                        // }
+                        // ctx.stroke()
+
+                        ctx.beginPath()
+                        const numPoints = points.length
+                        for (let i = 0; i < numPoints; i++) {
+                            const originPointFirst = this.restPoint(points[i], image, scale)
+                           
+                            if (i == 0) {
+                                ctx.moveTo(originPointFirst.x, originPointFirst.y)
+                            } else if (i < numPoints - 2) {
+                                const originPointSecond = this.restPoint(points[i + 1], image, scale)
+                                const ctrlPoint = {
+                                    x: (originPointFirst.x + originPointSecond.x) / 2,
+                                    y: (originPointFirst.y + originPointSecond.y) / 2
+                                }
+                               ctx.quadraticCurveTo(originPointFirst.x, originPointFirst.y, ctrlPoint.x, ctrlPoint.y)
+                            } else if(i < numPoints - 1) {
+                                const originPointSecond = this.restPoint(points[i + 1], image, scale)
+                                ctx.quadraticCurveTo(originPointFirst.x, originPointFirst.y, originPointSecond.x, originPointSecond.y)
+                            }
                         }
-                        ctx.lineTo(originPoint.x, originPoint.y)
-                    }
-                    ctx.stroke()
+                        ctx.stroke()
+                    
                 })
-            },
-            // 先画在优化
-            drawLine(beginPoint, controlPoint, endPoint) {
-                ctx.beginPath()
-                ctx.moveTo(beginPoint.x, beginPoint.y)
-                ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y)
-                ctx.stroke()
-                ctx.closePath()
             },
             fillImage() {
                 const image = this.image
@@ -451,7 +469,7 @@ import { BlgSocket } from './workerSend'
             },
             // handleCropperMove({ x, y }) {
             //     const { width, height } = this.options;
-            //     const s = this.startPoint;
+            //     const s = this.beginPoint;
             //     const oX = s.offsetX;
             //     const oY = s.offsetY;
             //     const maxX = width - this.cropper.width;
@@ -508,12 +526,13 @@ import { BlgSocket } from './workerSend'
             },
             //  笔粗细 8
             handlePenWeight(e, weight) {
-                 if(!this.sendData(e, 11, weight)) return
+                if(!this.sendData(e, 11, weight)) return
                 this.weight = weight
+                this.ctx.lineWidth = this.limit(weight, 1, 15)
             },
             // 
             handlePenColor(e, color) {
-                 if(!this.sendData(e, 10, color)) return
+                if(!this.sendData(e, 10, color)) return
                 this.color = color
                 this.ctx.strokeStyle = color
             },
@@ -523,7 +542,7 @@ import { BlgSocket } from './workerSend'
                 this.writing = writing
             },
             handlePen(e) {
-                 if(!this.sendData(e, 7)) return
+                if(!this.sendData(e, 7)) return
                 this.log('点击了画笔')
                 if (this.changeDrawAction == 1) {
                     this.changeDrawAction = -1
@@ -555,14 +574,26 @@ import { BlgSocket } from './workerSend'
                     return
                 }
                 // 单指  起点
-                this.drawPoint = this.getCoordinateByEvent(e)
-                this.startPoint = this.getPointByCoordinate(this.drawPoint) // 判断点了 主要点是否 有东西
+                // 返回的 是真实点
+                this.beginPoint = this.getCoordinateByEvent(e)
+                // 返回的相对图片的点和 type
+                this.startPoint = this.getPointByCoordinate(this.beginPoint) // 判断点了 主要点是否 有东西
                 // --  画画
-                if (this.changeDrawAction != -1) {  //  changeDrawAction bar 点中了
+                if (this.changeDrawAction == 1) {  
                     // 上次肯定会被清掉
+                    // 划线专用的--
+                    this.drawPoint = this.beginPoint
+                    this.drawLine = []
+                    this.drawLine.push(this.beginPoint)
+                    // 保存专用
                     this.pointLine = []
-                    // 如果是直线 需要永远知道第一个点  在什么位置
-                    this.firstPoint = this.drawPoint
+                    this.pointLine.push({
+                        x: this.beginPoint.x - this.image.x,
+                        y: this.beginPoint.y - this.image.y
+                    })
+
+                    // // 如果是直线 需要永远知道第一个点  在什么位置 缓存第一个点
+                    // this.firstPoint = this.beginPoint
                 }
             },
             handleMove (e) {
@@ -582,13 +613,11 @@ import { BlgSocket } from './workerSend'
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const drawPoint = this.drawPoint
-                    const current = this.getCoordinateByEvent(e)
+                    const beginPoint = this.beginPoint
+                    const currentPonint = this.getCoordinateByEvent(e)
                     // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
                     const color =  this.color
-                    const lineWidth = this.limit(this.weight, 1, 15)
-                    ctx.lineCap = 'round'
                     
                     // 划线  第一个点 用beginPath
                     if (this.writing == 2 || this.writing == 4) { // 是直线
@@ -602,7 +631,7 @@ import { BlgSocket } from './workerSend'
                         // {lable: '虚直线', value: 4}
                         // this.renderCanvas() //  能不能在 第二个canvas 上画
                         this.clearCtx2()
-
+                        //  直线和  曲线的ctx 不是一个
                         if (this.writing == 4) {
                             ctx.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
                         } else {
@@ -610,42 +639,77 @@ import { BlgSocket } from './workerSend'
                         }
 
                         ctx.beginPath()
+                        //  this.drawPoint
                         ctx.strokeStyle = this.color
-                        ctx.lineWidth = lineWidth
-                        ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
-                        ctx.lineTo(current.x, current.y)
+                        ctx.lineWidth = this.limit(this.weight, 1, 15)
+                        ctx.moveTo(this.drawPoint.x, this.drawPoint.y)
+                        ctx.lineTo(currentPonint.x, currentPonint.y)
                         ctx.stroke()
-                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        if (this.pointLine.length === 0) {
-                            this.pointLine.push({
-                                x: drawPoint.x - image.x,
-                                y: drawPoint.y - image.y
-                            })
-                        }
-                    } else {
-                        // console.log('----------90909090--------------------------------')
-                        // console.log(drawPoint)
-                        if (this.pointLine.length == 0) {
-                            if (this.writing == 3) {
-                                ctx.setLineDash([5, 10])
-                            } else {
-                                ctx.setLineDash([])
+                        // 直线
+                        this.pointLine = [
+                            this.pointLine[0],
+                            {
+                                x: currentPonint.x - image.x,
+                                y: currentPonint.y - image.y
                             }
-                            ctx.beginPath()
-                            ctx.lineWidth = lineWidth                
-                            this.ctx.moveTo(drawPoint.x, drawPoint.y)
+                        ]
+                    } else {
+                        // if (this.pointLine.length == 0) {
+                        //     if (this.writing == 3) {
+                        //         ctx.setLineDash([5, 10])
+                        //     } else {
+                        //         ctx.setLineDash([])
+                        //     }
+                        //     ctx.beginPath()             
+                        //     this.ctx.moveTo(beginPoint.x, beginPoint.y)
+                        // } else {
+                        //     ctx.lineTo(currentPonint.x, currentPonint.y)
+                        //     ctx.stroke()
+                        // }
+
+                        //  this.beginPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
+                        // this.pointLine.push({
+                        //     x: beginPoint.x - image.x,
+                        //     y: beginPoint.y - image.y
+                        // })
+
+                        //  划线
+                        this.drawLine.push({
+                            x: currentPonint.x,
+                            y: currentPonint.y
+                        })
+                        // 保存专用
+                        this.pointLine.push({
+                            x: currentPonint.x - this.image.x,
+                            y: currentPonint.y - this.image.y
+                        })
+
+                        
+                        // 我push  不是 实际的值了
+                        if (this.writing == 3) {
+                            ctx.setLineDash([5, 10])
                         } else {
-                            ctx.lineTo(current.x, current.y)
-                            ctx.stroke()
+                            ctx.setLineDash([])
                         }
 
-                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        this.pointLine.push({
-                            x: drawPoint.x - image.x,
-                            y: drawPoint.y - image.y
-                        })
+                        const drawLine = this.drawLine
+                        const drawPoint = this.drawPoint
+                        if (drawLine.length > 3) {
+                            const lastTwoPoints = drawLine.slice(-2)
+                            const controlPoint = lastTwoPoints[0]
+                            const endPoint = {
+                                x: (lastTwoPoints[0].x + lastTwoPoints[1].x) / 2,
+                                y: (lastTwoPoints[0].y + lastTwoPoints[1].y) / 2,
+                            }
+                            ctx.beginPath()
+                            ctx.moveTo(drawPoint.x, drawPoint.y)
+                            ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y)
+                            ctx.stroke()
+                            this.drawPoint = endPoint
+                        }
+                        
+                        
                     }
-                    this.drawPoint = current
                     return
                 }
                 // if (this.type == 2) return 目前是可以
@@ -744,29 +808,35 @@ import { BlgSocket } from './workerSend'
                     return
                 }
                 // 这是干啥的--画=>图片和 线  移动
-                const type = this.startPoint ? this.startPoint.type : null
+                const type = this.startPoint  ? this.startPoint.type : null
                 if (type) { // && this.getCoordinateByEvent(e)
                     this[type](this.getCoordinateByEvent(e))
                 }
             },
 
             handleEnd(e){
-               
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
                 if (this.changeDrawAction == -1) return
-                
                 // 搜集点 进入画笔
                 // this.log(this.pointLine)
-                if (this.changeDrawAction == 1 && this.pointLine.length > 0) {
-                    const drawPoint = this.drawPoint
-                    const image = this.image
-                    this.pointLine.push({
-                        x: drawPoint.x - image.x,
-                        y: drawPoint.y - image.y
-                    })
+                const pointLineLen = this.pointLine.length
+                if (this.changeDrawAction == 1 && this.pointLine.length > 1) {
+                            
+                    this.ctx.quadraticCurveTo(
+                        this.drawLine[pointLineLen -1].x,
+                        this.drawLine[pointLineLen -1].y,
+                        this.drawLine[pointLineLen - 2].x,
+                        this.drawLine[pointLineLen - 2].y
+                    )
                     // 点的 宽度
-                    // 给个正方形----- 
+                    // 给个正方形-----
+                    // const points =  this.pointLine
+                    // const ctx = this.ctx
+                    // ctx.beginPath()
+                    // ctx.moveTo(points[points.length-2].x,points[points.length-2].y);
+                    // ctx.quadraticCurveTo(point[point.length-1].x,point[point.length-1].y,points[points.length-1].x,points[points.length-1].y)
+                    // ctx.stroke()
                     //  加个 maxX maxY  minX minY
                     const array = this.pointLine
                     //  初始化第一个  --不能默认0  有负值存在
@@ -802,6 +872,7 @@ import { BlgSocket } from './workerSend'
                     }
                     this.pointList.push(pointObj)
                     this.pointLine = []
+                    this.beginPoint = null
                 }
 
 
@@ -1082,6 +1153,7 @@ import { BlgSocket } from './workerSend'
 
                 // 是start move end 才需要记录坐标点
                 if (actionTypes == 2 || actionTypes == 1) {
+                    // 3  end 是没有 数组的  很奇怪
                     value =  Array.from(e.touches).map(e => ({pageX: e.pageX, pageY: e.pageY}))
                 }
 
@@ -1352,7 +1424,7 @@ import { BlgSocket } from './workerSend'
                                 scale: this.scale, // 缩放
                                 imageX: this.image.x, // 
                                 imageY: this.image.y, // 图片你位置
-                                drawPoint: this.drawPoint, // 前一个点
+                                beginPoint: this.beginPoint, // 前一个点
 
                                 weight: this.weight, // 线粗细
                                 writing: this.writing, // 书写线的 风格
@@ -1376,11 +1448,11 @@ import { BlgSocket } from './workerSend'
                             this.image.x = this.dataScale(originData.imageX)
                             this.image.y = this.dataScale(originData.imageY)
 
-                            // 刚刚 初始化 drawPoint 是没有的
-                            if (originData.drawPoint) {
-                                this.drawPoint = {
-                                    x: this.dataScale(originData.drawPoint.x),
-                                    y: this.dataScale(originData.drawPoint.y)
+                            // 刚刚 初始化 beginPoint 是没有的
+                            if (originData.beginPoint) {
+                                this.beginPoint = {
+                                    x: this.dataScale(originData.beginPoint.x),
+                                    y: this.dataScale(originData.beginPoint.y)
                                 }
                             }
 
