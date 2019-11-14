@@ -373,7 +373,7 @@ import { BlgSocket } from './workerSend'
                 pointList.forEach(el => {
                     const scale = this.scale / el.scale
 
-                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15) + 1
+                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
 
                     ctx.beginPath()
                     //  {lable: '书写', value: 1},
@@ -404,9 +404,13 @@ import { BlgSocket } from './workerSend'
                         const numPoints = points.length
                         for (let i = 0; i < numPoints; i++) {
                             const originPointFirst = this.restPoint(points[i], image, scale)
-                           
+
                             if (i == 0) {
                                 ctx.moveTo(originPointFirst.x, originPointFirst.y)
+                            } else if (el.writing == 2 || el.writing == 4) {
+                                 // 直线
+                                 console.log('------------------')
+                                ctx.lineTo(originPointFirst.x, originPointFirst.y)
                             } else if (i < numPoints - 2) {
                                 const originPointSecond = this.restPoint(points[i + 1], image, scale)
                                 const ctrlPoint = {
@@ -603,6 +607,7 @@ import { BlgSocket } from './workerSend'
                
                 const touches = e.touches
                 const image = this.image
+                this.ctx.lineWidth = this.limit(this.weight, 1, 15)
                  // 画笔
                 if (this.changeDrawAction == 1) {
                     
@@ -694,6 +699,11 @@ import { BlgSocket } from './workerSend'
 
                         const drawLine = this.drawLine
                         const drawPoint = this.drawPoint
+                         if (this.pointLine.length == 0) {
+                            ctx.beginPath()             
+                            ctx.moveTo(beginPoint.x, beginPoint.y)
+                        }
+
                         if (drawLine.length > 3) {
                             const lastTwoPoints = drawLine.slice(-2)
                             const controlPoint = lastTwoPoints[0]
@@ -823,12 +833,12 @@ import { BlgSocket } from './workerSend'
                 const pointLineLen = this.pointLine.length
                 if (this.changeDrawAction == 1 && this.pointLine.length > 1) {
                             
-                    this.ctx.quadraticCurveTo(
-                        this.drawLine[pointLineLen -1].x,
-                        this.drawLine[pointLineLen -1].y,
-                        this.drawLine[pointLineLen - 2].x,
-                        this.drawLine[pointLineLen - 2].y
-                    )
+                    // this.ctx.quadraticCurveTo(
+                    //     this.drawLine[pointLineLen -1].x,
+                    //     this.drawLine[pointLineLen -1].y,
+                    //     this.drawLine[pointLineLen - 2].x,
+                    //     this.drawLine[pointLineLen - 2].y
+                    // )
                     // 点的 宽度
                     // 给个正方形-----
                     // const points =  this.pointLine

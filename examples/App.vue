@@ -4,7 +4,7 @@
       style="width:100%;height:100%;background-color: #f1f3f5;"
       @change="change"
       :type="type"
-      :isReplay="false"
+      :isReplay="true"
     >
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
