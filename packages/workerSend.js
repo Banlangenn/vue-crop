@@ -22,15 +22,15 @@ export class BlgSocket {
             console.error('还没有准备好~~')
         }
         // 这是 普通的  -- webwork 怎么办
-        this.socket = io(url)
+        const socket = io(url)
         //  利用 props  去构造_read 和 _write 方法
         for (const item of readEvent) {
             //  监听 
-            this.socket.on(item,  (data) => {
+            socket.on(item,  (data) => {
                 this.readCallback({data, event: item})
             })
         }
-        this.writeFnMap = writeEvent.reduce((p, n) => (p[n] = v => { this.socket.emit(n, v)},p),{})
+        this.writeFnMap = writeEvent.reduce((p, n) => (p[n] = v => { socket.emit(n, v)},p),{})
     }
 
     read(cb){
@@ -52,7 +52,7 @@ export class BlgSocket {
             return
         }
 
-         // 不支持 webwork
+        // 不支持 webwork
         const writeFn = this.writeFnMap[value.event]
         if (!writeFn) {
             console.log(`readEvent 中没有 ${value.event} 事件`)
