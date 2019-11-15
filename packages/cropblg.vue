@@ -39,6 +39,7 @@
         }
         .active {
             background: #000;
+            // box-shadow: 0px 0px 15px 2px #fff; //1.水平阴影  2.垂直阴影 3.模糊距离，改虚实 4.阴影尺寸
         }
     }
     .draw-icon {
@@ -77,6 +78,9 @@
             width: 100%;
         }
     }
+    .animate {
+        transition: all 0.5s;
+    }
     .colors {
         display: flex;
         align-items: center;
@@ -86,11 +90,28 @@
         span  {
             display: inline-block;
             padding: 5px;
-             height: 27px;
+            height: 32px;
+            width: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            &.active {
+                // padding: 2px;
+                // transition: all 0.8s;
+                background: transparent;
+                box-shadow: initial;
+                i {
+                   
+                    width: 25px;
+                    height: 25px;
+                    border-width: 3px;
+                    box-shadow: 0px 0px 15px 2px #fff; //1.水平阴影  2.垂直阴影 3.模糊距离，改虚实 4.阴影尺寸
+                }
+            }
             i {
                 display: inline-block;
-                width: 22px;
-                height: 22px;
+                width: 20px;
+                height: 20px;
                 border-radius: 100px;
                 border: 2px solid #fff;
             }
@@ -175,6 +196,7 @@
                             :key="item.lable"
                             @touchstart="handlePenWriting($event,item.value)"
                             :class="{active: writing == item.value}"
+                            class="animate"
                             > {{item.lable}}</span>
                         </div>
                         <div class="colors">
@@ -188,7 +210,8 @@
                             </span>
                         </div>
                         <div class="pen-weight">
-                            <span 
+                            <span
+                                class="animate"
                                 v-for="item of penWeight"
                                 :key="item.lable"
                                 @touchstart="handlePenWeight($event, item.value)"
@@ -297,7 +320,7 @@ import { BlgSocket } from './workerSend'
                 weight: 2,
                 writing: 1, // 书写线的 风格
                 color: '#f14864',  // 颜色
-                showMatching: false,
+                showMatching: true,
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -408,9 +431,8 @@ import { BlgSocket } from './workerSend'
 
                             if (i == 0) {
                                 ctx.moveTo(originPointFirst.x, originPointFirst.y)
-                            } else if (el.writing == 2 || el.writing == 4) {
+                            } else if (numPoints < 3) {// (el.writing == 2 || el.writing == 4) {
                                  // 直线
-                                 console.log('------------------')
                                 ctx.lineTo(originPointFirst.x, originPointFirst.y)
                             } else if (i < numPoints - 2) {
                                 const originPointSecond = this.restPoint(points[i + 1], image, scale)
@@ -699,11 +721,12 @@ import { BlgSocket } from './workerSend'
                         }
 
                         // 划线
-                        const drawLine = this.drawLine
+                        let drawLine = this.drawLine
                         const drawPoint = this.drawPoint
-                         if (this.pointLine.length == 0) {
-                            ctx.beginPath()             
-                            ctx.moveTo(drawPoint.x, drawPoint.y)
+                        if (this.pointLine.length == 1) {
+                            // ctx.beginPath()             
+                            // ctx.moveTo(drawPoint.x, drawPoint.y)
+                            this.drawPoint = currentPonint
                         }
 
                         if (drawLine.length > 2) {
@@ -1472,6 +1495,7 @@ import { BlgSocket } from './workerSend'
                             this.image.y = this.dataScale(originData.imageY)
 
                             // 刚刚 初始化 beginPoint 是没有的
+                            this.drawLine = []
                             // if (originData.beginPoint) {
                             //     this.beginPoint = {
                             //         x: this.dataScale(originData.beginPoint.x),
