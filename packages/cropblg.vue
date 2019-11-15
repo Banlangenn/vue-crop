@@ -268,11 +268,12 @@ import { BlgSocket } from './workerSend'
 
 
 
-                changeDrawAction: -1,
+                changeDrawAction: 3,
                 // penColor: '',
                 //   penColor: '',
-                debug: false, // debug
+                debug: true, // debug
                 logLevel: 0,
+                logModule: 'rect', // 日志模块
                 
                 // ready: false,
                 noImage: true,
@@ -311,7 +312,7 @@ import { BlgSocket } from './workerSend'
                 // 连接--socket
                 this.socketInit()
                 // 初始化默认值
-                this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
+                this.changeDrawAction = 3 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
                 this.pointLine = [] // 线 
                 this.pointList = [] // 线 list
                 this.points = [] // 四方形 截图的点
@@ -340,7 +341,6 @@ import { BlgSocket } from './workerSend'
 
                 const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
                 this.maxRadius = Math.min(width, height) / 2
-                console.log( this.color)
                 this.ctx.strokeStyle = this.color
                 this.renderCanvas()
 
@@ -482,10 +482,11 @@ import { BlgSocket } from './workerSend'
             },
             // 所有的点击事件
             finish() {
-                this.socketInstance.write({data: {}, event: 'writeIn'})
+                this.changeDrawAction = 3
+                // this.socketInstance.write({data: {}, event: 'writeIn'})
             },
             handleMatching(e) {
-                 if(!this.sendData(e, 8)) return
+                if(!this.sendData(e, 8)) return
                 // 1）touches：当前位于屏幕上的所有手指的列表。
                 // 2）targetTouches：位于当前DOM元素上手指的列表。
                 // 3）changedTouches：涉及当前事件手指的列表。 
@@ -498,21 +499,21 @@ import { BlgSocket } from './workerSend'
             },
             //  笔粗细 8
             handlePenWeight(e, weight) {
-                 if(!this.sendData(e, 11, weight)) return
+                if(!this.sendData(e, 11, weight)) return
                 this.weight = weight
             },
             // 
             handlePenColor(e, color) {
-                 if(!this.sendData(e, 10, color)) return
+                if(!this.sendData(e, 10, color)) return
                 this.color = color
             },
             handlePenWriting(e, writing) {
-                 if(!this.sendData(e, 9, writing)) return
+                if(!this.sendData(e, 9, writing)) return
                 // 目前只有直线和 曲线
                 this.writing = writing
             },
             handlePen(e) {
-                 if(!this.sendData(e, 7)) return
+                if(!this.sendData(e, 7)) return
                 this.log('点击了画笔')
                 if (this.changeDrawAction == 1) {
                     this.changeDrawAction = -1
@@ -533,7 +534,7 @@ import { BlgSocket } from './workerSend'
             },
             // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
             handleStart(e) {
-                this.clearCtx2()
+                // this.clearCtx2()
                 if(!this.sendData(e, 1)) return
                 // 判断是不是 第一次触发 新动作
                 // alert(1)
@@ -558,10 +559,30 @@ import { BlgSocket } from './workerSend'
                 // 判断是不是 读的一端
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
-               
                 const touches = e.touches
                 const image = this.image
                 const currentPoint = this.getCoordinateByEvent(e)
+                 const drawPoint = this.drawPoint
+                const lineWidth = this.limit(this.weight, 1, 15)
+                // 矩形
+                if (this.changeDrawAction == 3) {
+                    this.clearCtx2()
+                    // console.log('矩形')
+                    this.log('矩形模式', 'red', 2, 'rect')
+                    const ctx = this.ctx2
+                    const firstPoint = this.firstPoint
+                    ctx.beginPath()
+                    ctx.strokeStyle = this.color
+                    ctx.lineWidth = lineWidth
+                    ctx.rect(firstPoint.x, firstPoint.y, currentPoint.x - this.firstPoint.x, currentPoint.y - this.firstPoint.y)
+                    ctx.stroke()
+                    // 画辅助线
+                    return
+                }
+
+
+
+
                  // 画笔
                 if (this.changeDrawAction == 1) {
                     
@@ -572,11 +593,8 @@ import { BlgSocket } from './workerSend'
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const drawPoint = this.drawPoint
-                    const currentPoint = this.getCoordinateByEvent(e)
                     const ctx = this.ctx
                     const color =  this.color
-                    const lineWidth = this.limit(this.weight, 1, 15)
                     ctx.lineCap = 'round'
                     // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
                     ctx.strokeStyle = color
@@ -948,7 +966,9 @@ import { BlgSocket } from './workerSend'
                 }
                 return value
             },
-            log(value, color='default', level=1) {
+            log(value, color='default', level=1, module) {
+                //-- 打印相应模块  和 等级的 log
+                if (this.logModule && module !== this.logModule) return
                 if (level < this.logLevel) return
                 // 日志分为 NONE，DEBUG，INFO，WARN 和 ERROR 5 个级别。
                 if(!this.debug) return
