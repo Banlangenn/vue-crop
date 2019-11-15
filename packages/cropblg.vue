@@ -340,6 +340,7 @@ import { BlgSocket } from './workerSend'
 
                 const corePoint = this.corePoint = {x: width / 2 ,y : height / 2} 
                 this.maxRadius = Math.min(width, height) / 2
+                console.log( this.color)
                 this.ctx.strokeStyle = this.color
                 this.renderCanvas()
 
@@ -397,20 +398,9 @@ import { BlgSocket } from './workerSend'
                     ctx.stroke()
                 })
             },
-            // 先画在优化
-            drawLine(beginPoint, controlPoint, endPoint) {
-                ctx.beginPath()
-                ctx.moveTo(beginPoint.x, beginPoint.y)
-                ctx.quadraticCurveTo(controlPoint.x, controlPoint.y, endPoint.x, endPoint.y)
-                ctx.stroke()
-                ctx.closePath()
-            },
             fillImage() {
                 const image = this.image
-                const ctx = this.ctx
-                const rotateAngle = this.rotateAngle
-                // this.canvasRotate('img', ctx, image.element, rotateAngle, image.x, image.y, image.width, image.height)
-                ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
+                this.ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
             },
             handleImageMove ({ x, y }) {
                 const s = this.startPoint
@@ -515,7 +505,6 @@ import { BlgSocket } from './workerSend'
             handlePenColor(e, color) {
                  if(!this.sendData(e, 10, color)) return
                 this.color = color
-                this.ctx.strokeStyle = color
             },
             handlePenWriting(e, writing) {
                  if(!this.sendData(e, 9, writing)) return
@@ -572,6 +561,7 @@ import { BlgSocket } from './workerSend'
                
                 const touches = e.touches
                 const image = this.image
+                const currentPoint = this.getCoordinateByEvent(e)
                  // 画笔
                 if (this.changeDrawAction == 1) {
                     
@@ -583,12 +573,14 @@ import { BlgSocket } from './workerSend'
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
                     const drawPoint = this.drawPoint
-                    const current = this.getCoordinateByEvent(e)
-                    // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
+                    const currentPoint = this.getCoordinateByEvent(e)
                     const ctx = this.ctx
                     const color =  this.color
                     const lineWidth = this.limit(this.weight, 1, 15)
                     ctx.lineCap = 'round'
+                    // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
+                    ctx.strokeStyle = color
+                    ctx.lineWidth = lineWidth
                     
                     // 划线  第一个点 用beginPath
                     if (this.writing == 2 || this.writing == 4) { // 是直线
@@ -613,7 +605,7 @@ import { BlgSocket } from './workerSend'
                         ctx.strokeStyle = this.color
                         ctx.lineWidth = lineWidth
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
-                        ctx.lineTo(current.x, current.y)
+                        ctx.lineTo(currentPoint.x, currentPoint.y)
                         ctx.stroke()
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         if (this.pointLine.length === 0) {
@@ -633,9 +625,10 @@ import { BlgSocket } from './workerSend'
                             }
                             ctx.beginPath()
                             ctx.lineWidth = lineWidth                
-                            this.ctx.moveTo(drawPoint.x, drawPoint.y)
+                            ctx.moveTo(drawPoint.x, drawPoint.y)
+                            ctx.lineTo(currentPoint.x, currentPoint.y)
                         } else {
-                            ctx.lineTo(current.x, current.y)
+                            ctx.lineTo(currentPoint.x, currentPoint.y)
                             ctx.stroke()
                         }
 
@@ -645,32 +638,12 @@ import { BlgSocket } from './workerSend'
                             y: drawPoint.y - image.y
                         })
                     }
-                    this.drawPoint = current
+                    this.drawPoint = currentPoint
                     return
                 }
-                // if (this.type == 2) return 目前是可以
-                // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
-                if (touches.length > 1 && this.changeDrawAction == -1) {
-                    if (this.type == 1) {
-                        return
-                    }
-                    let startTouches = this.startTouches
-                    let k; // 最终的缩放系数
-                    const scale = this.scale;
-                    // const offset = e.deltaY / 800;
-                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
-                    // k = k < 1 ? k / 10 : k * 10
-                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 140
-                    k = this.limit(k * scale, 0.5,1.2);
-                    // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
-                    this.sendData(e, 5, k)
-                    this.scaleImage(k)
-                    return
-                }
-               
                 // 橡皮
-                if (this.changeDrawAction == 2) { 
-                    const { x, y } = this.getCoordinateByEvent(e)
+                if (this.changeDrawAction == 2) {
+                    const { x, y } = currentPoint
                     const radius = 12
                     this.clearCtx2()
                     this.renderRubber(x, y, radius)
@@ -743,15 +716,32 @@ import { BlgSocket } from './workerSend'
                         (new Date().getTime() - time) + 'ms', 'red', 5)
                     return
                 }
+
+                // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
+                if (touches.length > 1 && this.changeDrawAction == -1) {
+                    let startTouches = this.startTouches
+                    let k; // 最终的缩放系数
+                    const scale = this.scale;
+                    // const offset = e.deltaY / 800;
+                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+                    // k = k < 1 ? k / 10 : k * 10
+                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 140
+                    k = this.limit(k * scale, 0.5,1.2);
+                    // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
+                    this.sendData(e, 5, k)
+                    this.scaleImage(k)
+                    return
+                }
+                
                 // 这是干啥的--画=>图片和 线  移动
                 const type = this.startPoint ? this.startPoint.type : null
                 if (type) { // && this.getCoordinateByEvent(e)
-                    this[type](this.getCoordinateByEvent(e))
+                    this[type](currentPoint)
                 }
             },
 
             handleEnd(e){
-               
+               //  结束对 延迟的 感知很小-- 可以把计算量大的都移动到 这部分来
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
                 if (this.changeDrawAction == -1) return
@@ -787,7 +777,7 @@ import { BlgSocket } from './workerSend'
                         }
                     }
                      // 会有 明明在范围内 检测不到--- 范围太小了 加一点
-                    const offset = 6
+                    const offset = 4
                     const pointObj = {
                         pointLine: this.pointLine,
                         scale: this.scale, //  e.scale || this.scale, 为什么 e.scale
@@ -804,7 +794,9 @@ import { BlgSocket } from './workerSend'
                     this.pointLine = []
                 }
 
-
+                /**
+                 *  结束事件 对延迟没什么要求------ 
+                 */
                 // 清除第二canvas 画布
                 if (this.changeDrawAction == 2 || this.writing == 2 || this.writing == 4) {
                     this.clearCtx2()
@@ -820,7 +812,7 @@ import { BlgSocket } from './workerSend'
                 }
                 
             },
-            scaleImage(scale, isRenderCanvas = true) {
+            scaleImage(scale) {
                 this.scale = scale
                 const image = this.image
 
@@ -832,9 +824,8 @@ import { BlgSocket } from './workerSend'
                 this.image.width = width
                 this.image.height = height
 
-                if (isRenderCanvas) {
-                    this.renderCanvas()
-                }
+                this.renderCanvas()
+
             },
             removeLine(index) {
                 this.pointList.splice(index, 1)
@@ -928,38 +919,14 @@ import { BlgSocket } from './workerSend'
             // start 就触发
             getPointByCoordinate({x, y}) {
                 this.log('触发检测 点击区域')
+                if (this.changeDrawAction !== -1) {
+                    return
+                }
                 const image = this.image
                 let t = {}
-                let index = 0
+                // let index = 0
                 //  旋转
-                if (this.paintBrush && this.checkRegion(x, y, this.paintBrush)) {
-                    this.log('点击了画笔')
-                    if (this.changeDrawAction == 1) {
-                        this.changeDrawAction = -1
-                    } else {
-                        this.changeDrawAction = 1
-                    }
-                    this.renderCanvas()
-                    // this.drawActionText = 'brush'
-                    return
-                } else if (this.rubberBar && this.checkRegion(x, y, this.rubberBar)) {
-                    // 橡皮
-                    this.log('点击了橡皮')
-                    if (this.changeDrawAction == 2) {
-                        this.changeDrawAction = -1
-                    } else {
-                        this.changeDrawAction = 2
-                    }
-                    this.renderCanvas()
-                    // this.drawActionText = 'rubber'
-                    return
-                } else if (this.revokeBar && this.checkRegion(x, y, this.revokeBar) && this.changeDrawAction == -1) {
-                    this.log('点击了撤回')
-                    this.pointList.pop()
-                    this.renderCanvas()
-                    return
-                    
-                } else if (this.checkRegion(x, y, image)) {
+                if (this.checkRegion(x, y, image)) {
                     t.offsetX = x - image.x
                     t.offsetY = y - image.y
                     t.type = 'handleImageMove' 
@@ -1283,8 +1250,7 @@ import { BlgSocket } from './workerSend'
                         this.log('结束', 'red', 3)
                         break
                     case 4: 
-                        this.pointList.splice(value, 1)
-                        this.renderCanvas()
+                        this.removeLine(value)
                         this.log('删除线', 'orange', 3)
                         break
                     case 5: 
@@ -1390,7 +1356,6 @@ import { BlgSocket } from './workerSend'
                             this.showMatching = originData.showMatching
                             // 自带renderCanvas
                             this.scaleImage(this.dataScale(originData.scale))
-                            // this.renderCanvas()
                         }
                     } 
                 })
