@@ -309,7 +309,8 @@ import { BlgSocket } from './workerSend'
         methods: {
             init(img){
                 // 连接--socket
-                this.socketInit()
+                // this.socketInit('ws://192.168.31.117:3000/')
+                this.socketInit('ws://192.168.81.126:3000/')
                 // 初始化默认值
                 this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
                 this.pointLine = [] // 线 
@@ -579,21 +580,21 @@ import { BlgSocket } from './workerSend'
                 }
                 // 单指  起点
                 // 返回的 是真实点
-                this.beginPoint = this.getCoordinateByEvent(e)
+                this.drawPoint = this.getCoordinateByEvent(e)
                 // 返回的相对图片的点和 type
-                this.startPoint = this.getPointByCoordinate(this.beginPoint) // 判断点了 主要点是否 有东西
+                this.startPoint = this.getPointByCoordinate(this.drawPoint) // 判断点了 主要点是否 有东西
                 // --  画画
                 if (this.changeDrawAction == 1) {  
                     // 上次肯定会被清掉
                     // 划线专用的--
-                    this.drawPoint = this.beginPoint
+                    // this.drawPoint = this.beginPoint
                     this.drawLine = []
-                    this.drawLine.push(this.beginPoint)
+                    this.drawLine.push(this.drawPoint)
                     // 保存专用
                     this.pointLine = []
                     this.pointLine.push({
-                        x: this.beginPoint.x - this.image.x,
-                        y: this.beginPoint.y - this.image.y
+                        x: this.drawPoint.x - this.image.x,
+                        y: this.drawPoint.y - this.image.y
                     })
 
                     // // 如果是直线 需要永远知道第一个点  在什么位置 缓存第一个点
@@ -618,7 +619,7 @@ import { BlgSocket } from './workerSend'
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const beginPoint = this.beginPoint
+ 
                     const currentPonint = this.getCoordinateByEvent(e)
                     // const current = {x: Math.floor(), y: Math.floor(tempCurrent.y)}
                     const ctx = this.ctx
@@ -697,14 +698,15 @@ import { BlgSocket } from './workerSend'
                             ctx.setLineDash([])
                         }
 
+                        // 划线
                         const drawLine = this.drawLine
                         const drawPoint = this.drawPoint
                          if (this.pointLine.length == 0) {
                             ctx.beginPath()             
-                            ctx.moveTo(beginPoint.x, beginPoint.y)
+                            ctx.moveTo(drawPoint.x, drawPoint.y)
                         }
 
-                        if (drawLine.length > 3) {
+                        if (drawLine.length > 2) {
                             const lastTwoPoints = drawLine.slice(-2)
                             const controlPoint = lastTwoPoints[0]
                             const endPoint = {
@@ -839,14 +841,23 @@ import { BlgSocket } from './workerSend'
                     //     this.drawLine[pointLineLen - 2].x,
                     //     this.drawLine[pointLineLen - 2].y
                     // )
-                    // 点的 宽度
-                    // 给个正方形-----
+                    const ctx = this.ctx
+                    ctx.beginPath()
+                    ctx.moveTo(this.drawPoint.x, this.drawPoint.y)
+                    ctx.lineTo(this.drawLine[pointLineLen-1].x, this.drawLine[pointLineLen-1].y)
+                    ctx.stroke()
                     // const points =  this.pointLine
                     // const ctx = this.ctx
                     // ctx.beginPath()
                     // ctx.moveTo(points[points.length-2].x,points[points.length-2].y);
                     // ctx.quadraticCurveTo(point[point.length-1].x,point[point.length-1].y,points[points.length-1].x,points[points.length-1].y)
                     // ctx.stroke()
+
+
+
+
+                    // 点的 宽度
+                    // 给个正方形-----
                     //  加个 maxX maxY  minX minY
                     const array = this.pointLine
                     //  初始化第一个  --不能默认0  有负值存在
@@ -881,8 +892,10 @@ import { BlgSocket } from './workerSend'
                         minY: minY - offset,
                     }
                     this.pointList.push(pointObj)
+                    // 初始化 写划线的 零时值
                     this.pointLine = []
-                    this.beginPoint = null
+                    this.drawPoint = null
+                    this.drawLine = []
                 }
 
 
@@ -1401,11 +1414,11 @@ import { BlgSocket } from './workerSend'
                         break
                 }
             },
-            socketInit() {
+            socketInit(url) {
                 // 初始化 socket
                 //  socketInit('ws://192.168.81.126:3000/')
                 this.socketInstance = new BlgSocket({
-                    url: 'ws://192.168.81.126:3000/',
+                    url,
                     writeEvent: ['login', 'message', 'toOne', 'writeIn'],
                     readEvent: ['message', 'toOne']
                 })
@@ -1434,7 +1447,7 @@ import { BlgSocket } from './workerSend'
                                 scale: this.scale, // 缩放
                                 imageX: this.image.x, // 
                                 imageY: this.image.y, // 图片你位置
-                                beginPoint: this.beginPoint, // 前一个点
+
 
                                 weight: this.weight, // 线粗细
                                 writing: this.writing, // 书写线的 风格
@@ -1459,12 +1472,12 @@ import { BlgSocket } from './workerSend'
                             this.image.y = this.dataScale(originData.imageY)
 
                             // 刚刚 初始化 beginPoint 是没有的
-                            if (originData.beginPoint) {
-                                this.beginPoint = {
-                                    x: this.dataScale(originData.beginPoint.x),
-                                    y: this.dataScale(originData.beginPoint.y)
-                                }
-                            }
+                            // if (originData.beginPoint) {
+                            //     this.beginPoint = {
+                            //         x: this.dataScale(originData.beginPoint.x),
+                            //         y: this.dataScale(originData.beginPoint.y)
+                            //     }
+                            // }
 
                             this.weight = originData.weight
                             this.writing = originData.writing
