@@ -295,7 +295,7 @@ import { BlgSocket } from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                geometry: 4, // 矩形
+                geometry: 2, // 矩形
                 weight: 2,
                 writing: 1, // 书写线的 风格
                 color: '#f14864',  // 颜色
@@ -898,12 +898,23 @@ import { BlgSocket } from './workerSend'
 
                 // 圆形
                 if (geometry == 4) {
-                     //  圆心
-                    const second = points[3] ? points[3] : points[1]
-                    // 还有一个 --------------
-                    const midpoin = this.circleMidpoin = this.getMidpoint(points[0], second)
 
-                    const radius = this.circleRadius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: midpoin.x, pageY: midpoin.y})
+                    // 圆形可以当做正方形来做  圆心就是 中间  半径就是 边长 / 
+                     //  圆心
+                     let midpoin, radius
+                    // ----------------
+                    if (points.length == 2 || this.index == 3 || this.index == 0) {
+                        const second = points[3] ? points[3] : points[1]
+                        // 1 3  0 2
+                        // 还有一个 --------------
+                        midpoin = this.circleMidpoin = this.getMidpoint(points[0], second)
+                        radius = this.circleRadius = this.getDistance({pageX: second.x, pageY: second.y}, {pageX: midpoin.x, pageY: midpoin.y})
+                    } else {
+                        midpoin = this.circleMidpoin = this.getMidpoint(points[2], points[1])
+                        radius = this.circleRadius = this.getDistance({pageX: points[2].x, pageY: points[2].y}, {pageX: midpoin.x, pageY: midpoin.y})
+                    }
+                    
+                    
                     // 需要把 这个 值存起来-- 下次点击 判断是否在线上需要用
                     ctx.beginPath()
                     ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
@@ -1167,6 +1178,7 @@ import { BlgSocket } from './workerSend'
                     t.x = x 
                     t.y = y 
                     this.oldPointLine = this.pointLine.slice()
+                    console.log(this.oldPointLine)
                 } else if (this.changeDrawAction ==  -1 && this.checkRegion(x, y, image)) {
                 // 图片
                     t.offsetX = x - image.x
@@ -1180,8 +1192,13 @@ import { BlgSocket } from './workerSend'
                 if (this.geometry == 4) {
                     console.log(this.geometry)
                     // 这个圆形和 四边形一样的逻辑
-                    const  currentPoint = this.pointLine[this.index]
-                    this.pointLine.splice(this.index, 1, {x: currentPoint.x, y: point.y})
+                        const  currentPoint = this.pointLine[this.index]
+                    if (this.index == 3 || this.index == 0) {
+                        this.pointLine.splice(this.index, 1, {x: currentPoint.x, y: point.y})
+                    } else {
+                        this.pointLine.splice(this.index, 1, {x: point.x, y: currentPoint.y})
+                    }
+                    
 
                 } else if (this.geometry == 2 || this.geometry == 4) {
                     //  相邻 两个控制点 要变
@@ -1279,15 +1296,13 @@ import { BlgSocket } from './workerSend'
                 const currentX = x - s.x 
                 const currentY =  y - s.y
 
-
                 this.pointLine = this.oldPointLine.map(e => {
                     return {
                         x: this.limit(e.x + currentX, 10, maxX) ,
                         y: this.limit(e.y + currentY, 10, maxY)
                     }
                 })
-    
-
+      
 
                 this.renderGeometry(this.pointLine, 10, true)
                 // 判断边界
