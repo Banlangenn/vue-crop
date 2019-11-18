@@ -579,7 +579,7 @@ import { BlgSocket } from './workerSend'
                         case 1:
                             // 三角形
                             points = [
-                                {x: firstPoint.x, y: firstPoint.y },
+                                // {x: firstPoint.x, y: firstPoint.y },
                                 {x: firstPoint.x, y: currentPoint.y },
                                 {x: currentPoint.x, y: currentPoint.y },
                                 {x: firstPoint.x, y: firstPoint.y },
@@ -588,7 +588,7 @@ import { BlgSocket } from './workerSend'
                         case 2:
                             // 四边形
                             points = [
-                                 {x: firstPoint.x, y: firstPoint.y },
+                                //  {x: firstPoint.x, y: firstPoint.y },
                                 {x: currentPoint.x, y: firstPoint.y },
                                 {x: currentPoint.x, y: currentPoint.y},
                                 {x: firstPoint.x, y: currentPoint.y },
@@ -599,7 +599,7 @@ import { BlgSocket } from './workerSend'
                             // 梯形
                             const rectLength = (currentPoint.x - firstPoint.x) / 3
                             points = [
-                                  {x: firstPoint.x, y: firstPoint.y },
+                                // {x: firstPoint.x, y: firstPoint.y },
                                 {x: currentPoint.x  - rectLength, y: firstPoint.y },
                                 {x: currentPoint.x, y: currentPoint.y},
                                 {x: firstPoint.x - rectLength, y: currentPoint.y },
@@ -608,7 +608,16 @@ import { BlgSocket } from './workerSend'
                             break
                       case 4:
                         //   圆形
+                            // 4 个点
                             points = [firstPoint, currentPoint]
+                            // const midpoin = this.circleMidpoin = this.getMidpoint(points[0], points[1])
+                            // const circleRadius = this.circleRadius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: midpoin.x, pageY: midpoin.y})
+                            // const arr = [
+                            //     {x: midpoin.x, y: midpoin.y - circleRadius - radius},
+                            //     {x: midpoin.x + circleRadius y: midpoin.y - radius},
+                            //     {x: midpoin.x - radius, y: midpoin.y + circleRadius - radius},
+                            //     {x: midpoin.x - circleRadius - radius, y: midpoin.y - radius},
+                            // ]
                             break;
                     
                         default:
@@ -803,13 +812,7 @@ import { BlgSocket } from './workerSend'
             handleEnd(e){
                //  结束对 延迟的 感知很小-- 可以把计算量大的都移动到 这部分来
 
-               const radius = 10 // 辅助的 圆球半径
-               if (this.changeDrawAction == 4) {
-                    this.rectControlPoint = this.pointLine.map(item=> (
-                        { x: item.x - radius, y: item.y - radius, width: radius * 2, height: radius * 2 }
-                    ))
-                    return 
-               }  
+               const radius = 10 // 辅助的 圆球半径 
 
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
@@ -819,9 +822,6 @@ import { BlgSocket } from './workerSend'
                     //  待确认状态
                     this.changeDrawAction = 4
                     // 获取可滑动的 控制点
-                    this.rectControlPoint = this.pointLine.map(item=> (
-                        { x: item.x - radius, y: item.y - radius, width: radius * 2, height: radius * 2 }
-                    ))
                     return
                 }
                 // 搜集点 进入画笔
@@ -899,49 +899,94 @@ import { BlgSocket } from './workerSend'
                 // 圆形
                 if (geometry == 4) {
                      //  圆心
-                    const radius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: points[1].x, pageY: points[1].y})
+                    const second = points[3] ? points[3] : points[1]
+                    // 还有一个 --------------
+                    const midpoin = this.circleMidpoin = this.getMidpoint(points[0], second)
+
+                    const radius = this.circleRadius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: midpoin.x, pageY: midpoin.y})
                     // 需要把 这个 值存起来-- 下次点击 判断是否在线上需要用
-                    this.circleRadius = radius
-                    
                     ctx.beginPath()
-                    const central = points[0]
-                    ctx.arc(central.x, central.y, 1, 0, 2 * Math.PI)
+                    ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
                     ctx.stroke()
 
                     // 圆圈
                     ctx.beginPath()
-                    ctx.arc(central.x, central.y, radius, 0, 2 * Math.PI)
+                    ctx.arc(midpoin.x, midpoin.y, radius , 0, 2 * Math.PI)
                     ctx.stroke()
-                    // if (isAuxiliary) {
-                    //     this.auxiliaryLine(ctx, points, 0)
-                    // }
-                    return
+                   
+                } else {
+                     // 多边形
+                    //  测试 两个循环快-- 线越多 越明显
+                    ctx.beginPath()
+                    const startPoint = points.slice(-1)[0]
+                    ctx.moveTo(startPoint.x, startPoint.y)
+                    for (let index = 0; index < points.length; index++) {
+                        const item = points[index]
+                        ctx.lineTo(item.x, item.y)
+                    }
+                    ctx.stroke()
                 }
 
-                // 多边形
-                //  测试 两个循环快-- 线越多 越明显
-                ctx.beginPath()
-                const startPoint = points[0]
-                ctx.moveTo(startPoint.x, startPoint.y)
-                for (let index = 1; index < points.length; index++) {
-                    const item = points[index]
-                    ctx.lineTo(item.x, item.y)
-                }
-                ctx.stroke()
+               
                 if (isAuxiliary) {
-                    for (let index = 1; index < points.length; index++) {
-                        const item = points[index]
+                    this.rectControlPoint = this.getControlPoint(points)
+                    for (let index = 0; index < this.rectControlPoint.length; index++) {
+                        const item =  this.rectControlPoint[index]
                         ctx.beginPath()
                         ctx.arc(item.x, item.y, radius, 0, 2 * Math.PI)
                         ctx.fill();  
                         ctx.stroke()
                     }
                     // 画辅助线
-                    this.auxiliaryLine(ctx, points, radius)
+                    this.drawAuxiliaryLine(ctx, this.pointLine)
                 }   
             },
-            auxiliaryLine(ctx, points, offset) {
-                const { maxX, maxY, minX, minY } = this.getCritica(points, offset)
+            // 获取控制点
+            getControlPoint(points) {
+                const radius = 10
+                if (this.geometry == 4) {
+                    // 圆形 都要特殊处理
+                    const midpoin = this.circleMidpoin
+                    const circleRadius = this.circleRadius 
+
+                    const arr = [
+                        {x: midpoin.x, y: midpoin.y - circleRadius, width: radius * 2, height: radius * 2},
+                        {x: midpoin.x + circleRadius, y: midpoin.y, width: radius * 2, height: radius * 2},
+                        {x: midpoin.x - circleRadius , y: midpoin.y, width: radius * 2, height: radius * 2},
+                        {x: midpoin.x, y: midpoin.y + circleRadius, width: radius * 2, height: radius * 2},
+                    ]
+                    this.pointLine = arr
+                    
+                    return arr
+
+                }
+               
+                return points.map(item=> (
+                    { x: item.x, y: item.y, width: radius * 2, height: radius * 2 }
+                ))
+            },
+            //  画辅助线
+            drawAuxiliaryLine(ctx, points) {
+                let maxX, maxY, minX, minY
+                // if (this.geometry == 4) {
+                //     const midpoin = this.circleMidpoin
+                //     const radius = this.circleRadius 
+
+                //     // 4 个控制点  和max  min 一样、
+                //     // 起点 和终点是  控制点 
+                //     maxX = midpoin.x + radius + 10
+                //     maxY = midpoin.y + radius + 10
+                //     minX = midpoin.x - radius - 10
+                //     minY = midpoin.y - radius - 10
+       
+                // } else {
+                    const options = this.getCritica(points, 10)
+                    //  圆的最大最小值-不一样  他的最大最小值 和 控制线一样
+                    maxX = options.maxX
+                    maxY = options.maxY
+                    minX = options.minX
+                    minY = options.minY
+                // }
 
                 const arr = [
                     {x: minX, y: minY },
@@ -949,7 +994,8 @@ import { BlgSocket } from './workerSend'
                     {x: maxX, y: maxY},
                     {x: minX, y: maxY},
                     {x: minX, y: minY },
-                ]
+                ] 
+                
                 ctx.beginPath()
                 ctx.moveTo(arr[0].x, arr[0].y)
                 ctx.setLineDash([5, 10])
@@ -959,6 +1005,12 @@ import { BlgSocket } from './workerSend'
                 }
                 ctx.stroke()
 
+                this.auxiliaryLine = {
+                    x: minX,
+                    y: minY,
+                    width: maxX - minX,
+                    height: maxY - minY,
+                }
                 ctx.setLineDash([])
             },
             // 获取最大 最小值
@@ -1100,24 +1152,21 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                 let t = {}
                 let index = 0 // 第几个控制点 
-                 if (this.changeDrawAction == 4 && this.geometry == 4 && (() => {
-                    const points = this.pointLine
-                    const radius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: x, pageY: y})
-                    return this.circleRadius + 5 > radius && this.circleRadius - 5 < radius
-                 })()) { 
-                    //  圆形
-                    t.type = 'handlePointMove'
-                    this.index = 1
-
-                } else if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
-                    //  this.rectControlPoint  控制点'
-                    // console.log(this.rectControlPoint)
+                if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
                     index = i
-                    return this.checkRegion(x, y, point)
+                    // 要构造一个小 正方形
+                    return this.checkRegion(x, y, {...point, x: point.x - 10 , y: point.y - 10,})
                 })) {
+                    // 控制点
                     t.type = 'handlePointMove'
-                    // t.index = index
                     this.index = index
+
+                } else if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.auxiliaryLine)) {
+                    // 矩形拖动
+                    t.type = 'handleGeometryMove'
+                    t.x = x 
+                    t.y = y 
+                    this.oldPointLine = this.pointLine.slice()
                 } else if (this.changeDrawAction ==  -1 && this.checkRegion(x, y, image)) {
                 // 图片
                     t.offsetX = x - image.x
@@ -1127,13 +1176,122 @@ import { BlgSocket } from './workerSend'
                 return t
             },
             handlePointMove(point) {
+                // 1三角 2四边 3梯形
+                 if (this.geometry == 2 || this.geometry == 4) {
+                    //  相邻 两个控制点 要变
+                    let beforIndex = 0
+                    if (this.index == 0) {
+                        beforIndex = 3
+                    } else {
+                        beforIndex = this.index - 1
+                    }
+
+                   let afterIndex = 0
+                    if (this.index == 3) {
+                        // 对的
+                        afterIndex = 0
+                    } else {
+                        afterIndex = this.index + 1
+                    }
+
+                    const befor = this.pointLine[beforIndex]
+                    const after = this.pointLine[afterIndex]
+                    if (beforIndex == 1 || beforIndex == 3) {
+                        // 对的
+                        this.pointLine.splice(beforIndex, 1, {x: befor.x, y: point.y})
+                        this.pointLine.splice(afterIndex, 1, {x: point.x, y: after.y})
+                    } else {
+                        this.pointLine.splice(beforIndex, 1, {x: point.x, y: befor.y})
+                        this.pointLine.splice(afterIndex, 1, {x: after.x, y: point.y})
+                    }
+
+                    this.pointLine.splice(this.index, 1, point)
+
+                } else if (this.geometry == 3) {
+                    //  相邻 两个控制点 要变
+                    let beforIndex = 0
+                    if (this.index == 0) {
+                        beforIndex = 3
+                    } else {
+                        beforIndex = this.index - 1
+                    }
+
+                   let afterIndex = 0
+                    if (this.index == 3) {
+                        // 对的
+                        afterIndex = 0
+                    } else {
+                        afterIndex = this.index + 1
+                    }
+
+                    const befor = this.pointLine[beforIndex]
+                    const after = this.pointLine[afterIndex]
+                    if (beforIndex == 1 || beforIndex == 3) {
+                        // 对的
+                        this.pointLine.splice(beforIndex, 1, {x: befor.x, y: point.y})
+                        // this.pointLine.splice(afterIndex, 1, {x: point.x, y: after.y})
+                    } else {
+                        // this.pointLine.splice(beforIndex, 1, {x: point.x, y: befor.y})
+                        this.pointLine.splice(afterIndex, 1, {x: after.x, y: point.y})
+                    }
+
+                    this.pointLine.splice(this.index, 1, point)
+
+                } else {
+                    this.pointLine.splice(this.index, 1, point)
+                }
                 // console.log()
                 // console.log('移动控制点')
-                this.pointLine.splice(this.index, 1, point)
+          
+                // --
                 // 控制点
                 // this.lin
                 this.renderGeometry(this.pointLine, 10, true)
                
+            },
+            // 移动辅助线
+            handleGeometryMove({ x, y }) {
+                const { width, height } = this.options
+                const s = this.startPoint
+                // const oX = s.offsetX
+                // const oY = s.offsetY
+
+                // 要基于  最开始的  加  而不是 上次的加 
+
+                // 这是第一个x 第一个点的 位置
+
+                // const auxiliaryLine =  this.auxiliaryLine
+                // const auxiliaryLineMaxX = width - auxiliaryLine.width - 5
+                // const auxiliaryLineMaxY = height - auxiliaryLine.height - 5
+                // if (auxiliaryLine.x <= 5 || auxiliaryLine.x >= auxiliaryLineMaxX || auxiliaryLine.y <= 5 || auxiliaryLine.y >= auxiliaryLineMaxY) {
+                //     return
+                // }
+
+
+                const maxX = width - 10
+                const maxY = height - 10
+                const currentX = x - s.x 
+                const currentY =  y - s.y
+
+
+                this.pointLine = this.oldPointLine.map(e => {
+                    return {
+                        x: this.limit(e.x + currentX, 10, maxX) ,
+                        y: this.limit(e.y + currentY, 10, maxY)
+                    }
+                })
+    
+
+
+                this.renderGeometry(this.pointLine, 10, true)
+                // 判断边界
+                //    this.auxiliaryLine.x = this.limit(currentX, 0, maxX)
+                //    this.auxiliaryLine.y = this.limit(currentY, 0, maxY)
+                // this.draw()
+            },
+            // 求两点的中点
+            getMidpoint(p1, p2) {
+                return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 }
             },
             // 求两点之间的 距离
             getDistance(p1, p2) {
