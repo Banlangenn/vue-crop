@@ -1177,7 +1177,13 @@ import { BlgSocket } from './workerSend'
             },
             handlePointMove(point) {
                 // 1三角 2四边 3梯形
-                 if (this.geometry == 2 || this.geometry == 4) {
+                if (this.geometry == 4) {
+                    console.log(this.geometry)
+                    // 这个圆形和 四边形一样的逻辑
+                    const  currentPoint = this.pointLine[this.index]
+                    this.pointLine.splice(this.index, 1, {x: currentPoint.x, y: point.y})
+
+                } else if (this.geometry == 2 || this.geometry == 4) {
                     //  相邻 两个控制点 要变
                     let beforIndex = 0
                     if (this.index == 0) {
