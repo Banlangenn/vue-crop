@@ -131,6 +131,12 @@
         :style="{width: options.width + 'px', height: options.height + 'px'}"
     >
         <div class="draw-action-bar" :style="{width: options.width + 'px'}">
+
+            <!-- 确定 取消icon -->
+            <img src="./img/ok.jpg"  style="display:none" id="draw-ok-icon" alt="">
+            <img src="./img/cancel.jpg" style="display:none"  id="draw-cancel-icon" alt="">
+            <!-- <svg style="display:none" id="draw-ok-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1026" width="128" height="128"><path d="M512 64C262.4 64 64 262.4 64 512s198.4 448 448 448 448-198.4 448-448-198.4-448-448-448z m256 339.2l-288 288c-6.4 12.8-19.2 12.8-32 12.8s-19.2 0-32-12.8L313.6 588.8c-12.8-12.8-12.8-32 0-44.8s32-12.8 44.8 0L448 633.6l275.2-275.2c12.8-12.8 32-12.8 44.8 0 12.8 12.8 12.8 38.4 0 44.8z" fill="" p-id="1027"></path></svg>
+            <svg  style="display:none"  id="draw-cancel-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1159" width="128" height="128"><path d="M499.2 64c-249.6 0-448 198.4-448 448s198.4 448 448 448 448-198.4 448-448-198.4-448-448-448z m179.2 582.4c12.8 12.8 12.8 32 0 44.8-12.8 12.8-32 12.8-44.8 0L499.2 556.8l-134.4 134.4c-12.8 12.8-32 12.8-44.8 0s-12.8-32 0-44.8L454.4 512 320 377.6c-12.8-12.8-12.8-32 0-44.8s32-12.8 44.8 0l134.4 134.4 134.4-134.4c12.8-12.8 32-12.8 44.8 0 12.8 12.8 12.8 32 0 44.8L544 512l134.4 134.4z" fill="" p-id="1160"></path></svg> -->
             <!-- <button @touchstart="clickHandle">1213 </button> -->
             <div class="draw-icon-wrap"
             @touchstart.stop="()=>{}"
@@ -229,6 +235,8 @@
 <script>
 import { getImageDirection, correctImage } from './util'
 
+
+
 import { BlgSocket } from './workerSend'
     export default {
         name: 'crop',
@@ -295,7 +303,7 @@ import { BlgSocket } from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                geometry: 4, // 矩形
+                geometry: 3, // 矩形
                 weight: 2,
                 writing: 1, // 书写线的 风格
                 color: '#f14864',  // 颜色
@@ -322,6 +330,14 @@ import { BlgSocket } from './workerSend'
                 this.recordData = [] //  记录
                 this.color = '#f14864' //  颜色
 
+                this.meaninglessm = false //无意义事件- icon 点击 只需要start move 和 end  都不需要执行
+                // 确定 取消 icon
+                this.okIcon = {
+                    element:  document.getElementById('draw-ok-icon')
+                }
+                this.cancelIcon =  {
+                    element: document.getElementById('draw-cancel-icon')
+                }
 
 
                 const clientW = img.width
@@ -557,6 +573,7 @@ import { BlgSocket } from './workerSend'
                 }
             },
             handleMove (e) {
+                if (this.meaninglessm) return
                 // 判断是不是 读的一端
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
@@ -567,6 +584,7 @@ import { BlgSocket } from './workerSend'
                 const lineWidth = this.limit(this.weight, 1, 15)
                 // 矩形
                 if (this.changeDrawAction == 3) {
+                   
                     // console.log('矩形')
                     // this.log('矩形模式', 'red', 2, 'rect')
                     const firstPoint = this.drawPoint
@@ -612,16 +630,17 @@ import { BlgSocket } from './workerSend'
                             points = [firstPoint, currentPoint]
                             // const midpoin = this.circleMidpoin = this.getMidpoint(points[0], points[1])
                             // const circleRadius = this.circleRadius = this.getDistance({pageX: points[0].x, pageY: points[0].y}, {pageX: midpoin.x, pageY: midpoin.y})
-                            // const arr = [
+                            // points = [
                             //     {x: midpoin.x, y: midpoin.y - circleRadius - radius},
-                            //     {x: midpoin.x + circleRadius y: midpoin.y - radius},
+                            //     {x: midpoin.x + circleRadius, y: midpoin.y - radius},
                             //     {x: midpoin.x - radius, y: midpoin.y + circleRadius - radius},
                             //     {x: midpoin.x - circleRadius - radius, y: midpoin.y - radius},
                             // ]
-                            break;
+                             
+                            break
                     
                         default:
-                            break;
+                            break
                     }
 
                     this.renderGeometry(points, 10, false)
@@ -739,7 +758,6 @@ import { BlgSocket } from './workerSend'
                         if (
                             (x > maxPonit.x ||
                             y > maxPonit.y ||
-                            // 有问题
                             x < minPonit.x ||
                             y < minPonit.y)
                         ) {
@@ -810,6 +828,10 @@ import { BlgSocket } from './workerSend'
             },
 
             handleEnd(e){
+                if (this.meaninglessm) {
+                    this.meaninglessm = false
+                    return
+                }
                //  结束对 延迟的 感知很小-- 可以把计算量大的都移动到 这部分来
 
                const radius = 10 // 辅助的 圆球半径 
@@ -833,26 +855,7 @@ import { BlgSocket } from './workerSend'
                         x: drawPoint.x - image.x,
                         y: drawPoint.y - image.y
                     })
-                    // 点的 宽度
-                    // 给个正方形----- 
-                    //  加个 maxX maxY  minX minY
-                     // 会有 明明在范围内 检测不到--- 范围太小了 加一点
-                    const offset = 4
-                    const { maxX, maxY, minX, minY } = this.getCritica(this.pointLine, offset)
-                    const pointObj = {
-                        pointLine: this.pointLine,
-                        scale: this.scale, //  e.scale || this.scale, 为什么 e.scale
-                        lineWidth: this.weight,
-                        color: this.color,
-                        writing: this.writing,
-                        // rotateAngle : this.rotateAngle,
-                        maxX,
-                        maxY,
-                        minX,
-                        minY,
-                    }
-                    this.pointList.push(pointObj)
-                    this.pointLine = []
+                    this.addNewData()
                 }
 
                 /**
@@ -872,6 +875,55 @@ import { BlgSocket } from './workerSend'
                    this.ctx.strokeStyle = this.color
                 }
                 
+            },
+            addNewData(data) {
+                // {radius: null, centra: null}
+                      // 给个正方形----- 
+                    //  加个 maxX maxY  minX minY
+                     // 会有 明明在范围内 检测不到--- 范围太小了 加一点
+                    const offset = 4
+                    let points = this.pointLine
+                    const image = this.image
+                    if  (this.changeDrawAction == 3) {
+                        points = this.pointLine.slice(-1).concat(this.pointLine).map(e=> {
+                            return  {
+                                x: e.x - image.x,
+                                y: e.y - image.y
+                            }
+                        })
+
+                    }
+                    const { maxX, maxY, minX, minY } = this.getCritica(points, offset)
+
+
+                    let pointObj = {
+                        pointLine: this.pointLine,
+                        scale: this.scale, //  e.scale || this.scale, 为什么 e.scale
+                        lineWidth: this.weight,
+                        color: this.color,
+                        writing: this.writing,
+                        radius: 
+                        maxX,
+                        maxY,
+                        minX,
+                        minY,
+                    }
+                    if (data) {
+                        delete pointObj.pointLine
+                        pointObj = { ...pointObj, centra: {
+                                x: this.circleMidpoin.x - image.x,
+                                y: this.circleMidpoin.y - image.y
+                            }, radius: (maxX - minX) / 2 }
+                    }
+                    this.pointList.push(pointObj)
+                    this.pointLine = []
+          
+
+                /**
+                 *  结束事件 对延迟没什么要求------ 
+                 */
+                // 清除第二canvas 画布
+              
             },
             // geometry() {
 
@@ -904,18 +956,20 @@ import { BlgSocket } from './workerSend'
 
                     // 圆形可以当做正方形来做  圆心就是 中间  半径就是 边长 / 
                      //  圆心
-                     let midpoin, radius
+                     let firstPoint, secondPoint
                     // ----------------
                     if (points.length == 2 || this.index == 3 || this.index == 0) {
-                        const second = points[3] ? points[3] : points[1]
-                        // 1 3  0 2
-                        // 还有一个 --------------
-                        midpoin = this.circleMidpoin = this.getMidpoint(points[0], second)
-                        radius = this.circleRadius = this.getDistance({pageX: second.x, pageY: second.y}, {pageX: midpoin.x, pageY: midpoin.y})
-                    } else {
-                        midpoin = this.circleMidpoin = this.getMidpoint(points[2], points[1])
-                        radius = this.circleRadius = this.getDistance({pageX: points[2].x, pageY: points[2].y}, {pageX: midpoin.x, pageY: midpoin.y})
+                        firstPoint = points[0]
+                        secondPoint = points[3] ? points[3] : points[1]
+                    } 
+                    else {
+                        firstPoint = points[2]
+                        secondPoint = points[1]
                     }
+                    const midpoin = this.circleMidpoin = this.getMidpoint(firstPoint, secondPoint)
+                    const radius = this.circleRadius = this.getDistance({pageX:firstPoint.x, pageY: firstPoint.y}, {pageX: midpoin.x, pageY: midpoin.y})
+
+                   
                     
                     
                     // 需要把 这个 值存起来-- 下次点击 判断是否在线上需要用
@@ -944,6 +998,8 @@ import { BlgSocket } from './workerSend'
                 
                 // 辅助线
                 if (isAuxiliary) {
+
+
                     this.rectControlPoint = this.getControlPoint(points)
                     for (let index = 0; index < this.rectControlPoint.length; index++) {
                         const item =  this.rectControlPoint[index]
@@ -960,6 +1016,10 @@ import { BlgSocket } from './workerSend'
             // 获取控制点
             getControlPoint(points) {
                 const radius = 10
+
+                // 画图
+
+                
                 if (this.geometry == 4) {
                     // 圆形 都要特殊处理
                     const midpoin = this.circleMidpoin
@@ -981,10 +1041,57 @@ import { BlgSocket } from './workerSend'
                     { x: item.x, y: item.y, width: radius * 2, height: radius * 2 }
                 ))
             },
+                // this.drawIcon(ctx,
+                //     {x: minX, y:  minY - 20, width: 20, height: 20},
+                //     {x: maxX - 20, y:  minY - 20,width: 20, height: 20}
+                // )
+            //    drawIcon(ctx, icon1, icon2) {
+
+            //     // 智障代码
+            //     const radus = icon2.height / 2
+            //     ctx.beginPath()
+            //     ctx.arc(icon1.x + radus, icon1.y + radus, radus, 0, 2 * Math.PI)
+            //     ctx.fill() 
+            //     ctx.stroke()
+                
+                
+            //     ctx.beginPath()
+            //     ctx.moveTo(icon1.x, icon1.y)
+            //     ctx.lineTo(icon1.x + width, icon1.y + height)
+            //     ctx.stroke()
+
+                
+            //     ctx.beginPath()
+            //     ctx.arc(icon2.x + radus, icon2.y + radus, radus, 0, 2 * Math.PI)
+            //     ctx.fill()
+            //     ctx.stroke()
+            // },
             //  画辅助线
             drawAuxiliaryLine(ctx, points) {
+
+                // import okIcon from './img/ok.png'
+                // import cancelIcon from './img/cancel.png'
                 //  怎么用上这个矩形  能不根据 矩形 反推 图形
                 const { minX, minY, maxX, maxY } = this.getCritica(points, 10)
+                
+
+                //
+                ctx.drawImage(this.cancelIcon.element, minX, minY - 20, 20, 20)
+                ctx.drawImage(this.okIcon.element, maxX - 20, minY - 20, 20, 20)
+                //  事件系统
+                this.cancelIcon = {
+                    x: minX, y: minY - 20, width: 20, height: 20,
+                    element: this.cancelIcon.element
+                }
+                this.okIcon = {
+                   x: maxX - 20, y:  minY - 20, width: 20, height: 20,
+                    element: this.okIcon.element
+                }
+
+
+
+
+                //
                 const AL = {
                     x: minX,
                     y: minY,
@@ -1125,10 +1232,21 @@ import { BlgSocket } from './workerSend'
                 // if (this.changeDrawAction !== -1) {
                 //     return
                 // }
+           
                 const image = this.image
                 let t = {}
                 let index = 0 // 第几个控制点 
-                if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
+                if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.cancelIcon)) {
+                    // this.meaninglessm
+                    console.log('cancelIcon')
+                } else  if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.okIcon)) {
+                    // console.log('okIcon')
+                    this.changeDrawAction = 3
+                    this.clearCtx2()
+                    this.addNewData()
+                    this.renderCanvas()
+                    this.meaninglessm = true
+                } else if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
                     index = i
                     // 要构造一个小 正方形
                     return this.checkRegion(x, y, {...point, x: point.x - 10 , y: point.y - 10,})
@@ -1196,12 +1314,12 @@ import { BlgSocket } from './workerSend'
                     const after = this.pointLine[afterIndex]
                     if (beforeIndex == 1 || beforeIndex == 3) {
                         // 对的
-                        if ((this.geometry !== 3)) {
-                            this.pointLine.splice(beforeIndex, 1, {x: before.x, y: point.y})
+                        if (this.geometry !== 3) {
+                            this.pointLine.splice(afterIndex, 1, {x: point.x, y: after.y})
                         }
-                        this.pointLine.splice(afterIndex, 1, {x: point.x, y: after.y})
+                        this.pointLine.splice(beforeIndex, 1, {x: before.x, y: point.y})
                     } else {
-                        if ((this.geometry !== 3)) {
+                        if (this.geometry !== 3) {
                             this.pointLine.splice(beforeIndex, 1, {x: point.x, y: before.y})
                         }
                         this.pointLine.splice(afterIndex, 1, {x: after.x, y: point.y})
@@ -1246,7 +1364,7 @@ import { BlgSocket } from './workerSend'
                     // this.pointLine = this.oldPointLine.map(e => {
                     //     return {
                     //         x: this.limit(e.x + currentX, 10, maxX) ,
-                    //         y: this.limit(e.y + currentY, 10, maxY)
+                    //         y: this.limit(e.y + currentY, 30, maxY)
                     //     }
                     // })
                     // this.renderGeometry(this.pointLine, 10, true)
@@ -1258,7 +1376,7 @@ import { BlgSocket } from './workerSend'
                     for (let index = 0; index < this.oldPointLine.length; index++) {
                         const element = this.oldPointLine[index]
                         const item = { x: element.x + currentX, y: element.y + currentY }
-                        if (item.x <= 10 || item.y <= 10 || item.x >= maxX || item.y >= maxY ) {
+                        if (item.x <= 10 || item.y <= 30 || item.x >= maxX || item.y >= maxY ) {
                            return
                         }
                         arr.push(item)
