@@ -303,7 +303,7 @@ import { BlgSocket } from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                geometry: 3, // 矩形
+                geometry: 4, // 矩形
                 weight: 2,
                 writing: 1, // 书写线的 风格
                 color: '#f14864',  // 颜色
@@ -383,7 +383,9 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                 if (pointList.length == 0) return
                 ctx.lineCap = 'round'
-                pointList.forEach(el => {
+                for (let index = 0; index < pointList.length; index++) {
+                    const el = pointList[index];
+    
                     const scale = this.scale / el.scale
 
                     ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15) + 1
@@ -394,12 +396,27 @@ import { BlgSocket } from './workerSend'
                     // {lable: '虚线', value: 3},
                     // {lable: '虚直线', value: 4}
                     // 虚线
+                    ctx.strokeStyle = el.color
+                    if (el.centra) {
+                        const maxX = image.x + el.maxX * scale
+                        const minX = image.x + el.minX * scale
+                        const radius = (maxX - minX) / 2 - el.offset
+                        const originM = this.restPoint(el.centra, image, scale)
+                        ctx.arc(originM.x, originM.y, 1, 0, 2 * Math.PI)
+                        ctx.stroke()
+                        ctx.beginPath()
+                        ctx.arc(originM.x, originM.y, radius, 0, 2 * Math.PI)
+                        ctx.stroke()
+                        continue
+                    }
+
+
                     if (el.writing == 3 || el.writing == 4) {
                         ctx.setLineDash([5, 10])  // 虚线
                     } else {
                         ctx.setLineDash([]) // 实线
                     }
-                    ctx.strokeStyle = el.color
+                    
                     const points = el.pointLine
                     for (let i = 0; i < points.length; i++) {
                         const element = points[i]
@@ -412,7 +429,7 @@ import { BlgSocket } from './workerSend'
                         ctx.lineTo(originPoint.x, originPoint.y)
                     }
                     ctx.stroke()
-                })
+                }
             },
             fillImage() {
                 const image = this.image
@@ -746,6 +763,7 @@ import { BlgSocket } from './workerSend'
                     const time = new Date().getTime() 
                     for (let index = 0; index < pointList.length; index++) {
                         const element = pointList[index]
+                        
                         const scale = this.scale / element.scale
                         const pointLine = element.pointLine
                         const lineDis = element.lineWidth / 2 + radius
@@ -764,6 +782,17 @@ import { BlgSocket } from './workerSend'
                             this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + 
                             '' + (new Date().getTime() - time1) + 'ms' )
                             continue 
+                        }
+                        // 圆 特殊处理
+                        if (element.centra) {
+                            const radius = (maxPonit.x - minPonit.x) / 2 - element.offset
+                            const originM = this.restPoint(element.centra, image, scale)
+                            const dis = this.getDistance({pageX: x, pageY: y}, {pageX: originM.x, pageY: originM.y})
+                            if (dis < lineDis || Math.abs(dis - radius) < lineDis) {
+                                this.removeLine(index)
+                            }
+                            return
+
                         }
                         // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
@@ -897,23 +926,24 @@ import { BlgSocket } from './workerSend'
 
 
                     let pointObj = {
-                        pointLine: this.pointLine,
+                        pointLine: points,
                         scale: this.scale, //  e.scale || this.scale, 为什么 e.scale
                         lineWidth: this.weight,
                         color: this.color,
                         writing: this.writing,
-                        radius: 
                         maxX,
                         maxY,
                         minX,
                         minY,
+                        offset
                     }
                     if (data) {
-                        delete pointObj.pointLine
+                        // delete pointObj.pointLine
                         pointObj = { ...pointObj, centra: {
                                 x: this.circleMidpoin.x - image.x,
                                 y: this.circleMidpoin.y - image.y
-                            }, radius: (maxX - minX) / 2 }
+                            }
+                        }
                     }
                     this.pointList.push(pointObj)
                     this.pointLine = []
@@ -1243,7 +1273,11 @@ import { BlgSocket } from './workerSend'
                     // console.log('okIcon')
                     this.changeDrawAction = 3
                     this.clearCtx2()
-                    this.addNewData()
+                    if (this.geometry == 4) {
+                        this.addNewData(true)
+                    } else {
+                        this.addNewData()
+                    }
                     this.renderCanvas()
                     this.meaninglessm = true
                 } else if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
