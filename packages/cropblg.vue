@@ -43,8 +43,8 @@
     }
     .draw-icon {
         color: #ccc;
-        width: 20px;
-        height: 20px;
+        width: 23px;
+        height: 23px;
         fill: #ccc;
         line-height: 60px;
         padding: 5px 20px;
@@ -159,12 +159,16 @@
                         :style="{fill: changeDrawAction == 2 ? color: ''}"
                         t="1573032058097"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5340" width="128" height="128"><path d="M604.536246 736.222443l288.794439-282.693148-287.777557-270.999007-270.999007 283.201589z m-72.70705 71.181728L264.389275 539.455809 145.922542 660.973188l164.734856 164.734856a50.844091 50.844091 0 0 0 36.099305 14.744786h107.789474a101.688183 101.688183 0 0 0 71.181728-28.981132z m109.314796 35.082423h254.220457a50.844091 50.844091 0 0 1 0 101.688183H346.248262a152.532274 152.532274 0 0 1-107.789474-44.742801l-164.734856-164.734856a101.688183 101.688183 0 0 1 0-142.363456l457.596823-480.476663a101.688183 101.688183 0 0 1 143.380337-3.559086l287.269117 270.999007a101.688183 101.688183 0 0 1 4.067527 143.888778l-3.050646 3.050646z" p-id="5341"></path></svg>
                     <svg
+                        @touchend="handleGeometry"
+                        :style="{fill: changeDrawAction == 3 ||  changeDrawAction == 4 ? color: ''}"
+                        class="draw-icon geometry "
+                        viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="2410" width="128" height="128"><path d="M512 955.733333H85.333333a17.066667 17.066667 0 0 1-17.066666-17.066666V512a17.066667 17.066667 0 0 1 17.066666-17.066667h426.666667a17.066667 17.066667 0 0 1 17.066667 17.066667v426.666667a17.066667 17.066667 0 0 1-17.066667 17.066666zM102.4 921.6h392.533333V529.066667H102.4v392.533333z m665.6-51.2c-51.712 0-96.546133-18.619733-133.239467-55.3472C598.596267 778.9056 580.266667 734.3616 580.266667 682.666667c0-51.6096 18.295467-96.4096 54.408533-133.137067 18.158933-17.5616 37.973333-30.7712 59.204267-39.5776 22.528-9.966933 47.4624-15.018667 74.120533-15.018667 51.677867 0 96.221867 18.3296 132.386133 54.493867C937.1136 586.1376 955.733333 630.971733 955.733333 682.666667c0 51.7632-18.670933 96.3584-55.4496 132.5056C864.341333 851.746133 819.746133 870.4 768 870.4z m-153.6-187.733333c0 42.922667 14.557867 78.318933 44.4928 108.253866C689.390933 821.435733 725.060267 836.266667 768 836.266667c42.8544 0 78.2336-14.7968 108.151467-45.243734C906.8032 760.900267 921.6 725.538133 921.6 682.666667c0-42.922667-14.830933-78.592-45.346133-109.1072C846.301867 543.624533 810.9056 529.066667 768 529.066667c-21.9136 0-42.257067 4.096-60.450133 12.168533l-0.1536 0.068267-0.3584 0.1536c-17.288533 7.150933-33.553067 18.0224-48.3328 32.324266C628.974933 604.0064 614.4 639.709867 614.4 682.666667z" p-id="2411"></path><path d="M768 716.8H256a34.116267 34.116267 0 0 1-31.351467-47.616l73.386667-170.666667v-0.017066L480.6144 71.901867a34.133333 34.133333 0 0 1 62.7712-0.017067L731.9552 512.170667l67.413333 157.013333A34.133333 34.133333 0 0 1 768 716.8z m-170.666667-68.266667h118.869334l-46.984534-109.4144a0.136533 0.136533 0 0 0-0.034133-0.068266L512 172.066133l-151.210667 353.297067-0.0512 0.136533-52.906666 123.050667H597.333333z" p-id="2412"></path></svg>
+                    <svg
                         v-if="isReplay"
                         @touchend="replay()"
                         class="draw-icon replay"
                         :style="{fill: isReplay ? color: ''}"
                         t="1573194950939"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1781" width="128" height="128"><path d="M462.272 312.896l0 298.624 248.896 0L711.168 528.576 541.952 528.576l0-215.68L462.272 312.896zM512 64C403.776 64 304.448 102.4 227.008 166.336l21.376-82.048L175.168 64l-40.96 157.056L113.856 299.52l73.28 20.224 155.712 42.88 20.416-78.528-90.56-24.96C335.168 200.064 419.264 163.52 512 163.52c192.448 0 348.48 156.032 348.48 348.48S704.448 860.416 512 860.416 163.648 704.448 163.648 512c0-9.856 2.048-19.136 2.88-28.8L65.92 474.816C64.96 487.104 64 499.456 64 512c0 247.424 200.576 448 448 448s448-200.576 448-448S759.424 64 512 64z" p-id="1782"></path></svg>
-                    
                     <svg
                         v-else
                         :style="{fill: !isReplay ? color: ''}"
@@ -172,7 +176,7 @@
                         class="draw-icon finish"
                         t="1573621583188"  viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1055" width="128" height="128"><path d="M678.528 642.304c0 17.6-14.4 32-32 32h-268.992a32 32 0 0 1-32-32V381.696a32 32 0 0 1 32-32h268.992c17.6 0 32 14.4 32 32v260.608z" p-id="1056"></path><path d="M1015.552 512.128a502.656 502.656 0 0 0-503.68-503.68 502.208 502.208 0 0 0-356.096 147.264 502.016 502.016 0 0 0-147.328 356.416 500.288 500.288 0 0 0 146.816 356.736 499.584 499.584 0 0 0 356.544 146.688c277.312-2.816 503.744-226.24 503.744-503.424z m-947.968 0a444.288 444.288 0 0 1 444.288-444.544c246.976 0 447.296 200.128 447.296 444.544 0 244.032-200.32 444.416-447.296 444.416a442.304 442.304 0 0 1-444.288-444.416z" p-id="1057"></path></svg>
                     <!-- 三角形 -->
-                    <div  v-show="showMatching" class="triangle"></div>
+                    <div  v-show="showMatching || showGeometry" class="triangle" :style="{left: triangleLeft + 'px'}"></div>
                     <!-- 颜色  直线 虚线   粗细 -->
                     <div v-show="showMatching" class="draw-matching-wrap">
                         <div class="writing-style">
@@ -183,6 +187,7 @@
                             :class="{active: writing == item.value}"
                             > {{item.lable}}</span>
                         </div>
+
                         <div class="colors">
                             <span 
                                 v-for="item of penColor"
@@ -193,6 +198,7 @@
                                 <i :style="{background: item}"></i>
                             </span>
                         </div>
+
                         <div class="pen-weight">
                             <span 
                                 v-for="item of penWeight"
@@ -202,16 +208,28 @@
                                 > {{item.lable}}</span>
                         </div>
                     </div>
+                     <!-- 矩形 -->
+                    <div v-show="showGeometry" class="draw-matching-wrap">
+
+                        <div class="writing-style">
+                            <span 
+                            v-for="item of geometryList"
+                            :key="item.lable"
+                            @touchstart="geometry = item.value"
+                            :class="{active: geometry == item.value}"
+                            > {{item.lable}}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <!--  蒙层 -->
         <div class="mask"
             :style="{width: options.width + 'px', height: options.height + 'px'}"
-            @touchstart.stop="handleMatching($event)" 
+            @touchstart.stop="handleMask($event)" 
             @touchmove.stop="()=>{}"
             @touchend.stop="()=>{}"
-            v-show="showMatching"
+            v-show="showMatching || showGeometry"
         >
         </div>
          <!-- style=" overflow: hidden;" -->
@@ -272,11 +290,25 @@ import { BlgSocket } from './workerSend'
                     {lable: '虚直线', value: 4}
                 ],
 
+
+                // 几何图形
+                geometryList: [
+                    {lable: '三角形', value: 1},
+                    {lable: '正方形', value: 2},
+                    {lable: '梯形', value: 3},
+                    {lable: '圆形', value: 4},
+                    {lable: '箭头', value: 5},
+                    {lable: '数轴', value: 6},
+                    {lable: '坐标轴', value: 7},
+                    {lable: '椭圆', value: 9},
+                    {lable: '弧形', value: 10}
+                ],
+
                 // ----------------------------------------------------------------------
 
 
 
-                changeDrawAction: 3,
+                changeDrawAction: -1,
                 // penColor: '',
                 //   penColor: '',
                 debug: true, // debug
@@ -303,11 +335,17 @@ import { BlgSocket } from './workerSend'
                 // nookSide: 20,
                 // rotateAngle: 0,
                 // bgOpacity: 0,
-                geometry: 4, // 矩形
+                triangleLeft: 0, // 三角形 50  242
+
                 weight: 2,
                 writing: 1, // 书写线的 风格
                 color: '#f14864',  // 颜色
                 showMatching: false,
+
+                // 矩形
+                showGeometry: false,
+                geometry: 4, // 矩形
+
                 // 三个操作按钮  默认不显示的
                 // touchBar: null,
                 // paintBrush: null,
@@ -397,16 +435,22 @@ import { BlgSocket } from './workerSend'
                     // {lable: '虚直线', value: 4}
                     // 虚线
                     ctx.strokeStyle = el.color
-                    if (el.centra) {
+                    const geometry = el.geometry
+                    if (geometry && geometry == 4) {
                         const maxX = image.x + el.maxX * scale
                         const minX = image.x + el.minX * scale
                         const radius = (maxX - minX) / 2 - el.offset
                         const originM = this.restPoint(el.centra, image, scale)
-                        ctx.arc(originM.x, originM.y, 1, 0, 2 * Math.PI)
-                        ctx.stroke()
-                        ctx.beginPath()
-                        ctx.arc(originM.x, originM.y, radius, 0, 2 * Math.PI)
-                        ctx.stroke()
+                        this.geometryArc(ctx, originM, radius)
+                        continue
+                    }
+
+                    if (geometry && geometry == 5) {
+                        const points = el.pointLine
+                        const originPointFirst = this.restPoint(points[0], image, scale)
+                        const originPointSecond = this.restPoint(points[1], image, scale)
+                        ctx.fillStyle = el.color
+                        this.geometryLineArrow(ctx, originPointSecond, originPointFirst)
                         continue
                     }
 
@@ -518,15 +562,37 @@ import { BlgSocket } from './workerSend'
                 this.changeDrawAction = 3
                 // this.socketInstance.write({data: {}, event: 'writeIn'})
             },
+            handleGeometry(e) {
+                // 几何图形
+                // if(!this.sendData(e, 12)) return
+                this.triangleLeft = 240
+
+
+                this.changeDrawAction = 3
+
+                if ( this.showGeometry) {
+                    this.showGeometry = false
+                } else {
+                    this.showMatching = false
+                    this.showGeometry = true
+                }
+            },
+            handleMask() {
+                this.showMatching = false
+                this.showGeometry = false
+            },
             handleMatching(e) {
                 if(!this.sendData(e, 8)) return
                 // 1）touches：当前位于屏幕上的所有手指的列表。
                 // 2）targetTouches：位于当前DOM元素上手指的列表。
                 // 3）changedTouches：涉及当前事件手指的列表。 
+                this.triangleLeft = 50
                 if ( this.showMatching) {
                     this.showMatching = false
                 } else {
                     this.changeDrawAction = 1
+
+                    this.showGeometry = false
                     this.showMatching = true
                 }
             },
@@ -641,7 +707,8 @@ import { BlgSocket } from './workerSend'
                                 {x: firstPoint.x, y: firstPoint.y },
                             ]
                             break
-                      case 4:
+                        case 4:
+                        case 5:
                         //   圆形
                             // 4 个点
                             points = [firstPoint, currentPoint]
@@ -705,7 +772,7 @@ import { BlgSocket } from './workerSend'
                         } else {
                             ctx.setLineDash([])
                         }
-
+                        // 这个  ctx  不一样
                         ctx.beginPath()
                         ctx.strokeStyle = this.color
                         ctx.lineWidth = lineWidth
@@ -784,15 +851,15 @@ import { BlgSocket } from './workerSend'
                             continue 
                         }
                         // 圆 特殊处理
-                        if (element.centra) {
+                        const geometry = element.geometry
+                        if (geometry && geometry == 4) {
                             const radius = (maxPonit.x - minPonit.x) / 2 - element.offset
                             const originM = this.restPoint(element.centra, image, scale)
                             const dis = this.getDistance({pageX: x, pageY: y}, {pageX: originM.x, pageY: originM.y})
                             if (dis < lineDis || Math.abs(dis - radius) < lineDis) {
                                 this.removeLine(index)
                             }
-                            return
-
+                            continue
                         }
                         // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
@@ -867,8 +934,18 @@ import { BlgSocket } from './workerSend'
 
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
+
                 if (this.changeDrawAction == -1) return
                 if (this.changeDrawAction == 3) {
+
+                    if(this.geometry == 5) {
+                        // this.renderGeometry(this.pointLine, radius, false)
+                        this.clearCtx2()
+                        this.addNewData(true)
+                        this.renderCanvas()
+                        return
+                    }
+
                     this.renderGeometry(this.pointLine, radius, true)
                     //  待确认状态
                     this.changeDrawAction = 4
@@ -891,7 +968,8 @@ import { BlgSocket } from './workerSend'
                  *  结束事件 对延迟没什么要求------ 
                  */
                 // 清除第二canvas 画布
-                if (this.changeDrawAction == 2 || this.writing == 2 || this.writing == 4) {
+                // 这个判断有问题  changeDrawAction  2 是橡皮  writing 2 4  是直线
+                if (this.changeDrawAction == 2 ) {
                     this.clearCtx2()
                 }
 
@@ -905,7 +983,7 @@ import { BlgSocket } from './workerSend'
                 }
                 
             },
-            addNewData(data) {
+            addNewData(isGeometry) {
                 // {radius: null, centra: null}
                       // 给个正方形----- 
                     //  加个 maxX maxY  minX minY
@@ -935,13 +1013,18 @@ import { BlgSocket } from './workerSend'
                         maxY,
                         minX,
                         minY,
-                        offset
+                        offset,
                     }
-                    if (data) {
+                    if (isGeometry) {
+                        // 特殊解构
                         // delete pointObj.pointLine
-                        pointObj = { ...pointObj, centra: {
+             
+                        pointObj.geometry = this.geometry
+
+                        if(this.geometry == 4) {
+                            pointObj.centra = {
                                 x: this.circleMidpoin.x - image.x,
-                                y: this.circleMidpoin.y - image.y
+                                y: this.circleMidpoin.y - image.y,
                             }
                         }
                     }
@@ -955,9 +1038,54 @@ import { BlgSocket } from './workerSend'
                 // 清除第二canvas 画布
               
             },
-            // geometry() {
+            geometryArc(ctx, midpoin, radius) {
+                    ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
+                    ctx.stroke()
 
-            // },
+                    // 圆圈
+                    ctx.beginPath()
+                    ctx.arc(midpoin.x, midpoin.y, radius , 0, 2 * Math.PI)
+                    ctx.stroke()
+            },
+            //   箭头
+            geometryLineArrow(ctx, p1, p2) {
+                    const fromY = p1.y
+                    const fromX = p1.x
+                    const toX = p2.x
+                    const toY = p2.y
+
+
+                    const headlen = 20 //自定义箭头线的长度
+                    const theta = 30 //自定义箭头线与直线的夹角，个人觉得45°刚刚好
+                    
+                    // 计算各角度和对应的箭头终点坐标
+                    const angle = Math.atan2(fromY - toY, fromX - toX) * 180 / Math.PI
+                    const angle1 = (angle + theta) * Math.PI / 180
+                    const angle2 = (angle - theta) * Math.PI / 180
+                    const topX = headlen * Math.cos(angle1)
+                    const topY = headlen * Math.sin(angle1)
+                    const botX = headlen * Math.cos(angle2)
+                    const botY = headlen * Math.sin(angle2)
+                    ctx.beginPath()
+                    //画直线
+                    ctx.moveTo(fromX, fromY)
+                    ctx.lineTo(toX, toY)
+                    //箭头线终点坐标
+                    const arrowX = toX + topX
+                    const arrowY = toY + topY
+                    //画上边箭头线
+                    ctx.moveTo(arrowX, arrowY)
+                    ctx.lineTo(toX, toY)
+
+                    const arrowX1 = toX + botX
+                    const arrowY1 = toY + botY
+                    //画下边箭头线
+                    ctx.lineTo(arrowX1, arrowY1)
+                    ctx.lineTo(arrowX, arrowY)
+                    
+                    ctx.fill()
+                    ctx.stroke()
+            },
 
             // 渲染几何图形
             renderGeometry(points, radius, isAuxiliary) {
@@ -977,15 +1105,15 @@ import { BlgSocket } from './workerSend'
                 ctx.strokeStyle = this.color
                 ctx.lineWidth = this.weight
                 ctx.fillStyle= this.color
-
-
-
-
+                 ctx.beginPath()
                 // 圆形
-                if (geometry == 4) {
-
+                if (geometry == 5) { 
+                    // 箭头
+                    this.geometryLineArrow(ctx, points[0], points[1])
+                } else if (geometry == 4) {
                     // 圆形可以当做正方形来做  圆心就是 中间  半径就是 边长 / 
                      //  圆心
+                     
                      let firstPoint, secondPoint
                     // ----------------
                     if (points.length == 2 || this.index == 3 || this.index == 0) {
@@ -998,25 +1126,11 @@ import { BlgSocket } from './workerSend'
                     }
                     const midpoin = this.circleMidpoin = this.getMidpoint(firstPoint, secondPoint)
                     const radius = this.circleRadius = this.getDistance({pageX:firstPoint.x, pageY: firstPoint.y}, {pageX: midpoin.x, pageY: midpoin.y})
-
-                   
-                    
-                    
-                    // 需要把 这个 值存起来-- 下次点击 判断是否在线上需要用
-                    // 圆心
-                    ctx.beginPath()
-                    ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
-                    ctx.stroke()
-
-                    // 圆圈
-                    ctx.beginPath()
-                    ctx.arc(midpoin.x, midpoin.y, radius , 0, 2 * Math.PI)
-                    ctx.stroke()
-                   
+                    this.geometryArc(ctx, midpoin, radius)
+             
                 } else {
-                     // 多边形
+                    // 多边形
                     //  测试 两个循环快-- 线越多 越明显
-                    ctx.beginPath()
                     const startPoint = points.slice(-1)[0]
                     ctx.moveTo(startPoint.x, startPoint.y)
                     for (let index = 0; index < points.length; index++) {
@@ -1027,7 +1141,7 @@ import { BlgSocket } from './workerSend'
                 }
                 
                 // 辅助线
-                if (isAuxiliary) {
+                if (isAuxiliary && geometry !== 5) {  //  箭头是没有控制点的
 
 
                     this.rectControlPoint = this.getControlPoint(points)
@@ -1071,10 +1185,10 @@ import { BlgSocket } from './workerSend'
                     { x: item.x, y: item.y, width: radius * 2, height: radius * 2 }
                 ))
             },
-                // this.drawIcon(ctx,
-                //     {x: minX, y:  minY - 20, width: 20, height: 20},
-                //     {x: maxX - 20, y:  minY - 20,width: 20, height: 20}
-                // )
+            // this.drawIcon(ctx,
+            //     {x: minX, y:  minY - 20, width: 20, height: 20},
+            //     {x: maxX - 20, y:  minY - 20,width: 20, height: 20}
+            // )
             //    drawIcon(ctx, icon1, icon2) {
 
             //     // 智障代码
@@ -1268,12 +1382,16 @@ import { BlgSocket } from './workerSend'
                 let index = 0 // 第几个控制点 
                 if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.cancelIcon)) {
                     // this.meaninglessm
-                    console.log('cancelIcon')
+                    // console.log('cancelIcon')
+                    this.clearCtx2()
+                    this.changeDrawAction = 3
+                    this.meaninglessm = true
+
                 } else  if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.okIcon)) {
                     // console.log('okIcon')
                     this.changeDrawAction = 3
                     this.clearCtx2()
-                    if (this.geometry == 4) {
+                    if (this.geometry == 4 || this.geometry == 5) {
                         this.addNewData(true)
                     } else {
                         this.addNewData()
