@@ -718,13 +718,14 @@ import { BlgSocket } from './workerSend'
                             points = [firstPoint, currentPoint]
                              break
                         case 6: // 数轴
-                            const secondPoint = { x: currentPoint.x, y: firstPoint.y }
-                            // const midpoint =  this.getMidpoint(firstPoint, secondPoint)
-                            if (firstPoint.x - currentPoint.x < 0) {
-                                points = [firstPoint, secondPoint]
-                            } else {
-                                points = [secondPoint,  firstPoint]
-                            }
+                            const midpoint =  this.getMidpoint(firstPoint, currentPoint)
+                            points = [
+                                {x: currentPoint.x, y: midpoint.y },
+                                {x: midpoint.x, y: firstPoint.y },
+                                {x: midpoint.x, y: currentPoint.y},
+                                {x: firstPoint.x, y: midpoint.y },
+
+                            ]
                             break
                         default:
                             break
@@ -1050,10 +1051,19 @@ import { BlgSocket } from './workerSend'
             },
             //   箭头
             geometryLineArrow(ctx, p1, p2, headlen, midpoin) {
-                    const fromY = p1.y
-                    const fromX = p1.x
-                    const toX = p2.x
-                    const toY = p2.y
+                    let fromX, fromY, toX, toY
+                    if (p1.x < p2.x) {
+                        fromY = p1.y
+                        fromX = p1.x
+                        toX = p2.x
+                        toY = p2.y
+                    } else {
+                        fromY = p2.y
+                        fromX = p2.x
+                        toX = p1.x
+                        toY = p1.y 
+                    }
+
                     if (midpoin) {
                         // 中间位置
                         ctx.beginPath()
@@ -1108,8 +1118,8 @@ import { BlgSocket } from './workerSend'
                 const leftNumber = Math.floor(offsetLeft / interval) + 1
                 const rightNumber = Math.floor(offsetRight / interval) + 1
                 // 圆心到 起点位置
-                // console.log('leftNumber:' + leftNumber)
-                // console.log('rightNumber: ' + rightNumber)
+                console.log('leftNumber:' + leftNumber)
+                console.log('rightNumber: ' + rightNumber)
                 ctx.beginPath()
                 for (let index = 1; index < leftNumber; index++) {
                     const x = midpoin.x - interval * index
@@ -1146,18 +1156,17 @@ import { BlgSocket } from './workerSend'
                 // 圆形
                  if (geometry == 6) { 
                     // 箭头
-                    const firstPoint =  points[0]
+                    const firstPoint =  points[3]
                     const secondPoint = points[1]
                     const y = firstPoint.y //  y 是固定的
 
                     if (!isAuxiliary) {
-                        this.circleMidpoin = {x: (firstPoint.x + secondPoint.x) / 2, y}
+                        this.circleMidpoin = this.getMidpoint(firstPoint, secondPoint)
                         this.offsetLeft = this.circleMidpoin.x - firstPoint.x
-                    } 
-                    if (y != this.circleMidpoin.y) {
-                        // 上下拖动了
-                        this.circleMidpoin = {x: firstPoint.x + this.offsetLeft, y}
+                    } else {
+                        // this.circleMidpoin = {x: firstPoint.x + this.offsetLeft, y}
                     }
+                   
                     //   怎么画 y 轴坐标
                  
                     this.geometryLineArrow(ctx, firstPoint, secondPoint, 15, this.circleMidpoin)
@@ -1183,6 +1192,7 @@ import { BlgSocket } from './workerSend'
                     }
                     const midpoin = this.circleMidpoin = this.getMidpoint(firstPoint, secondPoint)
                     const radius = this.circleRadius = this.getDistance({pageX:firstPoint.x, pageY: firstPoint.y}, {pageX: midpoin.x, pageY: midpoin.y})
+
                     this.geometryArc(ctx, midpoin, radius)
              
                 } else {
@@ -1219,9 +1229,7 @@ import { BlgSocket } from './workerSend'
                 const radius = 10
 
                 // 画图
-
-                
-                if (this.geometry == 4) {
+                if (this.geometry == 4 ) {
                     // 圆形 都要特殊处理
                     const midpoin = this.circleMidpoin
                     const circleRadius = this.circleRadius 
