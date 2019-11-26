@@ -441,8 +441,9 @@ import { BlgSocket } from './workerSend'
                     
                     // 图片已经 缩放过了 -- 到 笔记这里 再缩放-- 就有问题了-- 可以解决  
                     // 存一下 厨师 缩放 比例--为基准--然后计算缩放比
-                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
-
+                    // ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                    ctx.lineWidth = this.limit(el.lineWidth, 1, 15)
+                    console.log(ctx.lineWidth)
                     ctx.beginPath()
                     //  {lable: '书写', value: 1},
                     // {lable: '直线', value: 2},
@@ -901,16 +902,6 @@ import { BlgSocket } from './workerSend'
                         //         this.removeLine(index)
                         //         continue
                         //     }
-                        // }
-
-
-                        /**
-                         *   减少 判断 标识 是根直线 然后 直接判断
-                         */
-
-
-                        // if (element.line) {
-                            
                         // }
 
 
