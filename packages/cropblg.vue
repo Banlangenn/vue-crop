@@ -351,6 +351,8 @@ import { BlgSocket } from './workerSend'
                 // paintBrush: null,
                 // revokeBar: null,
                 // rubberBar: null
+
+               
                
             }
         },
@@ -376,6 +378,17 @@ import { BlgSocket } from './workerSend'
                 this.cancelIcon =  {
                     element: document.getElementById('draw-cancel-icon')
                 }
+
+
+
+
+
+
+
+
+
+
+
 
 
                 const clientW = img.width
@@ -425,8 +438,10 @@ import { BlgSocket } from './workerSend'
                     const el = pointList[index];
     
                     const scale = this.scale / el.scale
-
-                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15) + 1
+                    
+                    // 图片已经 缩放过了 -- 到 笔记这里 再缩放-- 就有问题了-- 可以解决  
+                    // 存一下 厨师 缩放 比例--为基准--然后计算缩放比
+                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
 
                     ctx.beginPath()
                     //  {lable: '书写', value: 1},
@@ -435,7 +450,7 @@ import { BlgSocket } from './workerSend'
                     // {lable: '虚直线', value: 4}
                     // 虚线
                     ctx.strokeStyle = el.color
-
+                    const points = el.pointLine
 
                     // 矩形处理
                     const geometry = el.geometry
@@ -449,12 +464,22 @@ import { BlgSocket } from './workerSend'
                     }
 
                     if (geometry && geometry == 5) {
-                        const points = el.pointLine
                         const originPointFirst = this.restPoint(points[0], image, scale)
                         const originPointSecond = this.restPoint(points[1], image, scale)
                         ctx.fillStyle = el.color
                         //  this.geometryLineArrow(ctx, points[0], points[1], 20)
-                        this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 20)
+                        this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 15)
+                        continue
+                    }
+                    if (geometry && geometry == 6) {
+ 
+                        const originPointFirst = this.restPoint(points[0], image, scale)
+                        const originPointSecond = this.restPoint(points[1], image, scale)
+                        const originM = this.restPoint(el.centra, image, scale)
+                        ctx.fillStyle = el.color
+
+                        this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 15, originM, 'x')
+                        this.geometryAxis(ctx, originPointFirst, originPointSecond, originM, 'x')
                         continue
                     }
 
@@ -467,7 +492,7 @@ import { BlgSocket } from './workerSend'
                         ctx.setLineDash([]) // 实线
                     }
                     
-                    const points = el.pointLine
+
                     for (let i = 0; i < points.length; i++) {
                         const element = points[i]
                         const originPoint = this.restPoint(element, image, scale)
@@ -680,8 +705,6 @@ import { BlgSocket } from './workerSend'
                   
                    
                     let points = []
-                    
-
                     switch (this.geometry) {
                         case 1:
                             // 三角形
@@ -719,7 +742,7 @@ import { BlgSocket } from './workerSend'
                             points = [firstPoint, currentPoint]
                              break
                         case 6: // 数轴
-                        case 7: // 数轴
+                        case 7: // 坐标轴轴
                         case 8: // 椭圆
                             const midpoint =  this.getMidpoint(firstPoint, currentPoint)
                             points = [
@@ -733,11 +756,11 @@ import { BlgSocket } from './workerSend'
                             break
                     }
 
-                    this.renderGeometry(points, 10, false)
+                    this.renderGeometry(points, 8, false)
 
                     this.pointLine = points
 
-                    return
+                    return 
                 }
 
 
@@ -867,6 +890,31 @@ import { BlgSocket } from './workerSend'
                             }
                             continue
                         }
+
+                        // if (geometry && geometry == 7) {
+                        //     // 点到 线的 距离
+                        //     const dis = this.distanceOfPoint2Line( this.restPoint(item, image, scale), this.restPoint(secondItem, image, scale), {x, y})
+                        //     // 点到 线的 距离
+                        //     const dis2 = this.distanceOfPoint2Line( this.restPoint(item, image, scale), this.restPoint(secondItem, image, scale), {x, y})
+
+                        //     if (dis <= lineDis || dis2 <= lineDis) {
+                        //         this.removeLine(index)
+                        //         continue
+                        //     }
+                        // }
+
+
+                        /**
+                         *   减少 判断 标识 是根直线 然后 直接判断
+                         */
+
+
+                        // if (element.line) {
+                            
+                        // }
+
+
+
                         // this.log('在线的矩形内-- 开始检测','', 2)
                         const time2 = new Date().getTime()
                         for (let j = 0; j < lineLength; j++) {
@@ -936,7 +984,7 @@ import { BlgSocket } from './workerSend'
                 }
                //  结束对 延迟的 感知很小-- 可以把计算量大的都移动到 这部分来
 
-               const radius = 10 // 辅助的 圆球半径 
+               const radius = 7 // 辅助的 圆球半径 
 
                 if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
@@ -1034,7 +1082,7 @@ import { BlgSocket } from './workerSend'
             
                     pointObj.geometry = this.geometry
 
-                    if(this.geometry == 4) {
+                    if(this.geometry == 4 || this.geometry == 6) {
                         pointObj.centra = {
                             x: this.circleMidpoin.x - image.x,
                             y: this.circleMidpoin.y - image.y,
@@ -1061,7 +1109,7 @@ import { BlgSocket } from './workerSend'
                     ctx.stroke()
             },
             //   箭头
-            geometryLineArrow(ctx, p1, p2, headlen, midpoin) {
+            geometryLineArrow(ctx, p1, p2, headlen, midpoin, Axis) {
                     let fromX, fromY, toX, toY
 
                     fromY = p1.y
@@ -1069,41 +1117,40 @@ import { BlgSocket } from './workerSend'
                     toX = p2.x
                     toY = p2.y
 
-
-                    // if (p1.x >> 1 <= p2.x >> 1) {
-                    //     fromY = p1.y
-                    //     fromX = p1.x
-                    //     toX = p2.x
-                    //     toY = p2.y
-                    // } else {
-                    //     fromY = p2.y
-                    //     fromX = p2.x
-                    //     toX = p1.x
-                    //     toY = p1.y 
-                    // }
-
                     if (midpoin) {
-                        if (p1.x > p2.x ) {
+
+                        if (Axis == 'y') {
+                            // 是y轴
                             fromY = p2.y
                             fromX = p2.x
                             toX = p1.x
-                            toY = p1.y 
+                            toY = p1.y
+
+                            if (p1.y > p2.y) {
+                                fromY = p1.y
+                                fromX = p1.x
+                                toX = p2.x
+                                toY = p2.y
+                            }
+                        } else {
+                            // 是x轴
+                            if (p1.x > p2.x ) {
+                                fromY = p2.y
+                                fromX = p2.x
+                                toX = p1.x
+                                toY = p1.y 
+                            }
+
+                                 
+                        // 中间位置
+                            ctx.beginPath()
+                            ctx.arc(midpoin.x, midpoin.y, 5 , 0, 2 * Math.PI)
+                            ctx.fill()
+                            ctx.stroke()
                         }
 
-                        // if (p1.y >> 1 <= p2.y >> 1) {
-                           
-                        //     fromY = p1.y
-                        //     fromX = p1.x
-                        //     toX = p2.x
-                        //     toY = p2.y
-                        // }
                         
-                        
-                        // 中间位置
-                        ctx.beginPath()
-                        ctx.arc(midpoin.x, midpoin.y, 5 , 0, 2 * Math.PI)
-                        ctx.fill()
-                        ctx.stroke()
+                   
                     }
 
                     // const headlen = 20 //自定义箭头线的长度
@@ -1137,27 +1184,31 @@ import { BlgSocket } from './workerSend'
                     ctx.fill()
                     ctx.stroke()
             },
-
-            geometryXAxis(ctx, midpoin, p1, p2) {
+            /**
+             * 
+             *  中心点  起点 终点  x轴/y轴
+             */
+            geometryAxis(ctx, p1, p2, midpoin, Axis) {
                  // 圆心到终点位置
                 const bulge = 5 // 左边位置
                 const interval = 50 // 左边间隔
                 // 如何兼容 y 轴
-                 let fromX,  toX
-                    if (p1.x < p2.x) {
-                        fromX = p1.x
-                        toX = p2.x
-                    } else {
-                        fromX = p2.x
-                        toX = p1.x
-                    }
-
-
+                 let from,  to
+                if (p1.x < p2.x) {
+                    from = p1[Axis]
+                    to = p2[Axis]
+                } else {
+                    from = p2[Axis]
+                    to = p1[Axis]
+                }
                 // 轴的 x 坐标   0.0 的 位置
-                const y = midpoin.y
-                const offsetLeft = midpoin.x - fromX
-                const offsetRight = toX - midpoin.x
-               
+                // const y = midpoin.y
+                const offsetLeft = midpoin[Axis]- from
+                const offsetRight = to - midpoin[Axis]
+                function mark(p1, p2) {
+                    ctx.moveTo(p1.x, p1.y)
+                    ctx.lineTo(p2.x, p2.y)  
+                }
 
 
                 let leftNumber =  Math.floor(offsetLeft / interval) + 1
@@ -1170,57 +1221,21 @@ import { BlgSocket } from './workerSend'
 
                 ctx.beginPath()
                 for (let index = 1; index < leftNumber; index++) {
-                    const x = midpoin.x - interval * index
-                    ctx.moveTo(x, y)
-                    ctx.lineTo(x, y - bulge)    
-                }
-                for (let index = 1; index < rightNumber; index++) {
-                    const x = midpoin.x + interval * index
-                    ctx.moveTo(x, y)
-                    ctx.lineTo(x, y - bulge)
-                }
-                ctx.stroke() 
-            },
-            geometryYAxis(ctx, midpoin, p1, p2) {
-                 // 圆心到终点位置
-                const bulge = 5 // 左边位置
-                const interval = 50 // 左边间隔
-                // 如何兼容 y 轴
-                 let fromY, toY
-                    if (p1.y < p2.y) {
-                        fromY = p1.y
-                        toY = p2.y
+                    const start = midpoin[Axis] - interval * index
+                    if (Axis == 'x') {
+                        mark({x: start, y: midpoin.y}, {x: start, y:  midpoin.y - bulge})
                     } else {
-                        fromY = p2.y
-                        toY = p1.y
+                        mark({x: midpoin.x, y: start}, {x: midpoin.x + bulge, y: start})
                     }
-
-
-                // 轴的 x 坐标   0.0 的 位置
-                const x = midpoin.x
-                const offsetLeft = midpoin.y - fromY
-                const offsetRight = toY - midpoin.y
-               
-
-
-                let leftNumber =  Math.floor(offsetLeft / interval) + 1
-                let rightNumber = Math.floor(offsetRight / interval) + 1
-                if (leftNumber < 0) {
-                    leftNumber = leftNumber * -1 + 1
-                    rightNumber = rightNumber * -1 + 1
-                }
-                
-
-                ctx.beginPath()
-                for (let index = 1; index < leftNumber; index++) {
-                    const y = midpoin.y - interval * index
-                    ctx.moveTo(x, y)
-                    ctx.lineTo(x + bulge, y )    
+                 
                 }
                 for (let index = 1; index < rightNumber; index++) {
-                    const y = midpoin.y + interval * index
-                    ctx.moveTo(x, y)
-                    ctx.lineTo(x + bulge, y)
+                    const start = midpoin[Axis] + interval * index
+                    if (Axis == 'x') {
+                        mark({x: start, y: midpoin.y}, {x: start, y:  midpoin.y - bulge})
+                    } else {
+                        mark({x: midpoin.x, y: start}, {x: midpoin.x + bulge, y: start})
+                    }
                 }
                 ctx.stroke() 
             },
@@ -1296,18 +1311,18 @@ import { BlgSocket } from './workerSend'
                    
                     //   怎么画 y 轴坐标
                  
-                    this.geometryLineArrow(ctx, firstPoint, secondPoint, 15, this.circleMidpoin)
-                    this.geometryXAxis(ctx, this.circleMidpoin, firstPoint, secondPoint)
+                    this.geometryLineArrow(ctx, firstPoint, secondPoint, 15, this.circleMidpoin, 'x')
+                    this.geometryAxis(ctx, firstPoint, secondPoint, this.circleMidpoin, 'x')
 
                     if (this.geometry == 7) {
-                         
-                        this.geometryLineArrow(ctx, points[0], points[2], 15, this.circleMidpoin)
-                        this.geometryYAxis(ctx, this.circleMidpoin, points[0], points[2])
-                        // this.geometryAxis(ctx, this.circleMidpoin, firstPoint, secondPoint)
+
+                        // 不可以存 2笔--图中一个 全部删除//  要特殊对待了  判断两根直线
+                        this.geometryLineArrow(ctx, points[0], points[2], 15, this.circleMidpoin, 'y')
+                        this.geometryAxis(ctx, points[0], points[2], this.circleMidpoin, 'y')
                     }
                     // 
                 } else if (geometry == 5) { 
-                    // 箭头
+                    // 箭头 
                     this.geometryLineArrow(ctx, points[0], points[1], 20)
                 } else if (geometry == 4) {
                     // 圆形可以当做正方形来做  圆心就是 中间  半径就是 边长 / 
@@ -1415,10 +1430,10 @@ import { BlgSocket } from './workerSend'
                 // import okIcon from './img/ok.png'
                 // import cancelIcon from './img/cancel.png'
                 //  怎么用上这个矩形  能不根据 矩形 反推 图形
-                const { minX, minY, maxX, maxY } = this.getCritica(points, 10)
+                const { minX, minY, maxX, maxY } = this.getCritica(points, 8)
                 
 
-                //
+                // 确定 取消 按钮
                 ctx.drawImage(this.cancelIcon.element, minX, minY - 20, 20, 20)
                 ctx.drawImage(this.okIcon.element, maxX - 20, minY - 20, 20, 20)
                 //  事件系统
@@ -1610,7 +1625,7 @@ import { BlgSocket } from './workerSend'
                 } else if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
                     index = i
                     // 要构造一个小 正方形
-                    return this.checkRegion(x, y, {...point, x: point.x - 10 , y: point.y - 10,})
+                    return this.checkRegion(x, y, {...point, x: point.x - 8 , y: point.y - 8,})
                 })) {
                     // 控制点
                     // 面条代码
@@ -1663,7 +1678,7 @@ import { BlgSocket } from './workerSend'
 
                 //    let
               
-                    console.log(this.index)
+
                     switch (this.index) {
                         case 0:
                         case 2:
@@ -1682,24 +1697,35 @@ import { BlgSocket } from './workerSend'
                     
                 } else if (this.geometry == 6) {
 
-                    const firstPoint = this.pointLine[0]
+                    const y = this.pointLine[0].y  // y 是不会变的
+                    // const secondPoint = this.pointLine[1]
+                    const { minX, maxX} = this.getCritica(this.pointLine, 0)
+                    const isDirection = this.pointLine[0].x > this.pointLine[1].x
                     if (this.index == 0) {
-
-                        // if (this.circleMidpoin.x < point.x + 20) {
-                        //     return 
-                        // }
-                        // console.log('我走了吗')
-                        this.offsetLeft = this.circleMidpoin.x - point.x
-                    }
-
-
-                    if (this.index == 1) {
                         
-                        // if (this.circleMidpoin.x + 20 > point.x) {
-                        //     return 
-                        // }
+                        // console.log('我走了吗')
+                       this.offsetLeft = this.circleMidpoin.x - point.x
                     }
+
+
+                    // if (this.index == 1) {
+                    //     if (isDirection) {
+                    //         // 反
+                    //         if (point.x > this.circleMidpoin.x - 20) {
+                    //             return 
+                    //         }
+                    //         this.offsetLeft = this.circleMidpoin.x - point.x
+                    //     } else {
+                    //         // 正
+                    //         if (point.x - 20 < this.circleMidpoin.x) {
+                    //             return 
+                    //         }
+                    //     }
+                    // }
                     
+                    // if (this.circleMidpoin.x > point.x && this.circleMidpoin.x + 100 > point.x) {
+                    //     return 
+                    // }
                    
                     // if (firstPoint.x  > this.circleMidpoin.x || ) {
                     //     point = [firstPoint, { x: point.x, y: firstPoint.y }]
@@ -1707,7 +1733,7 @@ import { BlgSocket } from './workerSend'
                     //     point = [{ x: point.x, y: firstPoint.y }, firstPoint]
                     // }
                     
-                    this.pointLine.splice(this.index, 1, { x: point.x, y: firstPoint.y })
+                    this.pointLine.splice(this.index, 1, { x: point.x, y})
                 } else if (this.geometry == 4) {
                     // console.log(this.geometry)
                     // 这个圆形和 四边形一样的逻辑
@@ -1762,7 +1788,7 @@ import { BlgSocket } from './workerSend'
                 // --
                 // 控制点
                 // this.lin
-                this.renderGeometry(this.pointLine, 10, true)
+                this.renderGeometry(this.pointLine, 8, true)
                
             },
             // 移动辅助线
@@ -1780,8 +1806,8 @@ import { BlgSocket } from './workerSend'
                 // const auxiliaryLineMaxY = height - auxiliaryLine.height - 5
                 // 求出 --当前xy  相对于 辅助线的 位置
          
-                    const maxX = width - 10
-                    const maxY = height - 10
+                    const maxX = width - 8
+                    const maxY = height - 8
                     const currentX = x - s.x 
                     const currentY =  y - s.y
 
@@ -1802,16 +1828,39 @@ import { BlgSocket } from './workerSend'
                     for (let index = 0; index < this.oldPointLine.length; index++) {
                         const element = this.oldPointLine[index]
                         const item = { x: element.x + currentX, y: element.y + currentY }
-                        if (item.x <= 10 || item.y <= 30 || item.x >= maxX || item.y >= maxY ) {
+                        if (item.x <= 8 || item.y <= 28 || item.x >= maxX || item.y >= maxY ) {
                            return
                         }
                         arr.push(item)
                     }
 
+                    // 方案三
+                    // let arr = []
+                    // const { minX, minY, maxX, maxY } = this.getCritica(this.oldPointLine, 0)
+                    // const pointMaxX = width - 10
+                    // const pointMaxY = height - 10
+                   
+                    // for (let index = 0; index < this.oldPointLine.length; index++) {
+                    //     const element = this.oldPointLine[index]
+                    //     let item = { x: element.x + currentX, y: element.y + currentY }
+                    //     console.log( item.x + '==' + minX)
+                    //     //  console.log()
+                    //     if(item.x == minX) {
+                    //        item.x = this.limit(item.x, 10, maxX) 
+                    //     } else  if(item.x == maxX) {
+                    //        item.x = this.limit(item.x, minX, pointMaxX) 
+                    //     } else if(item.y == minY) {
+                    //        item.y = this.limit(item.y, 10, minY) 
+                    //     } else if(item.y == maxY) {
+                    //         item.y = this.limit(item.y , minY, pointMaxY) 
+                    //     }
+                    //     arr.push(item)
+                    // }
+
 
 
                    this.pointLine = arr
-                   this.renderGeometry(this.pointLine, 10, true)
+                   this.renderGeometry(this.pointLine, 8, true)
 
 
 
