@@ -433,7 +433,7 @@ import { BlgSocket } from './workerSend'
                 const pointList = this.pointList
                 const image = this.image
                 if (pointList.length == 0) return
-                ctx.lineCap = 'round'
+                // ctx.lineCap = 'round'
                 for (let index = 0; index < pointList.length; index++) {
                     const el = pointList[index];
     
@@ -442,8 +442,10 @@ import { BlgSocket } from './workerSend'
                     // 图片已经 缩放过了 -- 到 笔记这里 再缩放-- 就有问题了-- 可以解决  
                     // 存一下 厨师 缩放 比例--为基准--然后计算缩放比
                     // ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+
+                    // 为什么还是 会变细 画的线
                     ctx.lineWidth = this.limit(el.lineWidth, 1, 15)
-                    console.log(ctx.lineWidth)
+                    // console.log(ctx.lineWidth)
                     ctx.beginPath()
                     //  {lable: '书写', value: 1},
                     // {lable: '直线', value: 2},
@@ -469,7 +471,7 @@ import { BlgSocket } from './workerSend'
                         const originPointSecond = this.restPoint(points[1], image, scale)
                         ctx.fillStyle = el.color
                         //  this.geometryLineArrow(ctx, points[0], points[1], 20)
-                        this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 15)
+                        this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 20)
                         continue
                     }
                     if (geometry && geometry == 6) {
@@ -779,7 +781,7 @@ import { BlgSocket } from './workerSend'
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
                     const ctx = this.ctx
                     const color =  this.color
-                    ctx.lineCap = 'round'
+                    // ctx.lineCap = 'round'
                     // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
                     ctx.strokeStyle = color
                     ctx.lineWidth = lineWidth
@@ -796,7 +798,7 @@ import { BlgSocket } from './workerSend'
                         // {lable: '虚直线', value: 4}
                         // this.renderCanvas() //  能不能在 第二个canvas 上画
                         this.clearCtx2()
-
+                       
                         if (this.writing == 4) {
                             ctx.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
                         } else {
@@ -804,6 +806,7 @@ import { BlgSocket } from './workerSend'
                         }
                         // 这个  ctx  不一样
                         ctx.beginPath()
+                        // ctx.lineCap = 'round'
                         ctx.strokeStyle = this.color
                         ctx.lineWidth = lineWidth
                         ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
@@ -994,9 +997,10 @@ import { BlgSocket } from './workerSend'
                             this.clearCtx2()
                             return
                         }
-
                         //  如果  两个点 小于 80 --- 不给保留
-                        this.pointLine = [this.pointLine[3], this.pointLine[1]]
+                        // 如果出现 起点变终点--- 对调一下-- 可以省 很多判断-----但是 有点局限了
+                   
+                            this.pointLine = [this.pointLine[3], this.pointLine[1]]
                     }
                     this.renderGeometry(this.pointLine, radius, true)
                     //  待确认状态
@@ -1648,6 +1652,40 @@ import { BlgSocket } from './workerSend'
                 }
                 return t
             },
+
+            getAxisCritical(firstValue, secondValue, circleMidpoinVlaue, pointVlaue, isStartPoint) {
+                // 尽量 不要 依赖this
+                const isDirection = firstValue < secondValue
+                const number = 40
+                const rightMinX = circleMidpoinVlaue + number
+                const leftMinX = circleMidpoinVlaue - number
+                if(isDirection) {
+                    if (isStartPoint) {
+                        // 算出最大 最小值
+                        if (pointVlaue > leftMinX) {
+                            pointVlaue= leftMinX
+                        }
+
+                    } else {
+                        if (pointVlaue < rightMinX) {
+                            pointVlaue = rightMinX
+                        }
+                        
+                    }
+                } else {
+                    if (!isStartPoint) {
+
+                        if (pointVlaue > leftMinX) {
+                            pointVlaue = leftMinX
+                        }
+                    } else {
+                        
+                        if (pointVlaue < rightMinX) {
+                            pointVlaue = rightMinX
+                        }
+                    }
+                }
+            },
             handlePointMove(point) {
                 //  和point 关联起来
                 // 1. 靠手写  
@@ -1656,26 +1694,7 @@ import { BlgSocket } from './workerSend'
                     
                 // 1三角 2四边 3梯形
                 if (this.geometry == 7) {
-                    // const firstPoint = this.pointLine[0]
-                    // if (this.index == 0) {
 
-                    //     if (this.circleMidpoin.x < point.x + 20) {
-                    //         return 
-                    //     }
-                    //     console.log('我走了吗')
-                    //     this.offsetLeft = this.circleMidpoin.x - point.x
-                    // }
-
-
-                    // if (this.index == 1) {
-                        
-                    //     if (this.circleMidpoin.x + 20 > point.x) {
-                    //         return 
-                    //     }
-                    // }
-                    
-
-                //    let
               
 
                     switch (this.index) {
@@ -1696,9 +1715,7 @@ import { BlgSocket } from './workerSend'
                     
                 } else if (this.geometry == 6) {
 
-                    const y = this.pointLine[0].y  // y 是不会变的
-                    // const secondPoint = this.pointLine[1]
-                    // const { minX, maxX} = this.getCritica(this.pointLine, 0)
+                   
                     const isDirection = this.pointLine[0].x < this.pointLine[1].x
                     const number = 40
                     const rightMinX = this.circleMidpoin.x + number
@@ -1734,31 +1751,7 @@ import { BlgSocket } from './workerSend'
                     }
 
 
-                    // if (this.index == 1) {
-                    //     if (isDirection) {
-                    //         // 反
-                    //         if (point.x > this.circleMidpoin.x - 20) {
-                    //             return 
-                    //         }
-                    //         this.offsetLeft = this.circleMidpoin.x - point.x
-                    //     } else {
-                    //         // 正
-                    //         if (point.x - 20 < this.circleMidpoin.x) {
-                    //             return 
-                    //         }
-                    //     }
-                    // }
-                    
-                    // if (this.circleMidpoin.x > point.x && this.circleMidpoin.x + 100 > point.x) {
-                    //     return 
-                    // }
-                   
-                    // if (firstPoint.x  > this.circleMidpoin.x || ) {
-                    //     point = [firstPoint, { x: point.x, y: firstPoint.y }]
-                    // } else {
-                    //     point = [{ x: point.x, y: firstPoint.y }, firstPoint]
-                    // }
-                    
+                    const y = this.pointLine[0].y  // y 是不会变的
                     this.pointLine.splice(this.index, 1, { x: point.x, y})
                 } else if (this.geometry == 4) {
                     // console.log(this.geometry)
@@ -1839,26 +1832,26 @@ import { BlgSocket } from './workerSend'
 
 
                     // 方案一
-                    // this.pointLine = this.oldPointLine.map(e => {
-                    //     return {
-                    //         x: this.limit(e.x + currentX, 10, maxX) ,
-                    //         y: this.limit(e.y + currentY, 30, maxY)
-                    //     }
-                    // })
-                    // this.renderGeometry(this.pointLine, 10, true)
+                    this.pointLine = this.oldPointLine.map(e => {
+                        return {
+                            x: this.limit(e.x + currentX, 10, maxX) ,
+                            y: this.limit(e.y + currentY, 30, maxY)
+                        }
+                    })
+                    this.renderGeometry(this.pointLine, 10, true)
 
 
 
                     // 方案二
-                    let arr = []
-                    for (let index = 0; index < this.oldPointLine.length; index++) {
-                        const element = this.oldPointLine[index]
-                        const item = { x: element.x + currentX, y: element.y + currentY }
-                        if (item.x <= 8 || item.y <= 28 || item.x >= maxX || item.y >= maxY ) {
-                           return
-                        }
-                        arr.push(item)
-                    }
+                    // let arr = []
+                    // for (let index = 0; index < this.oldPointLine.length; index++) {
+                    //     const element = this.oldPointLine[index]
+                    //     const item = { x: element.x + currentX, y: element.y + currentY }
+                    //     if (item.x <= 8 || item.y <= 28 || item.x >= maxX || item.y >= maxY ) {
+                    //        return
+                    //     }
+                    //     arr.push(item)
+                    // }
 
                     // 方案三
                     // let arr = []
