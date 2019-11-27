@@ -990,6 +990,12 @@ import { BlgSocket } from './workerSend'
                         return
                     }
                     if (this.geometry == 6) {
+                        if (Math.abs(this.pointLine[3].x - this.pointLine[1].x) < 80) {
+                            this.clearCtx2()
+                            return
+                        }
+
+                        //  如果  两个点 小于 80 --- 不给保留
                         this.pointLine = [this.pointLine[3], this.pointLine[1]]
                     }
                     this.renderGeometry(this.pointLine, radius, true)
@@ -1039,7 +1045,6 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                 // 三角形  正方形 和 梯形 --- 和点线一样的 判断
                 if  (this.changeDrawAction == 3) {
-              
                     if ((this.geometry == 1 || this.geometry == 2 || this.geometry == 3)) {
                         points = this.pointLine.slice(-1).concat(this.pointLine)
                     }
@@ -1103,6 +1108,8 @@ import { BlgSocket } from './workerSend'
             geometryLineArrow(ctx, p1, p2, headlen, midpoin, Axis) {
                     let fromX, fromY, toX, toY
 
+
+                    // 箭头
                     fromY = p1.y
                     fromX = p1.x
                     toX = p2.x
@@ -1112,16 +1119,16 @@ import { BlgSocket } from './workerSend'
 
                         if (Axis == 'y') {
                             // 是y轴
-                            fromY = p2.y
-                            fromX = p2.x
-                            toX = p1.x
-                            toY = p1.y
-
                             if (p1.y > p2.y) {
                                 fromY = p1.y
                                 fromX = p1.x
                                 toX = p2.x
                                 toY = p2.y
+                            } else {
+                                fromY = p2.y
+                                fromX = p2.x
+                                toX = p1.x
+                                toY = p1.y
                             }
                         } else {
                             // 是x轴
@@ -1139,9 +1146,6 @@ import { BlgSocket } from './workerSend'
                             ctx.fill()
                             ctx.stroke()
                         }
-
-                        
-                   
                     }
 
                     // const headlen = 20 //自定义箭头线的长度
@@ -1185,7 +1189,7 @@ import { BlgSocket } from './workerSend'
                 const interval = 50 // 左边间隔
                 // 如何兼容 y 轴
                  let from,  to
-                if (p1.x < p2.x) {
+                if (p1[Axis] < p2[Axis]) {
                     from = p1[Axis]
                     to = p2[Axis]
                 } else {
@@ -1292,12 +1296,13 @@ import { BlgSocket } from './workerSend'
 
                     const y = firstPoint.y //  y 是固定的
 
+                    // 把 左边那个求出来
+                    const minX = Math.min(firstPoint.x, secondPoint.x)
                     if (!isAuxiliary) {
                         this.circleMidpoin = this.getMidpoint(firstPoint, secondPoint)
-                        this.offsetLeft = this.circleMidpoin.x - firstPoint.x
+                        this.offsetLeft = this.circleMidpoin.x - minX
                     } else {
-                        // slice
-                        this.circleMidpoin = {x: firstPoint.x + this.offsetLeft, y}
+                        this.circleMidpoin = {x: minX + this.offsetLeft, y}
                     }
                    
                     //   怎么画 y 轴坐标
@@ -1575,6 +1580,10 @@ import { BlgSocket } from './workerSend'
 
             // },
             // start 就触发
+            recoveryThree() {
+                this.clearCtx2()
+                this.changeDrawAction = 3
+            },
             getPointByCoordinate({x, y}) {
 
                 this.log('触发检测 点击区域')
@@ -1598,8 +1607,7 @@ import { BlgSocket } from './workerSend'
                 if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.cancelIcon)) {
                     // this.meaninglessm
                     // console.log('cancelIcon')
-                    this.clearCtx2()
-                    this.changeDrawAction = 3
+                    this.recoveryThree()
                     this.meaninglessm = true
 
                 } else  if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.okIcon)) {
@@ -1690,12 +1698,39 @@ import { BlgSocket } from './workerSend'
 
                     const y = this.pointLine[0].y  // y 是不会变的
                     // const secondPoint = this.pointLine[1]
-                    const { minX, maxX} = this.getCritica(this.pointLine, 0)
-                    const isDirection = this.pointLine[0].x > this.pointLine[1].x
-                    if (this.index == 0) {
+                    // const { minX, maxX} = this.getCritica(this.pointLine, 0)
+                    const isDirection = this.pointLine[0].x < this.pointLine[1].x
+                    const number = 40
+                    const rightMinX = this.circleMidpoin.x + number
+                    const leftMinX = this.circleMidpoin.x - number
+                    if(isDirection) {
                         
-                        // console.log('我走了吗')
-                       this.offsetLeft = this.circleMidpoin.x - point.x
+                        if (this.index == 0) {
+                            // 算出最大 最小值
+                            if (point.x > leftMinX) {
+                                point.x = leftMinX
+                            }
+                            this.offsetLeft = this.circleMidpoin.x - point.x
+                        } else {
+                            if (point.x < rightMinX) {
+                                point.x = rightMinX
+                            }
+                            
+                        }
+                    } else {
+                        if (this.index == 1) {
+
+                            if (point.x > leftMinX) {
+                               point.x = leftMinX
+                            }
+
+                            this.offsetLeft = this.circleMidpoin.x - point.x
+                        } else {
+                            
+                            if (point.x < rightMinX) {
+                                point.x = rightMinX
+                            }
+                        }
                     }
 
 
