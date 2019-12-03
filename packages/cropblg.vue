@@ -294,7 +294,7 @@ import { BlgSocket } from './workerSend'
                 // 几何图形
                 geometryList: [
                     {lable: '三角形', value: 1},
-                    {lable: '正方形', value: 2},
+                    {lable: '矩形', value: 2},
                     {lable: '梯形', value: 3},
                     {lable: '圆形', value: 4},
                     {lable: '箭头', value: 5},
@@ -312,8 +312,8 @@ import { BlgSocket } from './workerSend'
                 // penColor: '',
                 //   penColor: '',
                 debug: true, // debug
-                logLevel: 0,
-                logModule: 'rect', // 日志模块
+                logLevel: 3,
+                // logModule: 'rect', // 日志模块
                 
                 // ready: false,
                 noImage: true,
@@ -441,10 +441,10 @@ import { BlgSocket } from './workerSend'
                     
                     // 图片已经 缩放过了 -- 到 笔记这里 再缩放-- 就有问题了-- 可以解决  
                     // 存一下 厨师 缩放 比例--为基准--然后计算缩放比
-                    // ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
-
+                    ctx.lineWidth = this.limit(el.lineWidth * scale, 1, 15)
+                    //  * 1.3 是解决 store 点堆积 会造成线  加粗
                     // 为什么还是 会变细 画的线
-                    ctx.lineWidth = this.limit(el.lineWidth, 1, 15)
+                    // ctx.lineWidth = this.limit(el.lineWidth, 1, 15)
                     // console.log(ctx.lineWidth)
                     ctx.beginPath()
                     //  {lable: '书写', value: 1},
@@ -482,7 +482,7 @@ import { BlgSocket } from './workerSend'
                         const originM = this.restPoint(el.centra, image, scale)
                         ctx.fillStyle = el.color
 
-                        this.geometryLineArrow(ctx, left, right, 15, originM, 'x')
+                        this.geometryLineArrow(ctx, left, right, 15, originM, 'x', scale)
                         continue
                     }
                     if (geometry && geometry == 7) {
@@ -494,12 +494,14 @@ import { BlgSocket } from './workerSend'
 
                         const originM = this.restPoint(el.centra, image, scale)
 
-                        this.geometryLineArrow(ctx, left, right, 15, originM, 'x')
-                        this.geometryLineArrow(ctx, top, bottom, 15, originM, 'y')
+                        this.geometryLineArrow(ctx, left, right, 15, originM, 'x', scale)
+                        this.geometryLineArrow(ctx, top, bottom, 15, originM, 'y', scale)
                         continue
                     }
 
-                    // 矩形处理
+                    // 矩形处理 end
+
+                    ctx.lineWidth = ctx.lineWidth + 0.68
 
                     if (el.writing == 3 || el.writing == 4) {
                         ctx.setLineDash([5, 10])  // 虚线
@@ -710,7 +712,7 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                 const currentPoint = this.getCoordinateByEvent(e)
                 const drawPoint = this.drawPoint
-                const lineWidth = this.limit(this.weight, 1, 15)
+                const lineWidth = this.weight // this.limit(this.weight, 1, 15)
                 // 矩形
                 if (this.changeDrawAction == 3) {
                    
@@ -787,16 +789,7 @@ import { BlgSocket } from './workerSend'
                     /**
                      *  画笔 
                      */
-                    // 划线
-                    // 先实现划线
-                    //  画 相对于 画布  // 存 相对于 画布
-                    // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const ctx = this.ctx
-                    const color =  this.color
-                    // ctx.lineCap = 'round'
-                    // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
-                    ctx.strokeStyle = color
-                    ctx.lineWidth = lineWidth
+                
                     
                     // 划线  第一个点 用beginPath
                     if (this.writing == 2 || this.writing == 4) { // 是直线
@@ -832,8 +825,14 @@ import { BlgSocket } from './workerSend'
                             })
                         }
                     } else {
-                        // console.log('----------90909090--------------------------------')
-                        // console.log(drawPoint)
+                        // 划线
+                        // 先实现划线
+                        //  画 相对于 画布  // 存 相对于 画布
+                        // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
+                        const ctx = this.ctx
+                        // ctx.lineCap = 'round'
+                        // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
+                       
                         if (this.pointLine.length == 0) {
                             if (this.writing == 3) {
                                 ctx.setLineDash([5, 10])
@@ -841,13 +840,27 @@ import { BlgSocket } from './workerSend'
                                 ctx.setLineDash([])
                             }
                             ctx.beginPath()
-                            ctx.lineWidth = lineWidth                
+                            ctx.lineWidth = lineWidth 
+                            ctx.strokeStyle = this.color          
                             ctx.moveTo(drawPoint.x, drawPoint.y)
                             ctx.lineTo(currentPoint.x, currentPoint.y)
                         } else {
                             ctx.lineTo(currentPoint.x, currentPoint.y)
-                            ctx.stroke()
                         }
+                        ctx.stroke()
+
+
+                        //  for (let i = 0; i < points.length; i++) {
+                        // const element = points[i]
+                        // const originPoint = this.restPoint(element, image, scale)
+                        // if (i === 0) {
+                        //     // 要相对于图片的位置 才是对的  不能相对于 画布
+                        //     ctx.moveTo(originPoint.x, originPoint.y)
+                        //     continue
+                        // }
+                        // ctx.lineTo(originPoint.x, originPoint.y)
+                        // }
+                        // ctx.stroke()
 
                         //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
                         this.pointLine.push({
@@ -901,7 +914,8 @@ import { BlgSocket } from './workerSend'
                             const radius = (maxPonit.x - minPonit.x) / 2 - element.offset
                             const originM = this.restPoint(element.centra, image, scale)
                             const dis = this.getDistance({pageX: x, pageY: y}, {pageX: originM.x, pageY: originM.y})
-                            if (dis < lineDis || Math.abs(dis - radius) < lineDis) {
+                            // dis < lineDis || 
+                            if (Math.abs(dis - radius) < lineDis) {
                                 this.removeLine(index)
                             }
                             continue
@@ -937,9 +951,9 @@ import { BlgSocket } from './workerSend'
                             if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
                                 this.removeLine(index)
                                 this.sendData(e, 4, index)
+                                this.log( '点判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 5)
                                 break
                             }
-
                             // 判断线 不是最后一个
                             if (lineLength == 1 || j == lineLength - 1) break
                             const secondItem = pointLine[j + 1]
@@ -951,6 +965,8 @@ import { BlgSocket } from './workerSend'
                                 if (dis <= lineDis) {
                                     this.removeLine(index)
                                     this.sendData(e, 4, index)
+
+                                    this.log( '点到线距离判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 5)
                                     break
                                 }
                             }
@@ -969,15 +985,30 @@ import { BlgSocket } from './workerSend'
                 if (touches.length > 1 && this.changeDrawAction == -1) {
                     let startTouches = this.startTouches
                     let k; // 最终的缩放系数
-                    const scale = this.scale;
+                    const scale = this.scale
                     // const offset = e.deltaY / 800;
-                    k = (this.getDistance(touches[0], touches[1]) / this.getDistance(startTouches[0], startTouches[1]))
+
+                    // --- 要和前一个比 不能和最开始的比
+                    const dis1 = this.getDistance(touches[0], touches[1])
+                    const dis2 = this.getDistance(startTouches[0], startTouches[1])
+                    if ( Math.abs(dis1 - dis2) < 2) {
+                        return //  避免闪动
+                    }
+
+                    k = dis1 / dis2
+                    this.startTouches = touches
                     // k = k < 1 ? k / 10 : k * 10
-                    k = k < 1 ? 1 / (1 + k / 80) : 1 + Math.abs(k) / 140
-                    k = this.limit(k * scale, 0.5, 1.2)
+                    k = k < 1 ? 1 / (1 + k / 60) : 1 + k / 60
+                    // k = this.limit(k * scale, 0.5, 1.2)
+
+                    // k = k.toFixed(2)  //// 
+                    // k = k < 1 ? 1 / (1 + k / 60) : 1 + Math.abs(k) / 60
+                    // tMatrix[0] + sc - 1 > 0.5 && tMatrix[0] + sc - 1 < 3 ? tMatrix[0] + sc - 1 : tMatrix[0];
+                    k = this.limit(k * scale, 0.5, 3)
                     // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
                     this.sendData(e, 5, k)
                     this.scaleImage(k)
+                    // 在这个里边赋值 this.scale
                     return
                 }
   
@@ -1152,19 +1183,20 @@ import { BlgSocket } from './workerSend'
               
             },
             geometryArc(ctx, midpoin, radius) {
-                    ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
-                    ctx.stroke()
+                    // ctx.arc(midpoin.x, midpoin.y, 1, 0, 2 * Math.PI)
+                    // ctx.stroke()
 
                     // 圆圈
                     ctx.beginPath()
                     ctx.arc(midpoin.x, midpoin.y, radius , 0, 2 * Math.PI)
+                    
                     ctx.stroke()
             },
             //   箭头
-            geometryLineArrow(ctx, p1, p2, headlen, midpoin, Axis) {
+            geometryLineArrow(ctx, p1, p2, headlen, midpoin, Axis, k = 1) {
                 let fromX, fromY, toX, toY
 
-
+                headlen = headlen * k
                 // 箭头
                 fromY = p1.y
                 fromX = p1.x
@@ -1198,13 +1230,13 @@ import { BlgSocket } from './workerSend'
                                 
                     // 中间位置
                         ctx.beginPath()
-                        ctx.arc(midpoin.x, midpoin.y, 5 , 0, 2 * Math.PI)
+                        ctx.arc(midpoin.x, midpoin.y, 5 * k , 0, 2 * Math.PI)
                         ctx.fill()
                         ctx.stroke()
                     }
 
                     //  把 数组的 坐标画出来
-                    this.geometryAxis(ctx, p1, p2, midpoin, Axis)
+                    this.geometryAxis(ctx, p1, p2, midpoin, Axis, k)
                 }
 
                 // const headlen = 20 //自定义箭头线的长度
@@ -1229,11 +1261,13 @@ import { BlgSocket } from './workerSend'
                 ctx.moveTo(arrowX, arrowY)
                 ctx.lineTo(toX, toY)
 
+
                 const arrowX1 = toX + botX
                 const arrowY1 = toY + botY
                 //画下边箭头线
                 ctx.lineTo(arrowX1, arrowY1)
-                ctx.lineTo(arrowX, arrowY)
+
+
                 
                 ctx.fill()
                 ctx.stroke()
@@ -1242,10 +1276,10 @@ import { BlgSocket } from './workerSend'
              * 
              *  中心点  起点 终点  x轴/y轴
              */
-            geometryAxis(ctx, p1, p2, midpoin, Axis) {
+            geometryAxis(ctx, p1, p2, midpoin, Axis, k = 1) {
                  // 圆心到终点位置
-                const bulge = 5 // 左边位置
-                const interval = 50 // 左边间隔
+                const bulge = this.limit(5 * k, 2, 50 )// 左边位置
+                const interval = 50 * k // 左边间隔
                 // 如何兼容 y 轴
                  let from,  to
                 if (p1[Axis] < p2[Axis]) {
@@ -1904,6 +1938,14 @@ import { BlgSocket } from './workerSend'
                 const x = p2.pageX - p1.pageX,
                     y = p2.pageY - p1.pageY
                 return Math.sqrt((x * x) + (y * y))
+            },
+           /*
+            * 两点的夹角
+            */
+            getAngle(p1, p2) {
+                var x = p1.pageX - p2.pageX,
+                    y = p1.pageY - p2.pageY;
+                return Math.atan2(y, x) * 180 / Math.PI;
             },
             // 限定范围值
             limit(value, min, max) {
