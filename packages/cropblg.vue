@@ -300,8 +300,8 @@ import { BlgSocket } from './workerSend'
                     {lable: '箭头', value: 5},
                     {lable: '数轴', value: 6},
                     {lable: '坐标轴', value: 7},
-                    {lable: '椭圆', value: 8},
-                    {lable: '弧形', value: 9}
+                    // {lable: '椭圆', value: 8},
+                    // {lable: '弧形', value: 9}
                 ],
 
                 // ----------------------------------------------------------------------
@@ -479,7 +479,7 @@ import { BlgSocket } from './workerSend'
  
                         const left = this.restPoint(points[0], image, scale)
                         const right = this.restPoint(points[1], image, scale)
-                        const originM = this.getMidpoint(left, right)
+                        const originM = this.restPoint(el.centra, image, scale)
                         ctx.fillStyle = el.color
 
                         this.geometryLineArrow(ctx, left, right, 15, originM, 'x')
@@ -492,7 +492,7 @@ import { BlgSocket } from './workerSend'
                         const top = this.restPoint(points[0], image, scale)
                         const bottom = this.restPoint(points[2], image, scale)
 
-                        const originM = this.getMidpoint(left, right)
+                        const originM = this.restPoint(el.centra, image, scale)
 
                         this.geometryLineArrow(ctx, left, right, 15, originM, 'x')
                         this.geometryLineArrow(ctx, top, bottom, 15, originM, 'y')
@@ -914,6 +914,8 @@ import { BlgSocket } from './workerSend'
                             // 点到 线的 距离
                             if (dis <= lineDis ) {
                                 this.removeLine(index)
+                                // 尽量少算一个
+                                continue
                             }
                             const dis2 = this.distanceOfPoint2Line(this.restPoint(pointLine[0], image, scale), this.restPoint(pointLine[2], image, scale), {x, y})
                             if (dis2 <= lineDis) {
@@ -1132,7 +1134,7 @@ import { BlgSocket } from './workerSend'
                     // delete pointObj.pointLine
                     pointObj.geometry = this.geometry
 
-                    if(this.geometry == 4) {
+                    if(this.geometry == 4 || this.geometry == 6 || this.geometry == 7) {
                         pointObj.centra = {
                             x: this.circleMidpoin.x - image.x,
                             y: this.circleMidpoin.y - image.y,

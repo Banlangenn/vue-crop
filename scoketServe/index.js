@@ -1,10 +1,12 @@
-var app = require('express')();
+const express = require('express')
+var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 const fs =  require('fs')
-app.get('/', function(req, res){
-    res.send('<h1>Welcome Realtime Server</h1>');
-});
+// app.get('/', function(req, res){
+//     res.send('<h1>Welcome Realtime Server</h1>');
+// });
+app.use(express.static('./../blg'))
 let actionList = [] // 操作记录
 //在线用户
 var onlineUsers = {};
@@ -100,12 +102,12 @@ io.on('connection', function(socket){
     socket.on('writeIn', function(obj){
         //向所有客户端广播发布的消息
         // io.emit('message', obj);
-        fs.writeFile(`./time-${new Date().getTime()}.json`, JSON.stringify(actionList, null, 4), function(err){
-            if(err){
-                console.error(err);
-            }
-            console.log('----------新增成功-------------');
-        })
+        // fs.writeFile(`./time-${new Date().getTime()}.json`, JSON.stringify(actionList, null, 4), function(err){
+        //     if(err){
+        //         console.error(err);
+        //     }
+        //     console.log('----------新增成功-------------');
+        // })
     });
 
    
