@@ -453,11 +453,18 @@ import { BlgSocket } from './workerSend'
                     // {lable: '虚直线', value: 4}
                     // 虚线
                     ctx.strokeStyle = el.color
-                    ctx.fillStyle = el.color
+                    
                     const points = el.pointLine
 
                     // 矩形处理
                     const geometry = el.geometry
+
+                    /**
+                     *  只有 数轴有填充颜色的
+                     */
+                    if (geometry) {
+                        ctx.fillStyle = el.color
+                    }
                     if (geometry && geometry == 4) {
                         const maxX = image.x + el.maxX * scale
                         const minX = image.x + el.minX * scale
@@ -466,12 +473,13 @@ import { BlgSocket } from './workerSend'
                         this.geometryArc(ctx, originM, radius)
                         continue
                     }
-
+                    /**
+                     *  单 箭头
+                     */
                     if (geometry && geometry == 5) {
                         const originPointFirst = this.restPoint(points[0], image, scale)
                         const originPointSecond = this.restPoint(points[1], image, scale)
                         ctx.fillStyle = el.color
-                        //  this.geometryLineArrow(ctx, points[0], points[1], 20)
                         this.geometryLineArrow(ctx, originPointFirst, originPointSecond, 20)
                         continue
                     }
@@ -486,12 +494,12 @@ import { BlgSocket } from './workerSend'
                         continue
                     }
                     if (geometry && geometry == 7) {
-                        const left = this.restPoint(points[3], image, scale)
-                        const right = this.restPoint(points[1], image, scale)
+                        // const left = this.restPoint(points[3], image, scale)
+                        // const right = this.restPoint(points[1], image, scale)
+                        // const top = this.restPoint(points[0], image, scale)
+                        // const bottom = this.restPoint(points[2], image, scale)
 
-                        const top = this.restPoint(points[0], image, scale)
-                        const bottom = this.restPoint(points[2], image, scale)
-
+                        const [top, right, bottom, left] = points.map(e => this.restPoint(e, image, scale))
                         const originM = this.restPoint(el.centra, image, scale)
 
                         this.geometryLineArrow(ctx, left, right, 15, originM, 'x', scale)
@@ -501,24 +509,24 @@ import { BlgSocket } from './workerSend'
 
                     // 矩形处理 end
 
-                    ctx.lineWidth = ctx.lineWidth + 0.68
-
                     if (el.writing == 3 || el.writing == 4) {
                         ctx.setLineDash([5, 10])  // 虚线
                     } else {
                         ctx.setLineDash([]) // 实线
                     }
-                    
 
-                    for (let i = 0; i < points.length; i++) {
-                        const element = points[i]
-                        const originPoint = this.restPoint(element, image, scale)
-                        if (i === 0) {
-                            // 要相对于图片的位置 才是对的  不能相对于 画布
-                            ctx.moveTo(originPoint.x, originPoint.y)
-                            continue
-                        }
+
+                    const originPoint = this.restPoint(points[0], image, scale)
+                    ctx.moveTo(originPoint.x, originPoint.y)
+                    for (let i = 1; i < points.length; i++) {
+                        const originPoint = this.restPoint( points[i], image, scale)
                         ctx.lineTo(originPoint.x, originPoint.y)
+                    }
+
+                    // 矩形
+                    if (geometry) {
+                        // 解决 就行闭合  棱角不尖锐
+                        ctx.closePath()
                     }
                     ctx.stroke()
                 }
@@ -613,9 +621,8 @@ import { BlgSocket } from './workerSend'
             handleGeometry(e) {
                 // 几何图形
                 // if(!this.sendData(e, 12)) return
+                // 三角形的 定位left
                 this.triangleLeft = 240
-
-
                 this.changeDrawAction = 3
 
                 if ( this.showGeometry) {
@@ -694,6 +701,18 @@ import { BlgSocket } from './workerSend'
                 // 单指  起点
                 this.drawPoint = this.getCoordinateByEvent(e)
                 this.startPoint = this.getPointByCoordinate(this.drawPoint) // 判断点了 主要点是否 有东西
+
+                //  初始化  画笔参数  挪到启动地方
+                const lineWidth = this.weight // this.limit(this.weight, 1, 15)
+                const color = this.color
+                const ctx = this.ctx
+                ctx.lineWidth = lineWidth - 0.68 // 加粗 原因   写东西的时候 不停 store 导致线条变粗  为了和谐  减去这个值
+                ctx.strokeStyle = color
+
+                const ctx2 = this.ctx2
+                ctx2.lineWidth = lineWidth // 
+                ctx2.strokeStyle = color
+
                 // --  画画
                 if (this.changeDrawAction == 1 || this.changeDrawAction == 3) {
                     // console.log('不是普通')
@@ -708,12 +727,199 @@ import { BlgSocket } from './workerSend'
                 // 判断是不是 读的一端
                 if(!this.sendData(e, 2)) return
                 // 判断是不是 第一次触发 新动作
-                const touches = e.touches
-                const image = this.image
                 const currentPoint = this.getCoordinateByEvent(e)
                 const drawPoint = this.drawPoint
-                const lineWidth = this.weight // this.limit(this.weight, 1, 15)
-                // 矩形
+
+
+                
+                /**
+                 *  画笔  用的最多 放在第一个  少很多判断
+                 */
+                if (this.changeDrawAction == 1) {
+                    
+                    // 划线  第一个点 用beginPath
+                    if (this.writing == 2 || this.writing == 4) { // 是直线
+                        const ctx2 = this.ctx2
+                        // 直线 有延迟
+                        // const ctx = this.ctx2
+                        //  可以考虑把 -- 
+                        //  {lable: '书写', value: 1},
+                        // {lable: '直线', value: 2},
+                        // {lable: '虚线', value: 3},
+                        // {lable: '虚直线', value: 4}
+                        // this.renderCanvas() //  能不能在 第二个canvas 上画
+                        this.clearCtx2()
+                       
+                        if (this.writing == 4) {
+                            ctx2.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
+                        } else {
+                            ctx2.setLineDash([])
+                        }
+                        // 这个  ctx  不一样
+                        ctx2.beginPath()
+                        // ctx.lineCap = 'round'
+                        // ctx2.strokeStyle = this.color
+                        // ctx2.lineWidth = lineWidth
+                        ctx2.moveTo(this.firstPoint.x, this.firstPoint.y)
+                        ctx2.lineTo(currentPoint.x, currentPoint.y)
+                        ctx2.stroke()
+                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
+                        if (this.pointLine.length === 0) {
+                            this.pointLine.push(drawPoint)
+                        }
+                    } else {
+                        // 划线
+                        // 先实现划线
+                        //  画 相对于 画布  // 存 相对于 画布
+                        // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
+                        const ctx = this.ctx
+                        // ctx.lineCap = 'round'
+                        // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
+                       
+                        if (this.pointLine.length == 0) {
+                            if (this.writing == 3) {
+                                ctx.setLineDash([5, 10])
+                            } else {
+                                ctx.setLineDash([])
+                            }
+                            ctx.beginPath()       
+                            ctx.moveTo(drawPoint.x, drawPoint.y)
+                            ctx.lineTo(currentPoint.x, currentPoint.y)
+                        } else {
+                            ctx.lineTo(currentPoint.x, currentPoint.y)
+                        }
+                        ctx.stroke()
+
+                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上 // end  上的 最后一笔 时最准确的 
+                        this.pointLine.push(drawPoint)
+                    }
+                    this.drawPoint = currentPoint
+                    return
+                }
+                
+
+                /**
+                 * 
+                 *  橡皮
+                 * 
+                 */
+
+                if (this.changeDrawAction == 2) {
+                    const { x, y } = currentPoint
+                    const radius = 12
+                    this.clearCtx2()
+                    this.renderRubber(x, y, radius)
+
+                    if (this.type == 1 || this.isReplay) { // 回放 或则 读  橡皮不做判断
+                        return
+                    }
+
+                    const pointList = this.pointList
+                    const image = this.image
+                    this.log('进入橡皮先生' + '我是写' + '--type:' + this.type)
+                    const time = new Date().getTime()
+                    for (let index = 0; index < pointList.length; index++) {
+                        const element = pointList[index]
+                        
+                        const scale = this.scale / element.scale
+                        const pointLine = element.pointLine
+                        const lineDis = element.lineWidth / 2 + radius
+                        const lineLength = pointLine.length
+                        // 还原最大 最小值
+                        const maxPonit = this.restPoint({ x: element.maxX, y: element.maxY }, image, scale)
+                        const minPonit = this.restPoint({ x: element.minX, y: element.minY }, image, scale)
+                        //  直线如果距离太小也会 被拦下来  处理放在了 计算 min和max 了
+                        const time1 = new Date().getTime()
+                        if (
+                            (x > maxPonit.x ||
+                            y > maxPonit.y ||
+                            x < minPonit.x ||
+                            y < minPonit.y)
+                        ) {
+                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + 
+                            '' + (new Date().getTime() - time1) + 'ms' )
+                            continue 
+                        }
+                        // 圆 特殊处理
+                        const geometry = element.geometry
+                        if (geometry && geometry == 4) {
+                            const radius = (maxPonit.x - minPonit.x) / 2 - element.offset
+                            const originM = this.restPoint(element.centra, image, scale)
+                            const dis = this.getDistance({pageX: x, pageY: y}, {pageX: originM.x, pageY: originM.y})
+                            // dis < lineDis || 
+                            if (Math.abs(dis - radius) < lineDis) {
+                                this.removeLine(index)
+                            }
+                            continue
+                        }
+                        //  坐标轴
+                        if (geometry && geometry == 7) {
+                            // const points = element.
+                            // 点到 线的 距离
+                            const dis = this.distanceOfPoint2Line(this.restPoint(pointLine[3], image, scale), this.restPoint(pointLine[1], image, scale), {x, y})
+                            // 点到 线的 距离
+                            if (dis <= lineDis ) {
+                                this.removeLine(index)
+                                // 尽量少算一个
+                                continue
+                            }
+                            const dis2 = this.distanceOfPoint2Line(this.restPoint(pointLine[0], image, scale), this.restPoint(pointLine[2], image, scale), {x, y})
+                            if (dis2 <= lineDis) {
+                                this.removeLine(index)
+                            }
+                            continue
+                        }
+
+
+
+                        // this.log('在线的矩形内-- 开始检测','', 2)
+                        const time2 = new Date().getTime()
+                        for (let j = 0; j < lineLength; j++) {
+                            const item = pointLine[j];
+                            // const len = pointLine.length
+                            // 点 复原坐标 1 
+                            const originPoint = this.restPoint(item, image, scale)
+                            // 首先用点检测
+                            if (Math.abs(x - originPoint.x) < lineDis && Math.abs(y - originPoint.y) < lineDis) {
+                                this.removeLine(index)
+                                this.sendData(e, 4, index)
+                                this.log( '点判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 2)
+                                break
+                            }
+                            // 判断线 不是最后一个
+                            if (lineLength == 1 || j == lineLength - 1) break
+                            const secondItem = pointLine[j + 1]
+                            // 如果 离上一个点差的很远 ---  用线 检测
+                            if (geometry || this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) > lineDis ) {
+                                // this.log('差的很远的的一条线 橡皮离这个线的距离')
+                                const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
+                                // this.log('点到线的距离为： ' + dis)
+                                if (dis < lineDis) {
+                                    this.removeLine(index)
+                                    this.sendData(e, 4, index)
+
+                                    this.log( '点到线距离判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 2)
+                                    break
+                                }
+                            }
+                        }
+                        this.log('index:' + index + ',这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms', 'red', 2)
+                        // 20
+                    }
+                    // this.log('橡皮的半径' + ('' + radius))
+
+                    //  检测耗时 不多  主要在 重绘耗时
+                    this.log( '一共(' + pointList.length + 
+                        '根),检测耗时' + '' + 
+                        (new Date().getTime() - time) + 'ms', 'red', 5)
+                    return
+                }
+
+                /**
+                 * 
+                 *  矩形
+                 * 
+                 */
                 if (this.changeDrawAction == 3) {
                    
                     // console.log('矩形')
@@ -780,214 +986,20 @@ import { BlgSocket } from './workerSend'
                     return 
                 }
 
-
-
-
-                 // 画笔
-                if (this.changeDrawAction == 1) {
-                    
-                    /**
-                     *  画笔 
-                     */
-                
-                    
-                    // 划线  第一个点 用beginPath
-                    if (this.writing == 2 || this.writing == 4) { // 是直线
-                        const ctx = this.ctx2
-                        // 直线 有延迟
-                        // const ctx = this.ctx2
-                        //  可以考虑把 -- 
-                        //  {lable: '书写', value: 1},
-                        // {lable: '直线', value: 2},
-                        // {lable: '虚线', value: 3},
-                        // {lable: '虚直线', value: 4}
-                        // this.renderCanvas() //  能不能在 第二个canvas 上画
-                        this.clearCtx2()
-                       
-                        if (this.writing == 4) {
-                            ctx.setLineDash([5, 10]) // 参数是一个数组，数组元素是数字。虚线是实虚交替的，这个数组的元素用来描述实边长度和虚边的长度
-                        } else {
-                            ctx.setLineDash([])
-                        }
-                        // 这个  ctx  不一样
-                        ctx.beginPath()
-                        // ctx.lineCap = 'round'
-                        ctx.strokeStyle = this.color
-                        ctx.lineWidth = lineWidth
-                        ctx.moveTo(this.firstPoint.x, this.firstPoint.y)
-                        ctx.lineTo(currentPoint.x, currentPoint.y)
-                        ctx.stroke()
-                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        if (this.pointLine.length === 0) {
-                            this.pointLine.push({
-                                x: drawPoint.x - image.x,
-                                y: drawPoint.y - image.y
-                            })
-                        }
-                    } else {
-                        // 划线
-                        // 先实现划线
-                        //  画 相对于 画布  // 存 相对于 画布
-                        // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                        const ctx = this.ctx
-                        // ctx.lineCap = 'round'
-                        // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
-                       
-                        if (this.pointLine.length == 0) {
-                            if (this.writing == 3) {
-                                ctx.setLineDash([5, 10])
-                            } else {
-                                ctx.setLineDash([])
-                            }
-                            ctx.beginPath()
-                            ctx.lineWidth = lineWidth 
-                            ctx.strokeStyle = this.color          
-                            ctx.moveTo(drawPoint.x, drawPoint.y)
-                            ctx.lineTo(currentPoint.x, currentPoint.y)
-                        } else {
-                            ctx.lineTo(currentPoint.x, currentPoint.y)
-                        }
-                        ctx.stroke()
-
-
-                        //  for (let i = 0; i < points.length; i++) {
-                        // const element = points[i]
-                        // const originPoint = this.restPoint(element, image, scale)
-                        // if (i === 0) {
-                        //     // 要相对于图片的位置 才是对的  不能相对于 画布
-                        //     ctx.moveTo(originPoint.x, originPoint.y)
-                        //     continue
-                        // }
-                        // ctx.lineTo(originPoint.x, originPoint.y)
-                        // }
-                        // ctx.stroke()
-
-                        //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上
-                        this.pointLine.push({
-                            x: drawPoint.x - image.x,
-                            y: drawPoint.y - image.y
-                        })
-                    }
-                    this.drawPoint = currentPoint
-                    return
-                }
-                // 橡皮
-                if (this.changeDrawAction == 2) {
-                    const { x, y } = currentPoint
-                    const radius = 12
-                    this.clearCtx2()
-                    this.renderRubber(x, y, radius)
-
-                    if (this.type == 1 || this.isReplay) { // 回放 或则 读  橡皮不做判断
-                        return
-                    }
-
-                    const pointList = this.pointList
-                    const image = this.image
-                    this.log('进入橡皮先生' + '我是写' + '--type:' + this.type)
-                    const time = new Date().getTime() 
-                    for (let index = 0; index < pointList.length; index++) {
-                        const element = pointList[index]
-                        
-                        const scale = this.scale / element.scale
-                        const pointLine = element.pointLine
-                        const lineDis = element.lineWidth / 2 + radius
-                        const lineLength = pointLine.length
-                        // 还原最大 最小值
-                        const maxPonit = this.restPoint({ x: element.maxX, y: element.maxY }, image, scale)
-                        const minPonit = this.restPoint({ x: element.minX, y: element.minY }, image, scale)
-                        //  直线如果距离太小也会 被拦下来  处理放在了 计算 min和max 了
-                        const time1 = new Date().getTime()
-                        if (
-                            (x > maxPonit.x ||
-                            y > maxPonit.y ||
-                            x < minPonit.x ||
-                            y < minPonit.y)
-                        ) {
-                            this.log('不在这条线的矩形内-- 不检测跳过进入下一条：预检测耗时' + 
-                            '' + (new Date().getTime() - time1) + 'ms' )
-                            continue 
-                        }
-                        // 圆 特殊处理
-                        const geometry = element.geometry
-                        if (geometry && geometry == 4) {
-                            const radius = (maxPonit.x - minPonit.x) / 2 - element.offset
-                            const originM = this.restPoint(element.centra, image, scale)
-                            const dis = this.getDistance({pageX: x, pageY: y}, {pageX: originM.x, pageY: originM.y})
-                            // dis < lineDis || 
-                            if (Math.abs(dis - radius) < lineDis) {
-                                this.removeLine(index)
-                            }
-                            continue
-                        }
-
-                        if (geometry && geometry == 7) {
-                            // const points = element.
-                            // 点到 线的 距离
-                            const dis = this.distanceOfPoint2Line(this.restPoint(pointLine[3], image, scale), this.restPoint(pointLine[1], image, scale), {x, y})
-                            // 点到 线的 距离
-                            if (dis <= lineDis ) {
-                                this.removeLine(index)
-                                // 尽量少算一个
-                                continue
-                            }
-                            const dis2 = this.distanceOfPoint2Line(this.restPoint(pointLine[0], image, scale), this.restPoint(pointLine[2], image, scale), {x, y})
-                            if (dis2 <= lineDis) {
-                                this.removeLine(index)
-                            }
-                            continue
-                        }
-
-
-
-                        // this.log('在线的矩形内-- 开始检测','', 2)
-                        const time2 = new Date().getTime()
-                        for (let j = 0; j < lineLength; j++) {
-                            const item = pointLine[j];
-                            // const len = pointLine.length
-                            // 点 复原坐标 1 
-                            const originPoint = this.restPoint(item, image, scale)
-                            // 首先用点检测
-                            if (Math.abs(x - originPoint.x) <= lineDis && Math.abs(y - originPoint.y) <= lineDis) {
-                                this.removeLine(index)
-                                this.sendData(e, 4, index)
-                                this.log( '点判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 5)
-                                break
-                            }
-                            // 判断线 不是最后一个
-                            if (lineLength == 1 || j == lineLength - 1) break
-                            const secondItem = pointLine[j + 1]
-                            // 如果 离上一个点差的很远 ---  用线 检测
-                            if (this.getDistance({pageX: item.x, pageY: item.y}, {pageX: secondItem.x, pageY: secondItem.y}) >= lineDis ) {
-                                // this.log('差的很远的的一条线 橡皮离这个线的距离')
-                                const dis = this.distanceOfPoint2Line(originPoint, this.restPoint(secondItem, image, scale), {x, y})
-                                // this.log('点到线的距离为： ' + dis)
-                                if (dis <= lineDis) {
-                                    this.removeLine(index)
-                                    this.sendData(e, 4, index)
-
-                                    this.log( '点到线距离判断删除 + 耗时' + '' + (new Date().getTime() - time) + 'ms', 'red', 5)
-                                    break
-                                }
-                            }
-                        }
-                        this.log('index:' + index + ',这根线检测完毕 ：检测耗时' + '' + (new Date().getTime() - time2) + 'ms')
-                        // 20
-                    }
-                    // this.log('橡皮的半径' + ('' + radius))
-                    this.log( '一共(' + pointList.length + 
-                        '根),检测耗时' + '' + 
-                        (new Date().getTime() - time) + 'ms', 'red', 5)
-                    return
-                }
-
-                // 缩放 有行为动作 可以定义一个变量  active = 1234  不是 -1  就是 有行为
-                if (touches.length > 1 && this.changeDrawAction == -1) {
-                    let startTouches = this.startTouches
+                /**
+                 * 
+                 * 缩放
+                 * 
+                 */
+                const touches = e.touches
+                if (touches.length == 2 && this.changeDrawAction == -1) {
+                  
                     let k; // 最终的缩放系数
                     const scale = this.scale
                     // const offset = e.deltaY / 800;
 
+                    
+                    let startTouches = this.startTouches
                     // --- 要和前一个比 不能和最开始的比
                     const dis1 = this.getDistance(touches[0], touches[1])
                     const dis2 = this.getDistance(startTouches[0], startTouches[1])
@@ -1096,10 +1108,9 @@ import { BlgSocket } from './workerSend'
                 // this.log(this.pointLine)
                 if (this.changeDrawAction == 1 && this.pointLine.length > 0) {
                     const drawPoint = this.drawPoint
-                    const image = this.image
                     this.pointLine.push({
-                        x: drawPoint.x - image.x,
-                        y: drawPoint.y - image.y
+                        x: drawPoint.x,
+                        y: drawPoint.y
                     })
                     this.addNewData()
                 }
@@ -1137,13 +1148,13 @@ import { BlgSocket } from './workerSend'
                         points = this.pointLine.slice(-1).concat(this.pointLine)
                     }
 
-                    points = points.map(e=> {
-                        return  {
-                            x: e.x - image.x,
-                            y: e.y - image.y
-                        }
-                    })
                 }
+                points = points.map(e=> {
+                    return  {
+                        x: e.x - image.x,
+                        y: e.y - image.y
+                    }
+                })
                 const { maxX, maxY, minX, minY } = this.getCritica(points, offset)
 
 
@@ -1278,7 +1289,7 @@ import { BlgSocket } from './workerSend'
              */
             geometryAxis(ctx, p1, p2, midpoin, Axis, k = 1) {
                  // 圆心到终点位置
-                const bulge = this.limit(5 * k, 2, 50 )// 左边位置
+                const bulge = this.limit(5 * k, 2, 50 ) // 左边位置
                 const interval = 50 * k // 左边间隔
                 // 如何兼容 y 轴
                  let from,  to
@@ -1297,8 +1308,6 @@ import { BlgSocket } from './workerSend'
                     ctx.moveTo(p1.x, p1.y)
                     ctx.lineTo(p2.x, p2.y)  
                 }
-
-
                 let leftNumber =  Math.floor(offsetLeft / interval) + 1
                 let rightNumber = Math.floor(offsetRight / interval) + 1
                 if (leftNumber < 0) {
@@ -1436,6 +1445,7 @@ import { BlgSocket } from './workerSend'
                         const item = points[index]
                         ctx.lineTo(item.x, item.y)
                     }
+                    ctx.closePath()
                     ctx.stroke()
                 }
                 
@@ -1583,9 +1593,7 @@ import { BlgSocket } from './workerSend'
                 this.image.y += (image.height - height) / 2
                 this.image.width = width
                 this.image.height = height
-
                 this.renderCanvas()
-
             },
             removeLine(index) {
                 this.pointList.splice(index, 1)
@@ -1702,11 +1710,12 @@ import { BlgSocket } from './workerSend'
                     // console.log('okIcon')
                     this.changeDrawAction = 3
                     this.clearCtx2()
-                    if (this.geometry == 4 || this.geometry == 5 || this.geometry == 6 || this.geometry == 7) {
-                        this.addNewData(true)
-                    } else {
-                        this.addNewData()
-                    }
+                    // if (this.geometry == 4 || this.geometry == 5 || this.geometry == 6 || this.geometry == 7) {
+                    //     this.addNewData(true)
+                    // } else {
+                    //     this.addNewData()
+                    // }·
+                    this.addNewData(true)
                     this.renderCanvas()
                     this.meaninglessm = true
                 } else if (this.changeDrawAction == 4 && this.rectControlPoint.some((point,i) => {
