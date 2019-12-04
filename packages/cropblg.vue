@@ -1369,6 +1369,11 @@ import { BlgSocket } from './workerSend'
             },
 
             // 渲染几何图形
+            /**
+             *  1. 绘图点
+             *  2. 辅助线的 圈半径
+             *  3. 是否显示 辅助线  （箭头特别）
+             */
             renderGeometry(points, radius, isAuxiliary) {
                 const ctx = this.ctx2
                 this.clearCtx2()
@@ -1416,7 +1421,6 @@ import { BlgSocket } from './workerSend'
                         const y = firstPoint.y //  y 是固定的
                         this.circleMidpoin = {x: firstPoint.x + this.offsetLeft, y}
                     }
-                   
                     //   怎么画 y 轴坐标
                     this.geometryLineArrow(ctx, firstPoint, secondPoint, 15, this.circleMidpoin, 'x')
 
@@ -1466,6 +1470,7 @@ import { BlgSocket } from './workerSend'
 
 
                     this.rectControlPoint = this.getControlPoint(points)
+                    // 画4个控制点
                     for (let index = 0; index < this.rectControlPoint.length; index++) {
                         const item =  this.rectControlPoint[index]
                         ctx.beginPath()
@@ -1473,15 +1478,15 @@ import { BlgSocket } from './workerSend'
                         ctx.fill();  
                         ctx.stroke()
                     }
+                    // 4个圈是 对的
                     // 画辅助线
-                    this.drawAuxiliaryLine(ctx, this.pointLine)
+                    this.drawAuxiliaryLine(ctx, this.rectControlPoint)
                 }  
               
             },
             // 获取控制点
             getControlPoint(points) {
                 const radius = 10
-
                 // 画图
                 if (this.geometry == 4 ) {
                     // 圆形 都要特殊处理
@@ -1495,7 +1500,6 @@ import { BlgSocket } from './workerSend'
                         {x: midpoin.x, y: midpoin.y + circleRadius, width: radius * 2, height: radius * 2},
                     ]
                     this.pointLine = arr
-                    
                     return arr
 
                 }
@@ -1505,31 +1509,6 @@ import { BlgSocket } from './workerSend'
                     { x: item.x, y: item.y, width: radius * 2, height: radius * 2 }
                 ))
             },
-            // this.drawIcon(ctx,
-            //     {x: minX, y:  minY - 20, width: 20, height: 20},
-            //     {x: maxX - 20, y:  minY - 20,width: 20, height: 20}
-            // )
-            //    drawIcon(ctx, icon1, icon2) {
-
-            //     // 智障代码
-            //     const radus = icon2.height / 2
-            //     ctx.beginPath()
-            //     ctx.arc(icon1.x + radus, icon1.y + radus, radus, 0, 2 * Math.PI)
-            //     ctx.fill() 
-            //     ctx.stroke()
-                
-                
-            //     ctx.beginPath()
-            //     ctx.moveTo(icon1.x, icon1.y)
-            //     ctx.lineTo(icon1.x + width, icon1.y + height)
-            //     ctx.stroke()
-
-                
-            //     ctx.beginPath()
-            //     ctx.arc(icon2.x + radus, icon2.y + radus, radus, 0, 2 * Math.PI)
-            //     ctx.fill()
-            //     ctx.stroke()
-            // },
             //  画辅助线
             drawAuxiliaryLine(ctx, points) {
 
@@ -1875,8 +1854,6 @@ import { BlgSocket } from './workerSend'
                 // 要基于  最开始的  加  而不是 上次的加 
 
                 // 这是第一个x 第一个点的 位置
-
-
                 // const auxiliaryLineMaxX = width - auxiliaryLine.width - 5
                 // const auxiliaryLineMaxY = height - auxiliaryLine.height - 5
                 // 求出 --当前xy  相对于 辅助线的 位置
@@ -1936,9 +1913,6 @@ import { BlgSocket } from './workerSend'
 
                    this.pointLine = arr
                    this.renderGeometry(this.pointLine, 8, true)
-
-
-
 
                 
                 // 判断边界
@@ -2129,7 +2103,6 @@ import { BlgSocket } from './workerSend'
                 ctx.scale(pixelRatio, pixelRatio)
             
 
-                
                 const canvasDom2 = canvasDom.cloneNode(true)
                 canvasDom2.style.backgroundColor = '#fff'
                 canvasDom2.style.backgroundImage =  'linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%)'
@@ -2364,6 +2337,13 @@ import { BlgSocket } from './workerSend'
                                 writing: this.writing, // 书写线的 风格
                                 color: this.color,  // 颜色
                                 showMatching: this.showMatching, // 调色盘
+
+                                // 矩形 相关 ---| 矩形盘
+                                showGeometry: this.showGeometry,
+                                geometry: this.geometry,
+                                // circleMidpoin: this.circleMidpoin,
+                                offsetLeft:  this.offsetLeft,
+                                // 控制点
                             }
                             this.socketInstance.write({data, event: 'toOne'})
                             this.log('给新加入的学生推送自己的状态数据', 'red', 5)
@@ -2394,8 +2374,29 @@ import { BlgSocket } from './workerSend'
                             this.writing = originData.writing
                             this.color = originData.color
                             this.showMatching = originData.showMatching
+                            // 矩形 相关 ---| 矩形盘
+                            this.showGeometry = originData.showGeometry
+                            this.geometry = originData.geometry
+                            // this.circleMidpoin =  {
+                            //     x: this.dataScale(originData.circleMidpoin.x),
+                            //     y: this.dataScale(originData.circleMidpoin.y)
+                            // }
+                            this.offsetLeft = this.dataScale(originData.showGeometry) 
+
                             // 自带renderCanvas
+                            /**
+                             *  2个 canvas 渲染
+                             */
+                            /*  1. 绘图点
+                            *  2. 辅助线的 圈半径
+                            *  3. 是否显示 辅助线  （箭头特别）
+                            */
+                            if (originData.changeDrawAction == 4) {
+                                const data = originData.pointLine.map(item => ({ x: item.x * this.kScale, y: item.y * this.kScale }))
+                                this.renderGeometry(data, 8, true)
+                            }
                             this.scaleImage(this.dataScale(originData.scale))
+                            
                         }
                     } 
                 })
