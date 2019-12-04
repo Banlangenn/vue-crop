@@ -2161,6 +2161,9 @@ import { BlgSocket } from './workerSend'
                 //     for (let i = 0; i < array.length; i++) {
                 //         const element = array[i]
                 //         const originPoint = this.restPoint(element, image, scale)
+                /**
+                 *  如果是写的话 --  直接返回 data  就好了  不需要计算
+                 */
                 if (this.type == 2) return data
                 if (Array.isArray(data)) return data.map(item => ({ pageX: item.pageX * this.kScale, pageY: item.pageY * this.kScale }))
                 return data * this.kScale
@@ -2331,8 +2334,10 @@ import { BlgSocket } from './workerSend'
                                 pointLine: this.pointLine, // 点 集合
                                 changeDrawAction: this.changeDrawAction, // 目前动作
                                 scale: this.scale, // 缩放
+                                // this.image.x  这是真是 位置  不是根据图片来的 他本省就是图片
                                 imageX: this.image.x, // 
                                 imageY: this.image.y, // 图片你位置
+                                //TODO:  缺少注释
                                 drawPoint: this.drawPoint, // 前一个点
 
                                 weight: this.weight, // 线粗细
@@ -2360,12 +2365,9 @@ import { BlgSocket } from './workerSend'
                             this.pointList = originData.pointList
                             this.pointLine = originData.pointLine
                             // 原始数据
-                            // console.log(this.image)
-                            // 这个值 有问题
-                            this.image.x = this.dataScale(originData.imageX)
-                            this.image.y = this.dataScale(originData.imageY)
-
-                            // 刚刚 初始化 drawPoint 是没有的
+                            // console.log(this.image)=
+                            // TODO: 这个值 有问题
+                            // this.dataScale(value)
                             if (originData.drawPoint) {
                                 this.drawPoint = {
                                     x: this.dataScale(originData.drawPoint.x),
@@ -2377,8 +2379,12 @@ import { BlgSocket } from './workerSend'
                             this.writing = originData.writing
                             this.color = originData.color
                             this.showMatching = originData.showMatching
-                            
-                            this.scaleImage(this.dataScale(originData.scale))
+                            //
+                            const scale = this.dataScale(originData.scale)
+                            this.image.x = originData.imageX  * scale
+                            this.image.y = originData.imageY * scale
+                            // 刚刚 初始化 drawPoint 是没有的
+                            this.scaleImage(scale)
                             // 矩形 相关 ---| 矩形盘
                            
 
