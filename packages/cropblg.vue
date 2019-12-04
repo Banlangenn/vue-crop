@@ -1132,12 +1132,14 @@ import { BlgSocket } from './workerSend'
                  */
                 // 清除第二canvas 画布
                 // 这个判断有问题  changeDrawAction  2 是橡皮  writing 2 4  是直线
+                // console.log(this.changeDrawAction)
                 if (this.changeDrawAction == 2 ) {
                     this.clearCtx2()
                 }
 
                 // 直线的 橡皮画在-- 第二个canvas上
                 if(this.changeDrawAction == 1 && (this.writing == 2 || this.writing == 4)) {
+                    this.clearCtx2()
                     this.renderCanvas()
                 }
                 // 解决橡皮插  会改变全局ctx.strokeStyle
@@ -2359,6 +2361,7 @@ import { BlgSocket } from './workerSend'
                             this.pointLine = originData.pointLine
                             // 原始数据
                             // console.log(this.image)
+                            // 这个值 有问题
                             this.image.x = this.dataScale(originData.imageX)
                             this.image.y = this.dataScale(originData.imageY)
 
@@ -2374,28 +2377,31 @@ import { BlgSocket } from './workerSend'
                             this.writing = originData.writing
                             this.color = originData.color
                             this.showMatching = originData.showMatching
+                            
+                            this.scaleImage(this.dataScale(originData.scale))
                             // 矩形 相关 ---| 矩形盘
-                            this.showGeometry = originData.showGeometry
-                            this.geometry = originData.geometry
-                            // this.circleMidpoin =  {
-                            //     x: this.dataScale(originData.circleMidpoin.x),
-                            //     y: this.dataScale(originData.circleMidpoin.y)
-                            // }
-                            this.offsetLeft = this.dataScale(originData.showGeometry) 
+                           
 
                             // 自带renderCanvas
                             /**
                              *  2个 canvas 渲染
                              */
-                            /*  1. 绘图点
-                            *  2. 辅助线的 圈半径
-                            *  3. 是否显示 辅助线  （箭头特别）
-                            */
+                            /** 
+                             *  1. 绘图点
+                             *  2. 辅助线的 圈半径
+                             *  3. 是否显示 辅助线  （箭头特别）
+                             */
+
                             if (originData.changeDrawAction == 4) {
+                                this.showGeometry = originData.showGeometry
+                                this.geometry = originData.geometry
+                                this.offsetLeft = this.dataScale(originData.showGeometry) 
+
                                 const data = originData.pointLine.map(item => ({ x: item.x * this.kScale, y: item.y * this.kScale }))
                                 this.renderGeometry(data, 8, true)
                             }
-                            this.scaleImage(this.dataScale(originData.scale))
+                            
+                            
                             
                         }
                     } 
