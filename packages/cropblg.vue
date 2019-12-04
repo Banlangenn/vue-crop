@@ -215,7 +215,7 @@
                             <span 
                             v-for="item of geometryList"
                             :key="item.lable"
-                            @touchstart="geometry = item.value"
+                            @touchstart="handleChoiceGeometry($event, item.value)"
                             :class="{active: geometry == item.value}"
                             > {{item.lable}}</span>
                         </div>
@@ -311,7 +311,7 @@ import { BlgSocket } from './workerSend'
                 changeDrawAction: -1,
                 // penColor: '',
                 //   penColor: '',
-                debug: true, // debug
+                debug: false, // debug
                 logLevel: 3,
                 // logModule: 'rect', // 日志模块
                 
@@ -618,7 +618,12 @@ import { BlgSocket } from './workerSend'
                 this.changeDrawAction = 3
                 // this.socketInstance.write({data: {}, event: 'writeIn'})
             },
+            handleChoiceGeometry(e, geometry) {
+                if(!this.sendData(e, 13, geometry)) return
+                this.geometry = geometry
+            },
             handleGeometry(e) {
+                if(!this.sendData(e, 12)) return
                 // 几何图形
                 // if(!this.sendData(e, 12)) return
                 // 三角形的 定位left
@@ -632,7 +637,8 @@ import { BlgSocket } from './workerSend'
                     this.showGeometry = true
                 }
             },
-            handleMask() {
+            handleMask(e) {
+                if(!this.sendData(e, 14)) return
                 this.showMatching = false
                 this.showGeometry = false
             },
@@ -849,6 +855,7 @@ import { BlgSocket } from './workerSend'
                             // dis < lineDis || 
                             if (Math.abs(dis - radius) < lineDis) {
                                 this.removeLine(index)
+                                this.sendData(e, 4, index)
                             }
                             continue
                         }
@@ -860,12 +867,14 @@ import { BlgSocket } from './workerSend'
                             // 点到 线的 距离
                             if (dis <= lineDis ) {
                                 this.removeLine(index)
+                                this.sendData(e, 4, index)
                                 // 尽量少算一个
                                 continue
                             }
                             const dis2 = this.distanceOfPoint2Line(this.restPoint(pointLine[0], image, scale), this.restPoint(pointLine[2], image, scale), {x, y})
                             if (dis2 <= lineDis) {
                                 this.removeLine(index)
+                                this.sendData(e, 4, index)
                             }
                             continue
                         }
@@ -993,6 +1002,8 @@ import { BlgSocket } from './workerSend'
                  */
                 const touches = e.touches
                 if (touches.length == 2 && this.changeDrawAction == -1) {
+                    // 缩放控制端 不走
+                    if (this.type == 1 ) return
                   
                     let k; // 最终的缩放系数
                     const scale = this.scale
@@ -1017,6 +1028,7 @@ import { BlgSocket } from './workerSend'
                     // k = k < 1 ? 1 / (1 + k / 60) : 1 + Math.abs(k) / 60
                     // tMatrix[0] + sc - 1 > 0.5 && tMatrix[0] + sc - 1 < 3 ? tMatrix[0] + sc - 1 : tMatrix[0];
                     k = this.limit(k * scale, 0.5, 3)
+                   if (k == this.scale) return
                     // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
                     this.sendData(e, 5, k)
                     this.scaleImage(k)
@@ -1032,15 +1044,15 @@ import { BlgSocket } from './workerSend'
             },
 
             handleEnd(e){
+                // 必须放在第一个  因为 要通知-- 控制方  把meaninglessm  重置为 false
+                if(!this.sendData(e, 3)) return
                 if (this.meaninglessm) {
                     this.meaninglessm = false
                     return
                 }
                //  结束对 延迟的 感知很小-- 可以把计算量大的都移动到 这部分来
-
                const radius = 7 // 辅助的 圆球半径 
 
-                if(!this.sendData(e, 3)) return
                 // 有两种 动作  画笔 和 橡皮
 
                 if (this.changeDrawAction == -1) return
@@ -1207,7 +1219,7 @@ import { BlgSocket } from './workerSend'
             geometryLineArrow(ctx, p1, p2, headlen, midpoin, Axis, k = 1) {
                 let fromX, fromY, toX, toY
 
-                headlen = headlen * k
+                headlen = headlen * k //  箭头的的 长度
                 // 箭头
                 fromY = p1.y
                 fromX = p1.x
@@ -1285,12 +1297,12 @@ import { BlgSocket } from './workerSend'
             },
             /**
              * 
-             *  中心点  起点 终点  x轴/y轴
+             *  中心点  起点 终点  x轴/y轴 缩放比例
              */
             geometryAxis(ctx, p1, p2, midpoin, Axis, k = 1) {
                  // 圆心到终点位置
                 const bulge = this.limit(5 * k, 2, 50 ) // 左边位置
-                const interval = 50 * k // 左边间隔
+                const interval = 50 * (this.type == 2 ?  k : this.kScale * k) // 左边间隔
                 // 如何兼容 y 轴
                  let from,  to
                 if (p1[Axis] < p2[Axis]) {
@@ -1676,10 +1688,13 @@ import { BlgSocket } from './workerSend'
 
             // },
             // start 就触发
+
+            // 恢复 3
             recoveryThree() {
                 this.clearCtx2()
                 this.changeDrawAction = 3
             },
+            //  touchstart  触发 这个方法
             getPointByCoordinate({x, y}) {
 
                 this.log('触发检测 点击区域')
@@ -1690,31 +1705,24 @@ import { BlgSocket } from './workerSend'
                 const image = this.image
                 let t = {}
                 let index = 0 // 第几个控制点
-                // if (this.changeDrawAction == 5 && this.checkRegion(x, y, this.cancelIcon)) {
-
-                //     if (firstPoint.x - currentPoint.x < 0) {
-                //         points = [firstPoint, { x: currentPoint.x, y: firstPoint.y }]
-                //     } else {
-                //         points = [{ x: currentPoint.x, y: firstPoint.y }, firstPoint]
-                //     }
-                    
-                // } else 
-                
                 if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.cancelIcon)) {
-                    // this.meaninglessm
-                    // console.log('cancelIcon')
+                    this.log('cancelIcon', '#f60rrr', 3)
+                    /**
+                     * 问题--  控制方 有时候-- 点击 会点不上
+                     * 
+                     * 控制点 有同样问题
+                     * 
+                     */
                     this.recoveryThree()
                     this.meaninglessm = true
 
                 } else  if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.okIcon)) {
                     // console.log('okIcon')
+                    this.log('okIcon', '#f60rrr', 3)
+
+
                     this.changeDrawAction = 3
                     this.clearCtx2()
-                    // if (this.geometry == 4 || this.geometry == 5 || this.geometry == 6 || this.geometry == 7) {
-                    //     this.addNewData(true)
-                    // } else {
-                    //     this.addNewData()
-                    // }·
                     this.addNewData(true)
                     this.renderCanvas()
                     this.meaninglessm = true
@@ -2273,9 +2281,9 @@ import { BlgSocket } from './workerSend'
                         this.removeLine(value)
                         this.log('删除线', 'orange', 3)
                         break
-                    case 5: 
+                    case 5:
                         this.scaleImage(this.dataScale(value))
-                        this.log('缩放', 'orange')
+                        this.log('缩放', 'orange', 3)
                         break
                     case 6: 
                         this.log('橡皮', 'pink', 3)
@@ -2300,6 +2308,18 @@ import { BlgSocket } from './workerSend'
                     case 11: 
                         this.log('笔粗细', '#f60rrr', 3)
                         this.handlePenWeight({}, value)
+                        break
+                    case 12: 
+                        this.log('选择几何图形板', '#f60rrr', 3)
+                        this.handleGeometry({}, value)
+                        break
+                    case 13: 
+                        this.log('选择几何图形', '#f60rrr', 3)
+                        this.handleChoiceGeometry({}, value)
+                        break
+                    case 14: 
+                        this.log('空白地方', '#f60rrr', 3)
+                        this.handleMask()
                         break
                     default:
                         break
