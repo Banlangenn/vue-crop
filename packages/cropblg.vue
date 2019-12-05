@@ -261,7 +261,8 @@ import { BlgSocket } from './workerSend'
         //1. props 验证   2.支持pc
         props:[
             'type',
-            'isReplay'
+            'isReplay',
+            'dataJSON'
           ],
         data() {
             return {
@@ -361,7 +362,7 @@ import { BlgSocket } from './workerSend'
                 // 连接--socket
                 this.socketInit()
                 // 初始化默认值
-                this.changeDrawAction = 3 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮
+                this.changeDrawAction = -1 // 默认动作是 拖动和缩放图片 1 画笔 2橡皮 3几何 4待确定几何
                 this.pointLine = [] // 线 
                 this.pointList = [] // 线 list
                 this.points = [] // 四方形 截图的点
@@ -411,7 +412,7 @@ import { BlgSocket } from './workerSend'
                 this.ctx.strokeStyle = this.color
                 this.renderCanvas()
 
-                if (this.isReplay) {
+                if (this.isReplay && this.type == 2) {
                     this.replay()
                 }
             },
@@ -615,8 +616,8 @@ import { BlgSocket } from './workerSend'
             },
             // 所有的点击事件
             finish() {
-                this.changeDrawAction = 3
-                // this.socketInstance.write({data: {}, event: 'writeIn'})
+                // this.changeDrawAction = 3
+                this.socketInstance.write({data: {}, event: 'writeIn'})
             },
             handleChoiceGeometry(e, geometry) {
                 if(!this.sendData(e, 13, geometry)) return
@@ -2194,7 +2195,8 @@ import { BlgSocket } from './workerSend'
                 // const dataJSON = JSON.parse(JSON.stringify(this.recordData))
                 // 要捕捉所有动作
                 // 初始化
-                const dataJSON = require('./time-1573622474918.json')
+                const dataJSON = this.dataJSON
+                // console.log()
                 const len = dataJSON.length
                 let startTime = null
                 // console.log(dataJSON[0])

@@ -32,6 +32,7 @@ io.on('connection', function(socket){
             // 老师上线
             groupOwnerId = ID
             actionList = []
+            console.log('老师重新进入房间-  重置笔记记录')
         } else {
             // 学生向老师 发送自己的id  老师socket
             console.log('学生向老师 发送自己的id  老师socket')
@@ -70,7 +71,7 @@ io.on('connection', function(socket){
              
             //向所有客户端广播用户退出
             io.emit('logout', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
-            console.log(obj.username+'退出了聊天室');
+            // console.log(obj.username+'退出了聊天室');
         }
     });
      
@@ -81,7 +82,6 @@ io.on('connection', function(socket){
     socket.on('message', function(obj){
         //向所有客户端广播发布的消息
         // io.emit('message', obj);
-        console.log('老师发数据了 我要广播了')
         if (actionList.length == 0 ) {
             actionList.push({
                 time: 0,
@@ -98,16 +98,18 @@ io.on('connection', function(socket){
         // 写入文件 json 文件
         // 先写入内存  在写入文件
         socket.broadcast.emit('message', obj);
-    });
+    })
+
     socket.on('writeIn', function(obj){
         //向所有客户端广播发布的消息
         // io.emit('message', obj);
-        // fs.writeFile(`./time-${new Date().getTime()}.json`, JSON.stringify(actionList, null, 4), function(err){
-        //     if(err){
-        //         console.error(err);
-        //     }
-        //     console.log('----------新增成功-------------');
-        // })
+        const fileName = `./time-${new Date().getTime()}.json`
+        fs.writeFile(fileName, JSON.stringify(actionList, null, 4), function(err){
+            if(err){
+                console.error(err);
+            }
+            console.log('----------新增成功-------------文件为：' + fileName )
+        })
     });
 
    

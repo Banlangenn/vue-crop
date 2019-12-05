@@ -4,7 +4,8 @@
       style="width:100%;height:100%;background-color: #f1f3f5;"
       @change="change"
       :type="type"
-      :isReplay="false"
+      :isReplay="true"
+      :dataJSON="dataJSON"
     >
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
     <!-- :imageWatermark = "require('./assets/logo.png')" -->
@@ -26,7 +27,8 @@ export default {
   name: 'app',
   data() {
     return {
-        type: 2
+        type: 2,
+        dataJSON: null
     }
   },
   components: {
@@ -38,6 +40,10 @@ export default {
       //   console.log('手机上才能图片缩放，保存')
       // }
       this.type = this.getQuery().them ? 2 : 1
+      if (this.type == 2) {
+         this.dataJSON = require('./../scoketServe/time-1575509447414.json')
+      }
+  
   },
   methods: {
     imgLoaded(){
