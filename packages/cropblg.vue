@@ -400,10 +400,10 @@ import { BlgSocket } from './workerSend'
                 this.image = {
                     element: img,
                     width: currentW, // 显示宽度
-                    height: currentH, // 真是 宽度
-                    x: (width - currentW) / 2,
+                    height: currentH,
+                    x: (width - currentW) / 2, // (canvas宽度 -  img宽度) / 2 =  把图片放正中间
                     y: (height - currentH) / 2,
-                    clientWidth: clientW,
+                    clientWidth: clientW, // 真实 宽度
                     clientHeight: clientH
                 }
 
@@ -1575,15 +1575,23 @@ import { BlgSocket } from './workerSend'
                     minY: minY - offset,
                 }
             },
-            scaleImage(scale) {
+            /**
+             *  scale 缩放 比例
+             *  position  是否要计算图片的xy位置
+             * 
+             *  因为 读初始化  图片的 xy 是 传过来的不 需要计算 
+             * 
+             */
+            scaleImage(scale, position) {
                 this.scale = scale
                 const image = this.image
 
                 const width = image.clientWidth * scale
                 const height = image.clientHeight * scale
-
-                this.image.x += (image.width - width) / 2
-                this.image.y += (image.height - height) / 2
+                if (!position) {
+                    this.image.x += (image.width - width) / 2
+                    this.image.y += (image.height - height) / 2
+                }
                 this.image.width = width
                 this.image.height = height
                 this.renderCanvas()
@@ -2365,7 +2373,6 @@ import { BlgSocket } from './workerSend'
                             this.pointList = originData.pointList
                             this.pointLine = originData.pointLine
                             // 原始数据
-                            // console.log(this.image)=
                             // TODO: 这个值 有问题
                             // this.dataScale(value)
                             if (originData.drawPoint) {
@@ -2380,11 +2387,11 @@ import { BlgSocket } from './workerSend'
                             this.color = originData.color
                             this.showMatching = originData.showMatching
                             //
-                            const scale = this.dataScale(originData.scale)
-                            this.image.x = originData.imageX  * scale
-                            this.image.y = originData.imageY * scale
-                            // 刚刚 初始化 drawPoint 是没有的
-                            this.scaleImage(scale)
+                        
+                            this.image.x = this.dataScale(originData.imageX)
+                            this.image.y = this.dataScale(originData.imageY)
+                            
+                            this.scaleImage(this.dataScale(originData.scale), true)
                             // 矩形 相关 ---| 矩形盘
                            
 
