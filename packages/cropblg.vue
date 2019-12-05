@@ -1307,7 +1307,7 @@ import { BlgSocket } from './workerSend'
             geometryAxis(ctx, p1, p2, midpoin, Axis, k = 1) {
                  // 圆心到终点位置
                 const bulge = this.limit(5 * k, 2, 50 ) // 左边位置
-                const interval = 50 * (this.type == 2 ?  k : this.kScale * k) // 左边间隔
+                const interval = 48 * (this.type == 2 ?  k : this.kScale * k) // 左边间隔
                 // 如何兼容 y 轴
                  let from,  to
                 if (p1[Axis] < p2[Axis]) {
@@ -1321,7 +1321,7 @@ import { BlgSocket } from './workerSend'
                 // const y = midpoin.y
                 const offsetLeft = midpoin[Axis]- from
                 const offsetRight = to - midpoin[Axis]
-                function mark(p1, p2, index) {
+                function mark(p1, p2) {
                     ctx.moveTo(p1.x, p1.y)
                     ctx.lineTo(p2.x, p2.y)
                 }
@@ -1331,18 +1331,18 @@ import { BlgSocket } from './workerSend'
                     leftNumber = leftNumber * -1 + 1
                     rightNumber = rightNumber * -1 + 1
                 }
-                
-                 ctx.font = 18 * k + 'px April'
+                // ctx.fillStyle = '#ccc'
+                ctx.font = 18 * k + 'px April'
 
                 ctx.beginPath()
+                // x  y  正整数 方向轴
                 for (let index = 1; index < leftNumber; index++) {
                     const start = midpoin[Axis] - interval * index
                     if (Axis == 'x') {
                         const p1 = {x: start, y: midpoin.y}
                         mark(p1, {x: start, y:  midpoin.y - bulge})
 
-                        const text = '-' + index
-                        ctx.fillText( '-' + index , p1.x - 10 * k, p1.y + 18 * k)
+                        ctx.fillText( '-' + index , p1.x - 5 * (index.toString().length + 1) * k, p1.y + 18 * k)
                     } else {
                         const p1 = {x: midpoin.x, y: start}
                         mark(p1, {x: midpoin.x + bulge, y: start})
@@ -1351,13 +1351,14 @@ import { BlgSocket } from './workerSend'
                     }
                     
                 }
+                 // x  y  负整数 方向轴
                 for (let index = 1; index < rightNumber; index++) {
                     const start = midpoin[Axis] + interval * index
                     if (Axis == 'x') {
                         const p1 = {x: start, y: midpoin.y}
                         mark(p1, {x: start, y:  midpoin.y - bulge})
 
-                        ctx.fillText(index , p1.x - 5 * k, p1.y + 18 * k)
+                        ctx.fillText(index , p1.x - 5 * index.toString().length * k, p1.y + 18 * k)
                     } else {
                         const p1 = {x: midpoin.x, y: start}
                         mark(p1, {x: midpoin.x + bulge, y: start})
