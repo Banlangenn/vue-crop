@@ -395,7 +395,8 @@ import { BlgSocket } from './workerSend'
                 const clientW = img.width
                 const clientH = img.height
                 const { width, height } = this.options
-                const { k, width: currentW, height: currentH } = this.convert(img, this.options,)
+                // const { k, width: currentW, height: currentH } = this.convert(img, this.options)
+                const { k, width: currentW, height: currentH } = this.convert({width: clientW, height: clientH }, this.options)
                 this.scale = k
                 // 针对小图片
                 this.image = {
@@ -407,9 +408,11 @@ import { BlgSocket } from './workerSend'
                     clientWidth: clientW, // 真实 宽度
                     clientHeight: clientH
                 }
+                
+                // this.maxRadius = Math.min(width, height) / 2
 
-                this.maxRadius = Math.min(width, height) / 2
-                this.ctx.strokeStyle = this.color
+                // this.ctx.strokeStyle = this.color
+
                 this.renderCanvas()
 
                 if (this.isReplay && this.type == 2) {
@@ -1028,7 +1031,7 @@ import { BlgSocket } from './workerSend'
                     // k = k.toFixed(2)  //// 
                     // k = k < 1 ? 1 / (1 + k / 60) : 1 + Math.abs(k) / 60
                     // tMatrix[0] + sc - 1 > 0.5 && tMatrix[0] + sc - 1 < 3 ? tMatrix[0] + sc - 1 : tMatrix[0];
-                    k = this.limit(k * scale, 0.5, 3)
+                    k = this.limit(k * scale, 0.5, 30)
                    if (k == this.scale) return
                     // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
                     this.sendData(e, 5, k)
@@ -1186,7 +1189,6 @@ import { BlgSocket } from './workerSend'
                     offset,
                 }
                 if (isGeometry) {
-                    console.log('点的个数:' + points.length)
                     // 特殊解构
                     // delete pointObj.pointLine
                     pointObj.geometry = this.geometry
@@ -1319,9 +1321,9 @@ import { BlgSocket } from './workerSend'
                 // const y = midpoin.y
                 const offsetLeft = midpoin[Axis]- from
                 const offsetRight = to - midpoin[Axis]
-                function mark(p1, p2) {
+                function mark(p1, p2, index) {
                     ctx.moveTo(p1.x, p1.y)
-                    ctx.lineTo(p2.x, p2.y)  
+                    ctx.lineTo(p2.x, p2.y)
                 }
                 let leftNumber =  Math.floor(offsetLeft / interval) + 1
                 let rightNumber = Math.floor(offsetRight / interval) + 1
@@ -1330,23 +1332,37 @@ import { BlgSocket } from './workerSend'
                     rightNumber = rightNumber * -1 + 1
                 }
                 
+                 ctx.font = 18 * k + 'px April'
 
                 ctx.beginPath()
                 for (let index = 1; index < leftNumber; index++) {
                     const start = midpoin[Axis] - interval * index
                     if (Axis == 'x') {
-                        mark({x: start, y: midpoin.y}, {x: start, y:  midpoin.y - bulge})
+                        const p1 = {x: start, y: midpoin.y}
+                        mark(p1, {x: start, y:  midpoin.y - bulge})
+
+                        const text = '-' + index
+                        ctx.fillText( '-' + index , p1.x - 10 * k, p1.y + 18 * k)
                     } else {
-                        mark({x: midpoin.x, y: start}, {x: midpoin.x + bulge, y: start})
+                        const p1 = {x: midpoin.x, y: start}
+                        mark(p1, {x: midpoin.x + bulge, y: start})
+
+                        ctx.fillText( index , p1.x - 15 * k, p1.y + 6 * k)
                     }
-                 
+                    
                 }
                 for (let index = 1; index < rightNumber; index++) {
                     const start = midpoin[Axis] + interval * index
                     if (Axis == 'x') {
-                        mark({x: start, y: midpoin.y}, {x: start, y:  midpoin.y - bulge})
+                        const p1 = {x: start, y: midpoin.y}
+                        mark(p1, {x: start, y:  midpoin.y - bulge})
+
+                        ctx.fillText(index , p1.x - 5 * k, p1.y + 18 * k)
                     } else {
-                        mark({x: midpoin.x, y: start}, {x: midpoin.x + bulge, y: start})
+                        const p1 = {x: midpoin.x, y: start}
+                        mark(p1, {x: midpoin.x + bulge, y: start})
+
+                        ctx.fillText('-' + index , p1.x - 20 * k, p1.y + 6 * k)
                     }
                 }
                 ctx.stroke() 
@@ -2129,36 +2145,6 @@ import { BlgSocket } from './workerSend'
                 return  [ctx2, ctx,  canvasDom.getBoundingClientRect()]
                 
             },
-           convert(OriginOptions, currentOption) {
-                // 适配屏幕 转换数据
-                // 根据比例
-                // 当前屏幕 宽高 -- 要被 修改点
-                // 内部逻辑不用动
-                // 宽高比
-                // img  就是自己的宽高
-                const { width: clientW, height: clientH } = currentOption // 当前
-                const { width, height } = OriginOptions  // 原始
-
-                let currentW, currentH, k
- 
-                if (clientH / clientW > height / width) {
-                    // 把宽铺满
-                    currentW = clientW
-
-                    k = clientW / width
-                    currentH = currentW * (height / width)
-                } else {
-                    // 把高铺满
-                    currentH = clientH
-                    k = clientH / height
-                    currentW = currentH * (width / height)
-                }
-                return {
-                    k, 
-                    width: currentW, // 显示宽度
-                    height: currentH, // 真是 宽度
-                }
-            },
             dataScale(data) {
                 // const scale = this.scale / el.scale
                 //     const lineWidth = this.limit(el.lineWidth * scale, 1, 15)
@@ -2373,16 +2359,21 @@ import { BlgSocket } from './workerSend'
 
                             // 复原数据 原始数据没有做任何更改
                             this.pointList = originData.pointList
-                            this.pointLine = originData.pointLine
+
+
+                            // 正在画的那一笔  我觉得没有用
+                            
+                            // this.pointLine = originData.pointLine
                             // 原始数据
                             // TODO: 这个值 有问题
-                            // this.dataScale(value)
-                            if (originData.drawPoint) {
-                                this.drawPoint = {
-                                    x: this.dataScale(originData.drawPoint.x),
-                                    y: this.dataScale(originData.drawPoint.y)
-                                }
-                            }
+                            // if (originData.drawPoint) {
+                            //     this.drawPoint = {
+                            //         x: this.dataScale(originData.drawPoint.x),
+                            //         y: this.dataScale(originData.drawPoint.y)
+                            //     }
+                            // }
+
+
 
                             this.weight = originData.weight
                             this.writing = originData.writing
@@ -2421,19 +2412,58 @@ import { BlgSocket } from './workerSend'
                         }
                     } 
                 })
-            }
+            },
+            convert(OriginOptions, currentOption) {
+                // 适配屏幕 转换数据
+                // 根据比例
+                // 当前屏幕 宽高 -- 要被 修改点
+                // 内部逻辑不用动
+                // 宽高比
+                // img  就是自己的宽高
+                const { width: clientW, height: clientH } = currentOption // 当前
+                const { width, height } = OriginOptions  // 原始
+                console.log(OriginOptions)
+
+                let currentW, currentH, k
+ 
+                if (clientH / clientW > height / width) {
+                    // 把宽铺满
+                    currentW = clientW
+
+                    k = clientW / width
+                    currentH = currentW * (height / width)
+                } else {
+                    // 把高铺满
+                    currentH = clientH
+                    k = clientH / height
+                    currentW = currentH * (width / height)
+                }
+                return {
+                    k, 
+                    width: currentW, // 显示宽度
+                    height: currentH, // 真是 宽度
+                }
+            },
         },
         mounted() {
             const { mountNode } = this.$refs
             const { clientWidth, clientHeight } = mountNode
             // console.log(mountNode)
             // 录屏 不能 写死
+            console.log('mountNode 宽高')
+            console.log({clientWidth, clientHeight})
             if (this.type == 2) {
                 this.options = { width: clientWidth, height:  clientHeight}
                 // console.log(this.options)
             } else {
-                 // mountNode
-                const { k, width, height } = this.convert({ width: 1024, height: 744 }, { width: clientWidth, height: clientHeight })
+                // mountNode
+                // 获取屏幕宽高
+                // 屏幕分辨率的高： window.screen.height
+                // 屏幕分辨率的宽： window.screen.width
+                // 屏幕可用工作区高度： window.screen.availHeight
+                // 屏幕可用工作区宽度： window.screen.availWidth
+                // const { k, width, height } = this.convert({ width: 1024, height: 744 }, { width: clientWidth, height: clientHeight })
+                const { k, width, height } = this.convert({ width: 1166, height: 828 }, { width: clientWidth, height: clientHeight })
                 this.options = { width, height }
                 this.kScale = k
             }

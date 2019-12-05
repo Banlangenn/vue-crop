@@ -4,7 +4,7 @@
       style="width:100%;height:100%;background-color: #f1f3f5;"
       @change="change"
       :type="type"
-      :isReplay="true"
+      :isReplay="false"
       :dataJSON="dataJSON"
     >
       <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
@@ -14,7 +14,7 @@
       </template>
 
       <template slot="defaultImgUrl"> 
-        <img  src="./assets/timg.jpg" />
+        <img  src="./assets/hua1.jpg" />
       </template>
 
      </crop>
