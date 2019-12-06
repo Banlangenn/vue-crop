@@ -304,8 +304,6 @@ export default {
             ],
 
 
-
-
             // ----------------------------------------------------------------------
             changeDrawAction: -1,
             // penColor: '',
@@ -340,6 +338,10 @@ export default {
             writing: 1, // 书写线的 风格
             color: '#f14864', // 颜色
             showMatching: false,
+
+
+
+            
 
             // 矩形
             showGeometry: false,
