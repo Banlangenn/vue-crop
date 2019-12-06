@@ -1,43 +1,44 @@
 <template>
-  <transition
-    name="dialog-fade">
-    <div class="el-dialog__wrapper" v-show="visible" @click.self="handleWrapperClick" @mousewheel.prevent.stop="()=>{}"  @touchmove.prevent.stop="()=>{}">
-      <div
-        class="el-dialog"
-        :class="[{ 'is-fullscreen': fullscreen, 'el-dialog--center': center }, customClass]"
-        ref="dialog"
-        :style="style">
-        <div class="el-dialog__header" v-if="$slots.title">
-          <slot name="title">
-            <span class="el-dialog__title">{{ title }}</span>
-          </slot>
+    <transition
+        name="dialog-fade"
+    >
+        <div class="el-dialog__wrapper" v-show="visible" @click.self="handleWrapperClick" @mousewheel.prevent.stop="()=>{}"  @touchmove.prevent.stop="()=>{}">
+        <div
+            class="el-dialog"
+            :class="[{ 'is-fullscreen': fullscreen, 'el-dialog--center': center }, customClass]"
+            ref="dialog"
+            :style="style">
+            <div class="el-dialog__header" v-if="$slots.title">
+            <slot name="title">
+                <span class="el-dialog__title">{{ title }}</span>
+            </slot>
+            </div>
+            <!-- 内容模块 -->
+            <div class="el-dialog__body" v-if="rendered">
+                <slot></slot>
+            <!-- 内容模块 -->
+            </div>
+            <!-- 友好提示 -->
+            <div class="popupTips" v-if="$slots.desc">
+                <slot name= "desc"></slot>
+            </div>
+            <!-- 页脚按钮 -->
+            <div class="el-dialog__footer" v-if="$slots.footer">
+                <slot name="footer"></slot>
+            </div>
+            <!-- 关闭按钮 -->
+            <button
+                type="button"
+                class="el-dialog__closebtn"
+                aria-label="Close"
+                v-if="showClose"
+                @click="handleClose">
+                <i class="el-dialog__close el-icon el-icon-close"></i>
+            <!-- 52555 -->
+            </button>
         </div>
-        <!-- 内容模块 -->
-        <div class="el-dialog__body" v-if="rendered">
-            <slot></slot>
-        <!-- 内容模块 -->
         </div>
-        <!-- 友好提示 -->
-        <div class="popupTips" v-if="$slots.desc">
-            <slot name= "desc"></slot>
-        </div>
-        <!-- 页脚按钮 -->
-        <div class="el-dialog__footer" v-if="$slots.footer">
-          <slot name="footer"></slot>
-        </div>
-        <!-- 关闭按钮 -->
-        <button
-        type="button"
-        class="el-dialog__closebtn"
-        aria-label="Close"
-        v-if="showClose"
-        @click="handleClose">
-        <i class="el-dialog__close el-icon el-icon-close"></i>
-        <!-- 52555 -->
-        </button>
-      </div>
-    </div>
-  </transition>
+    </transition>
 </template>
 <script>
 export default {
@@ -255,11 +256,11 @@ export default {
         }
     }
     .popupTips > p, .popupTips > span, .popupTips > div {
-                padding: 10 0;
-                display:flex;
-                flex-direction: column;
-                font-size: 15px;
-                line-height: 24px;
+        padding: 10 0;
+        display:flex;
+        flex-direction: column;
+        font-size: 15px;
+        line-height: 24px;
     }
     // .signBtn {
     //     padding: 9px 21px;

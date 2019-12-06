@@ -1,4 +1,7 @@
+
+// eslint-disable-next-line no-undef
 const path = require('path')
+// eslint-disable-next-line no-undef
 module.exports = {
     publicPath: './',
     assetsDir: './asset',
@@ -15,7 +18,7 @@ module.exports = {
         // vue默认@指向src目录，这里要修正为examples，另外新增一个~指向packages
         config.resolve.alias
             .set('@', path.resolve('examples'))
-            .set('~', path.resolve('packages'));
+            .set('~', path.resolve('packages'))
         // lib目录是组件库最终打包好存放的地方，不需要eslint检查
         // examples/docs是存放md文档的地方，也不需要eslint检查
         config.module
@@ -23,7 +26,7 @@ module.exports = {
             .exclude.add(path.resolve('lib'))
             .end()
             .exclude.add(path.resolve('examples/docs'))
-            .end();
+            .end()
         // packages和examples目录需要加入编译
         config.module
             .rule('js')
@@ -35,8 +38,8 @@ module.exports = {
             .loader('babel-loader')
             .tap(options => {
                 // 修改它的选项==>
-                return options;
-            });
+                return options
+            })
 
         // 添加worker-loader
         config.module
@@ -44,10 +47,10 @@ module.exports = {
             .test(/\.worker\.js$/)
             .use('worker-loader')
             .loader('worker-loader')
-            .tap(()=> {
+            .tap(() => {
                 // 修改它的选项...
                 return { inline: true }
-              })
+            })
             .end()
     }
-};
+}

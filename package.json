@@ -6,7 +6,8 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
+    "lint": "vue-cli-service lint packages/ scoketServe/index.js examples/",
+    "lint-fix": "eslint --fix --ext .js --ext .jsx --ext .vue packages/ scoketServe/index.js examples/",
     "lib": "vue-cli-service build --target lib --name vue-cropblg --dest lib packages/index.js"
   },
   "author": "https://github.com/Banlangenn",
@@ -36,34 +37,6 @@
   "pre-commit": [
     "lint"
   ],
-  "rules": {
-    "no-console": 0,
-    "indent": [
-      "error",
-      4
-    ],
-    "no-useless-escape": 0,
-    "linebreak-style": [
-      "error",
-      "unix"
-    ],
-    "quotes": [
-      "error",
-      "double"
-    ],
-    "semi": [
-      "error",
-      "always"
-    ],
-    "comma-dangle": [
-      "error",
-      "always"
-    ],
-    "no-cond-assign": [
-      "error",
-      "always"
-    ]
-  },
   "eslintConfig": {
     "root": true,
     "env": {

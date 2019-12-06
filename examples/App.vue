@@ -1,192 +1,183 @@
 <template>
-  <div id="app">
-    <crop
-      style="width:100%;height:100%;background-color: #f1f3f5;"
-      @change="change"
-      :type="type"
-      :isReplay="false"
-      :dataJSON="dataJSON"
-    >
-      <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
-    <!-- :imageWatermark = "require('./assets/logo.png')" -->
-      <template slot="placeholder">
-        <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
-      </template>
+    <div id="app">
+        <crop
+            style="width:100%;height:100%;background-color: #f1f3f5;"
+            @change="change"
+            :type="type"
+            :isReplay="false"
+            :dataJSON="dataJSON"
+        >
+            <!-- defaultImgUrl = "http:\/\/img.zcool.cn/community/01bc0f59c9a9b0a8012053f85f066c.jpg" -->
+            <!-- :imageWatermark = "require('./assets/logo.png')" -->
+            <template slot="placeholder">
+                <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
+            </template>
 
-      <template slot="defaultImgUrl"> 
-        <img  src="./assets/hua1.jpg" />
-      </template>
-
-     </crop>
-
-  </div>
+            <template slot="defaultImgUrl">
+                <img  src="./assets/hua1.jpg" />
+            </template>
+      </crop>
+    </div>
 </template>
 
 <script>
 export default {
-  name: 'app',
-  data() {
-    return {
-        type: 2,
-        dataJSON: null
-    }
-  },
-  components: {
-      // range,
-      // 'v-dialog': dialog
-  },
-  created(){
-      // if(!this.isMobile()){
-      //   console.log('手机上才能图片缩放，保存')
-      // }
-      this.type = this.getQuery().them ? 2 : 1
-      if (this.type == 2) {
-         this.dataJSON = require('./../scoketServe/time-1575509447414.json')
-      }
+    name: 'app',
+    data() {
+        return {
+            type: 2,
+            dataJSON: null
+        }
+    },
+    components: {
+        // range,
+        // 'v-dialog': dialog
+    },
+    created() {
+        // if(!this.isMobile()){
+        //   console.log('手机上才能图片缩放，保存')
+        // }
+        this.type = this.getQuery().them ? 2 : 1
+        if (this.type == 2) {
+            this.dataJSON = require('./../scoketServe/time-1575509447414.json')
+        }
   
-  },
-  methods: {
-    imgLoaded(){
-       // eslint-disable-next-line
+    },
+    methods: {
+        imgLoaded() {
+            // eslint-disable-next-line
         console.log('图片加载完成~')
         
-    },
-    uploadImg(e) {
-        this.imgWatermark = e.target.files[0]
-    },
-    change() {
-      // console.log('123')
-    },
-    getQuery() {
-        let re = location.href.match(/[\\?&]\w+=\w*/g);
-        let result = {};
-        if (re)
-            re.forEach(i => {
-                i = i.slice(1);
-                let value = i.split('=');
-                result[value[0]] = value[1]
-            });
-        return result
-    }
+        },
+        uploadImg(e) {
+            this.imgWatermark = e.target.files[0]
+        },
+        change() {
+            // console.log('123')
+        },
+        getQuery() {
+            let re = location.href.match(/[\\?&]\w+=\w*/g)
+            let result = {}
+            if (re)
+                re.forEach(i => {
+                    i = i.slice(1)
+                    let value = i.split('=')
+                    result[value[0]] = value[1]
+                })
+            return result
+        }
     
-  }
+    }
 }
 </script>
 
 <style>
-  body,html {
-    /* width: 100%; */
-    height: 100vh;
-  
-  }
-  * {
-    padding: 0;
-    margin: 0;
-  }
-  #app {
-    height: 100vh;
-    font-size: 10px;
-    font-family: 'Avenir', Helvetica, Arial, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-align: center;
-    color: #2c3e50;
-    width: 100%;
-    -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Chrome/Safari/Opera */
-    -khtml-user-select: none; /* Konqueror */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
-    user-select: none; /* Non-prefixed version, currently not supported by any browser */
-  }
-  .operation .blue {
-    border-radius: 4px;
-    color: #fff;
-    background-color: #1890ff;
-    border-color: #1890ff;
-    border-style: solid;
-    
-  }
-  .operation {
-    padding: 5px 0;
-  }
-  .operation button {
-    position: relative;
-    display: inline-block;
-    font-weight: 400;
-    white-space: nowrap;
-    text-align: center;
-    background-image: none;
-    border: 1px solid transparent;
-    -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.015);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.015);
-    cursor: pointer;
-    -webkit-transition: all .3s cubic-bezier(.645, .045, .355, 1);
-    transition: all .3s cubic-bezier(.645, .045, .355, 1);
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -ms-touch-action: manipulation;
-    touch-action: manipulation;
-    height: 27px;
-    padding: 0 10px;
-    font-size: 12px;
-    color: rgba(0,0,0,0.65);
-    background-color: #fff;
-    border-color: #1890ff;
-    border-style: dashed;
-    text-shadow: 0 -1px 0 rgba(0,0,0,0.12);
-    -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
-    box-shadow: 0 2px 0 rgba(0,0,0,0.045);
-    line-height: 1.499;
-    margin: 5px;
-  }
-  .range {
-    display: flex;
-    padding: 7px 0;
-    border-bottom: 1px solid #eee;
-    margin: 0 5%;
+    body,html {
+        /* width: 100%; */
+        height: 100vh;
+    }
+    * {
+        padding: 0;
+        margin: 0;
+    }
+    #app {
+        height: 100vh;
+        font-size: 10px;
+        font-family: 'Avenir', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-align: center;
+        color: #2c3e50;
+        width: 100%;
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Chrome/Safari/Opera */
+        -khtml-user-select: none; /* Konqueror */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently not supported by any browser */
+    }
+    .operation .blue {
+        border-radius: 4px;
+        color: #fff;
+        background-color: #1890ff;
+        border-color: #1890ff;
+        border-style: solid;
+    }
+    .operation {
+        padding: 5px 0;
+    }
+    .operation button {
+        position: relative;
+        display: inline-block;
+        font-weight: 400;
+        white-space: nowrap;
+        text-align: center;
+        background-image: none;
+        border: 1px solid transparent;
+        -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.015);
+        box-shadow: 0 2px 0 rgba(0,0,0,0.015);
+        cursor: pointer;
+        -webkit-transition: all .3s cubic-bezier(.645, .045, .355, 1);
+        transition: all .3s cubic-bezier(.645, .045, .355, 1);
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -ms-touch-action: manipulation;
+        touch-action: manipulation;
+        height: 27px;
+        padding: 0 10px;
+        font-size: 12px;
+        color: rgba(0,0,0,0.65);
+        background-color: #fff;
+        border-color: #1890ff;
+        border-style: dashed;
+        text-shadow: 0 -1px 0 rgba(0,0,0,0.12);
+        -webkit-box-shadow: 0 2px 0 rgba(0,0,0,0.045);
+        box-shadow: 0 2px 0 rgba(0,0,0,0.045);
+        line-height: 1.499;
+        margin: 5px;
+    }
+    .range {
+        display: flex;
+        padding: 7px 0;
+        border-bottom: 1px solid #eee;
+        margin: 0 5%;
+    }
+    .watermark {
+        display: flex;
+        margin: 0 5%;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding: 5px 0;
+    }
 
-  }
-  .watermark {
-    display: flex;
-    margin: 0 5%;
-    align-items: center;
-    border-bottom: 1px solid #eee;
-    padding: 5px 0;
-  }
-  /* .watermark input {
-     flex: 1.2;
-    
-  } */
-  .range > span,.watermark > span{
-    flex: 1
-  }
-  .range > div {
-    flex: 2.5
-  }
-  .watermark input {
-    
-    /* -webkit-appearance: none; */
-    /* width：180px; */
-    flex: 2.5;
-    position: relative;
-    font-size: 14px;
-    display: inline-block;
-    background-color: #fff;
-    background-image: none;
-    border-radius: 4px;
-    border: 1px solid #dcdfe6;
-    box-sizing: border-box;
-    color: #606266;
-    display: inline-block;
-    font-size: inherit;
-    height: 25px;
-    line-height: 30px;
-    outline: none;
-    padding: 0 12px;
-    transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
-    /* margin-bottom: 10px; */
-  }
+    .range > span,.watermark > span{
+        flex: 1
+    }
+    .range > div {
+        flex: 2.5
+    }
+    .watermark input {
+      /* -webkit-appearance: none; */
+      /* width：180px; */
+        flex: 2.5;
+        position: relative;
+        font-size: 14px;
+        display: inline-block;
+        background-color: #fff;
+        background-image: none;
+        border-radius: 4px;
+        border: 1px solid #dcdfe6;
+        box-sizing: border-box;
+        color: #606266;
+        display: inline-block;
+        font-size: inherit;
+        height: 25px;
+        line-height: 30px;
+        outline: none;
+        padding: 0 12px;
+        transition: border-color 0.2s cubic-bezier(0.645, 0.045, 0.355, 1);
+      /* margin-bottom: 10px; */
+    }
 </style>

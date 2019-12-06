@@ -1,6 +1,4 @@
 
-
-
 import io from 'socket.io-client'
 // let socket = null
 let _writeFnMap = []
@@ -11,13 +9,13 @@ addEventListener('message', function (e) {
     if (value.event == 'socketInit') {
         const { url, writeEvent, readEvent } = value.data
         const socket = io(url) // socket 形成闭包 不能够被释放 --- 我觉得 应该的  本来就不能被释放  只会执行一次
-        _writeFnMap = writeEvent.reduce((p, n) => (p[n] = v => { socket.emit(n, v) },p),{})
+        _writeFnMap = writeEvent.reduce((p, n) => (p[n] = v => { socket.emit(n, v) }, p), {})
         // 收数据
         for (const item of readEvent) {
-            //  监听 
-            socket.on(item,  (data) => {
+            //  监听
+            socket.on(item, (data) => {
                 // this.readCallback({data, event: item})
-                postMessage({data, event: item})
+                postMessage({ data, event: item })
             })
         }
         return
@@ -30,10 +28,4 @@ addEventListener('message', function (e) {
         return
     }
     writeFn(value.data)
-}, false);
-
-
-
-
-
-
+}, false)
