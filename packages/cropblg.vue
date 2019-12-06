@@ -252,8 +252,8 @@
 </template>
 <script>
 import { getImageDirection, correctImage } from './util'
-
 import { BlgSocket } from './workerSend'
+import * as PIXI from 'pixi.js'
 export default {
     name: 'crop',
     // 1. props 验证   2.支持pc
@@ -262,8 +262,6 @@ export default {
         'isReplay',
         'dataJSON'
     ],
-
-
 
     data() {
         return {
@@ -388,12 +386,25 @@ export default {
                 clientWidth: clientW, // 真实 宽度
                 clientHeight: clientH
             }
+
+            this.app.loader.add('originImage', img.src).load((loader, resources) => {
+                let imgSprite = this.imgSprite = new PIXI.Sprite(resources.originImage.texture)
+                // Setup the position of the bunny
+                // imgSprite.x = this.image.x
+                // imgSprite.y = this.image.y
+                // imgSprite.width = this.image.width
+                // imgSprite.height = this.image.height
+                this.app.stage.addChild(imgSprite)
+
+                this.renderCanvas()
+
+            })
             
             // this.maxRadius = Math.min(width, height) / 2
 
             // this.ctx.strokeStyle = this.color
 
-            this.renderCanvas()
+            // this.renderCanvas()
 
             if (this.isReplay && this.type == 2) {
                 this.replay()
@@ -402,16 +413,16 @@ export default {
 
         
         renderCanvas() {
-            const { width, height } = this.options
+            // const { width, height } = this.options
             // 避免预览到背景
             // canvas init
-            this.ctx.clearRect(0, 0, width, height)
+            // this.ctx.clearRect(0, 0, width, height)
             // // 背景 // 考虑用css 实现
             // this.fillBackground()
             //  处理出片
             this.fillImage()
             // console.timeEnd('fillImage')
-            this.drawPointFn(this.ctx)
+            // this.drawPointFn(this.ctx)
 
         },
 
@@ -446,8 +457,8 @@ export default {
                 const geometry = el.geometry
 
                 /**
-                     *  只有 数轴有填充颜色的
-                     */
+                 *  只有 数轴有填充颜色的
+                 */
                 if (geometry) {
                     ctx.fillStyle = el.color
                 }
@@ -460,8 +471,8 @@ export default {
                     continue
                 }
                 /**
-                     *  单 箭头
-                     */
+                 *  单 箭头
+                 */
                 if (geometry && geometry == 5) {
                     const originPointFirst = this.restPoint(points[0], image, scale)
                     const originPointSecond = this.restPoint(points[1], image, scale)
@@ -518,7 +529,10 @@ export default {
         },
         fillImage() {
             const image = this.image
-            this.ctx.drawImage(image.element, image.x, image.y, image.width, image.height)
+            this.imgSprite.x = image.x
+            this.imgSprite.y = image.y
+            this.imgSprite.width = image.width
+            this.imgSprite.height = image.height
         },
         handleImageMove ({ x, y }) {
             const s = this.startPoint
@@ -584,16 +598,16 @@ export default {
 
 
             // TODO: 为什么定位了  位置就不准了  我猜测是  偏移位置也需要  缩放
-            const boundingClientRect = this.boundingClientRect
+            // const boundingClientRect = this.boundingClientRect
             const touch = e.touches[0]
             const { width, height } = this.options
             const coordinate = {
-                // x: this.limit(this.getInt(touch.pageX), 2, width - 2),
-                // y: this.limit(this.getInt(touch.pageY), 2, height - 2)
+                x: this.limit(touch.pageX, 2, width - 2),
+                y: this.limit(touch.pageY, 2, height - 2)
                 // 基于屏幕的 0 的位置
                 // 需要 算出来 当前画板的 左上角位置  减 画板位置
-                x: this.limit(touch.pageX - boundingClientRect.left, 2, width - 2),
-                y: this.limit(touch.pageY - boundingClientRect.top, 2, height - 2)
+                // x: this.limit(touch.pageX - boundingClientRect.left, 2, width - 2),
+                // y: this.limit(touch.pageY - boundingClientRect.top, 2, height - 2)
             }
             // move 到边
             return coordinate
@@ -679,6 +693,7 @@ export default {
         },
         // https://blog.csdn.net/qq_42014697/article/details/80728463  两指缩放
         handleStart(e) {
+
             // this.clearCtx2()
             if (!this.sendData(e, 1)) return
             // 判断是不是 第一次触发 新动作
@@ -693,25 +708,25 @@ export default {
             this.drawPoint = this.getCoordinateByEvent(e)
             this.startPoint = this.getPointByCoordinate(this.drawPoint) // 判断点了 主要点是否 有东西
 
-            //  初始化  画笔参数  挪到启动地方
-            const lineWidth = this.weight // this.limit(this.weight, 1, 15)
-            const color = this.color
-            const ctx = this.ctx
-            ctx.lineWidth = lineWidth - 0.68 // 加粗 原因   写东西的时候 不停 store 导致线条变粗  为了和谐  减去这个值
-            ctx.strokeStyle = color
+            // //  初始化  画笔参数  挪到启动地方
+            // const lineWidth = this.weight // this.limit(this.weight, 1, 15)
+            // const color = this.color
+            // const ctx = this.ctx
+            // ctx.lineWidth = lineWidth - 0.68 // 加粗 原因   写东西的时候 不停 store 导致线条变粗  为了和谐  减去这个值
+            // ctx.strokeStyle = color
 
-            const ctx2 = this.ctx2
-            ctx2.lineWidth = lineWidth //
-            ctx2.strokeStyle = color
+            // const ctx2 = this.ctx2
+            // ctx2.lineWidth = lineWidth //
+            // ctx2.strokeStyle = color
 
-            // --  画画
-            if (this.changeDrawAction == 1 || this.changeDrawAction == 3) {
-                // console.log('不是普通')
-                // 上次肯定会被清掉
-                this.pointLine = []
-                // 如果是直线 需要永远知道第一个点  在什么位置
-                this.firstPoint = this.drawPoint
-            }
+            // // --  画画
+            // if (this.changeDrawAction == 1 || this.changeDrawAction == 3) {
+            //     // console.log('不是普通')
+            //     // 上次肯定会被清掉
+            //     this.pointLine = []
+            //     // 如果是直线 需要永远知道第一个点  在什么位置
+            //     this.firstPoint = this.drawPoint
+            // }
         },
         handleMove (e) {
             if (this.meaninglessm) return
@@ -726,7 +741,7 @@ export default {
                  *  画笔  用的最多 放在第一个  少很多判断
                  */
             if (this.changeDrawAction == 1) {
-                    
+
                 // 划线  第一个点 用beginPath
                 if (this.writing == 2 || this.writing == 4) { // 是直线
                     const ctx2 = this.ctx2
@@ -762,23 +777,29 @@ export default {
                     // 先实现划线
                     //  画 相对于 画布  // 存 相对于 画布
                     // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const ctx = this.ctx
+                    // const ctx = this.ctx
                     // ctx.lineCap = 'round'
                     // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
-                       
                     if (this.pointLine.length == 0) {
-                        if (this.writing == 3) {
-                            ctx.setLineDash([5, 10])
-                        } else {
-                            ctx.setLineDash([])
-                        }
-                        ctx.beginPath()
-                        ctx.moveTo(drawPoint.x, drawPoint.y)
-                        ctx.lineTo(currentPoint.x, currentPoint.y)
+                        // if (this.writing == 3) {
+                        //     ctx.setLineDash([5, 10])
+                        // } else {
+                        //     ctx.setLineDash([])
+                        // }
+                        // ctx.beginPath()
+                        const lineWidth = this.weight
+                        let line = this.line = new PIXI.Graphics() // 几何图形
+                        console.log(this.color.substr(1))
+                        line.lineStyle(lineWidth, '0x' + this.color.substr(1), 1)
+                        line.moveTo(drawPoint.x, drawPoint.y)
+                        line.lineTo(currentPoint.x, currentPoint.y)
+                        this.app.stage.addChild(line)
                     } else {
-                        ctx.lineTo(currentPoint.x, currentPoint.y)
+                        this.line.moveTo(drawPoint.x, drawPoint.y)
+                        this.line.lineTo(currentPoint.x, currentPoint.y)
                     }
-                    ctx.stroke()
+                   
+                    // ctx.stroke()
 
                     //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上 // end  上的 最后一笔 时最准确的
                     this.pointLine.push(drawPoint)
@@ -1031,6 +1052,12 @@ export default {
         },
 
         handleEnd(e) {
+            // this.app.stage.removeChild(this.line)
+
+            // 所有点 一个 线 就能搞定
+            // this.pointLine = []
+            // this.line = null
+            return
             // 必须放在第一个  因为 要通知-- 控制方  把meaninglessm  重置为 false
             if (!this.sendData(e, 3)) return
             if (this.meaninglessm) {
@@ -1685,7 +1712,6 @@ export default {
         },
         //  touchstart  触发 这个方法
         getPointByCoordinate({ x, y }) {
-
             this.log('触发检测 点击区域')
             // if (this.changeDrawAction !== -1) {
             //     return
@@ -1858,7 +1884,7 @@ export default {
             this.renderGeometry(this.pointLine, 8, true)
                
         },
-        // 移动辅助线
+        // 移动辅助线 --  主要难点  边缘检测
         handleGeometryMove({ x, y }) {
             const { width, height } = this.options
             const s = this.startPoint
@@ -2389,8 +2415,6 @@ export default {
                             const data = originData.pointLine.map(item => ({ x: item.x * this.kScale, y: item.y * this.kScale }))
                             this.renderGeometry(data, 8, true)
                         }
-                            
-                            
                     }
                 }
             })
@@ -2452,10 +2476,16 @@ export default {
             this.kScale = k
         }
 
-        const [ctx, ctx2, boundingClientRect] = this.createCanvas()
-        this.ctx = ctx
-        this.ctx2 = ctx2
-        this.boundingClientRect = boundingClientRect
+        // const [ctx, ctx2, boundingClientRect] = this.createCanvas()
+        // this.ctx = ctx
+        // this.ctx2 = ctx2
+        // this.boundingClientRect = boundingClientRect
+
+        this.app = new PIXI.Application(this.options)
+
+
+        // Add the canvas that Pixi automatically created for you to the HTML document
+        mountNode.appendChild(this.app.view)
 
 
         /**
