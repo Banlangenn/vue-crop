@@ -338,6 +338,11 @@ export default {
             writing: 1, // 书写线的 风格
             color: '#f14864', // 颜色
             showMatching: false,
+            
+
+
+
+
 
 
 
