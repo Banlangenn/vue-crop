@@ -45,6 +45,7 @@ export class BlgSocket {
         // 不支持 webwork
         this.readCallback = cb
     }
+    
     write(value) {
         // 多次调用 会自动覆盖
         if (this.capableWorker) {
