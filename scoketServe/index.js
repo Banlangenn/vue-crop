@@ -100,7 +100,7 @@ io.on('connection', function(socket) {
         socket.broadcast.emit('message', obj)
     })
 
-    socket.on('writeIn', function(obj) {
+    socket.on('writeIn', function() {
         // 向所有客户端广播发布的消息
         // io.emit('message', obj);
         const fileName = `./time-${new Date().getTime()}.json`
