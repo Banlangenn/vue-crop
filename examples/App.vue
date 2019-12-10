@@ -13,9 +13,9 @@
                 <img src="https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=1057851374,249752393&fm=26&gp=0.jpg" style="width:20%" />
             </template>
 
-            <template slot="defaultImgUrl">
-                <img  src="./assets/hua1.jpg" />
-            </template>
+            <!-- <template slot="defaultImgUrl">
+                <img  src="./assets/timg.jpg" />
+            </template> -->
       </crop>
     </div>
 </template>

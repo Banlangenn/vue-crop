@@ -234,10 +234,12 @@
         </div>
          <!-- style=" overflow: hidden;" -->
         <!--  不能绑在wrap 上=== 这样子任何点击都会计算 -后期优化-->
-        <div v-show="noImage" @click="inputHandle" class="no-image-file" style="height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"  @touchstart.stop="()=>{}" @touchmove.stop="()=>{}">
+        <div v-show="noImage" @click.stop="inputHandle" class="no-image-file" style="position: relative; z-index: 6;background: #f6f6f6;
+        height: 100%; display: flex;justify-content: center;align-items: center;flex-wrap: wrap;"
+        @touchstart.stop="()=>{}" @touchmove.stop="()=>{}" @touchend.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
-            <div style="display:none">
+            <div style="display:none"  @click.stop="()=>{}">
                 <input
                     @change="uploadImg"
                     type="file"
@@ -262,9 +264,6 @@ export default {
         'isReplay',
         'dataJSON'
     ],
-
-
-
     data() {
         return {
             // 颜色
@@ -388,6 +387,14 @@ export default {
                 clientWidth: clientW, // 真实 宽度
                 clientHeight: clientH
             }
+
+
+            //  img最大 最小缩放
+            const maxWidth = width * 3
+            const minWidth = width / 3
+
+            this.maxScale = maxWidth / clientW
+            this.minScale = minWidth / clientH
             
             // this.maxRadius = Math.min(width, height) / 2
 
@@ -1014,7 +1021,15 @@ export default {
                 // k = k.toFixed(2)  ////
                 // k = k < 1 ? 1 / (1 + k / 60) : 1 + Math.abs(k) / 60
                 // tMatrix[0] + sc - 1 > 0.5 && tMatrix[0] + sc - 1 < 3 ? tMatrix[0] + sc - 1 : tMatrix[0];
-                k = this.limit(k * scale, 0.5, 30)
+
+
+                // 算出来 最大 scale 和 最小
+
+                // k = this.limit(k * scale, 0.5, 30)
+
+                k = this.limit(k * scale, this.minScale, this.maxScale)
+                
+                //  防止 抖动
                 if (k == this.scale) return
                 // 直接通知对方 缩放比例 不用再计算-- 自己计算 容易出现两边不同步
                 this.sendData(e, 5, k)
