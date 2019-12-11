@@ -996,6 +996,7 @@ export default {
                  */
             const touches = e.touches
             if (touches.length == 2 && this.changeDrawAction == -1) {
+                // 只要是双指  就是缩放  不管 手指在哪里  是不是在图片上
                 // 缩放控制端 不走
                 if (this.type == 1) return
                   
@@ -1744,9 +1745,21 @@ export default {
             } else if (this.changeDrawAction == 4 && this.checkRegion(x, y, this.auxiliaryLine)) {
                 // 矩形拖动
                 t.type = 'handleGeometryMove'
-                t.x = x
-                t.y = y
-                this.oldPointLine = this.pointLine.slice()
+
+
+                // 记录 每个控制点 对于左上角的位置
+                // 然后 ctx 2 要渲染 要左上角渲染  渲染 要改呀 几何 渲染
+
+                // 算一下
+                // 最小的 辅助线
+                // 只有 start 会跑一次
+                const { x: ALx, y: ALy } = this.auxiliaryLine
+                this.relativePoint = this.pointLine.map(e => ({ x: e.x - ALx, y: e.y - ALy }))
+ 
+                t.offsetX = x - ALx
+                t.offsetY = y - ALy
+
+                // this.oldPointLine = this.pointLine.slice()
                     
                 // console.log(this.oldPointLine)
             } else if (this.changeDrawAction == -1 && this.checkRegion(x, y, image)) {
@@ -1775,10 +1788,17 @@ export default {
             }
             return pointVlaue
         },
-        handlePointMove(point) {
+        handlePointMove({ x, y }) {
+            const { width, height } = this.options
+            // 这个 点 要 有 最大 最小值
+            const point = {
+                x: this.limit(x, 9, width - 9),
+                y: this.limit(y, 29, height - 9)
+            }
             //  和point 关联起来
             // 1. 靠手写
             // 2. 用辅助线来 -- 确定 图形
+            //  最大 最小值
 
                     
             // 1三角 2四边 3梯形
@@ -1871,80 +1891,40 @@ export default {
             // 控制点
             // this.lin
             this.renderGeometry(this.pointLine, 8, true)
+
+            //  最小值 ==
                
         },
         // 移动辅助线
         handleGeometryMove({ x, y }) {
+
+            // 计算每个点  对于 左上角的位置
             const { width, height } = this.options
+
+            const { width: ALwidht, height: ALheight } = this.auxiliaryLine
+
+            // 当前点 还原到 x的位置
             const s = this.startPoint
+            const newAL = { x: x - s.offsetX, y: y - s.offsetY }
+             
+            const maxX = width - ALwidht
+            const maxY = height - ALheight
 
-
-            // 要基于  最开始的  加  而不是 上次的加
-
-            // 这是第一个x 第一个点的 位置
-            // const auxiliaryLineMaxX = width - auxiliaryLine.width - 5
-            // const auxiliaryLineMaxY = height - auxiliaryLine.height - 5
-            // 求出 --当前xy  相对于 辅助线的 位置
-         
-            const maxX = width - 8
-            const maxY = height - 8
-            const currentX = x - s.x
-            const currentY = y - s.y
-
-
-            // 方案一
-            // this.pointLine = this.oldPointLine.map(e => {
-            //     return {
-            //         x: this.limit(e.x + currentX, 10, maxX) ,
-            //         y: this.limit(e.y + currentY, 30, maxY)
-            //     }
-            // })
-            // this.renderGeometry(this.pointLine, 10, true)
-
-
-            // 方案二
-            let arr = []
-            for (let index = 0; index < this.oldPointLine.length; index++) {
-                const element = this.oldPointLine[index]
-                const item = { x: element.x + currentX, y: element.y + currentY }
-                if (item.x <= 8 || item.y <= 28 || item.x >= maxX || item.y >= maxY) {
-                    return
-                }
-                arr.push(item)
+            if (newAL.x < 1) {
+                newAL.x = 1
             }
-
-            // 方案三
-            // let arr = []
-            // const { minX, minY, maxX, maxY } = this.getCritica(this.oldPointLine, 0)
-            // const pointMaxX = width - 10
-            // const pointMaxY = height - 10
-                   
-            // for (let index = 0; index < this.oldPointLine.length; index++) {
-            //     const element = this.oldPointLine[index]
-            //     let item = { x: element.x + currentX, y: element.y + currentY }
-            //     console.log( item.x + '==' + minX)
-            //     //  console.log()
-            //     if(item.x == minX) {
-            //        item.x = this.limit(item.x, 10, maxX)
-            //     } else  if(item.x == maxX) {
-            //        item.x = this.limit(item.x, minX, pointMaxX)
-            //     } else if(item.y == minY) {
-            //        item.y = this.limit(item.y, 10, minY)
-            //     } else if(item.y == maxY) {
-            //         item.y = this.limit(item.y , minY, pointMaxY)
-            //     }
-            //     arr.push(item)
-            // }
-
-
-            this.pointLine = arr
+            if (newAL.y < 18) {
+                newAL.y = 18
+            }
+            if (newAL.x > maxX) {
+                newAL.x = maxX - 1
+            }
+            if (newAL.y > maxY) {
+                newAL.y = maxY - 1
+            }
+            // relativePoint  //  每个点的 相对于 虚线的位置
+            this.pointLine = this.relativePoint.map(e => ({ x: e.x + newAL.x, y: e.y + newAL.y }))
             this.renderGeometry(this.pointLine, 8, true)
-
-                
-            // 判断边界
-            //    this.auxiliaryLine.x = this.limit(currentX, 0, maxX)
-            //    this.auxiliaryLine.y = this.limit(currentY, 0, maxY)
-            // this.draw()
         },
         // 求两点的中点
         getMidpoint(p1, p2) {
@@ -1965,6 +1945,9 @@ export default {
             return Math.atan2(y, x) * 180 / Math.PI
         },
         // 限定范围值
+        /**
+         *  @params min
+         */
         limit(value, min, max) {
             if (value < min) {
                 return min
