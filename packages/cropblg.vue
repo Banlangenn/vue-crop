@@ -5,7 +5,7 @@
  * @Author: banlangen
  * @Date: 2019-12-06 13:28:23
  * @LastEditors: banlangen
- * @LastEditTime: 2019-12-13 09:26:00
+ * @LastEditTime: 2019-12-13 10:39:53
  -->
 
 <style lang="scss">
@@ -785,13 +785,9 @@ export default {
                     }
                 } else {
                     // 划线
-                    // 先实现划线
-                    //  画 相对于 画布  // 存 相对于 画布
-                    // 屡一下   -- 这个东西  想对于画布  在图片在哪里 ===== 根据图片的位置还原 画布位置
-                    const ctx = this.ctx
-                    // ctx.lineCap = 'round'
                     // 解决 突然同步-- 这两个属性化石上个回放的属性 还有 笔的  很多问题  突然杀入  应尽量避免这个问题
                        
+                    const ctx = this.ctx
                     if (this.pointLine.length == 0) {
                         if (this.writing == 3) {
                             ctx.setLineDash([5, 10])
@@ -804,11 +800,29 @@ export default {
                     } else {
                         ctx.lineTo(currentPoint.x, currentPoint.y)
                     }
+                    // if (this.getDistance({ pageX: drawPoint.x, pageY: drawPoint.y }, { pageX: currentPoint.x, pageY: currentPoint.y }) > 2) {
+                    //     ctx.stroke()
+                    // }
                     ctx.stroke()
 
                     //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上 // end  上的 最后一笔 时最准确的
                     this.pointLine.push(drawPoint)
+
+
+                    // 2 屏幕 渲染 笔记 知识渲染笔记 这个不可能比  第一个快 这个也要  不停的  ctx2.stroke()
+                    // this.clearCtx2()
+                    // const ctx2 = this.ctx2
+                    // ctx2.beginPath()
+                    // ctx2.moveTo(this.pointLine[0].x, this.pointLine[0].y)
+                    // for (let i = 1; i < this.pointLine.length; i++) {
+                    //     const elem = this.pointLine[i]
+                    //     ctx2.lineTo(elem.x, elem.y)
+                    // }
+                    // ctx2.stroke()
+                
+
                 }
+
                 this.drawPoint = currentPoint
                 return
             }
@@ -1186,21 +1200,23 @@ export default {
             //  加个 maxX maxY  minX minY
             // 会有 明明在范围内 检测不到--- 范围太小了 加一点
             const offset = 4
-            let points = this.pointLine
-            const image = this.image
-            // 三角形  正方形 和 梯形 --- 和点线一样的 判断
-            if (this.changeDrawAction == 3) {
-                if ((this.geometry == 1 || this.geometry == 2 || this.geometry == 3)) {
-                    points = this.pointLine.slice(-1).concat(this.pointLine)
-                }
 
-            }
-            points = points.map(e => {
+
+            // 记录相对于 图片的 位置
+            const image = this.image
+            let points = this.pointLine.map(e => {
                 return {
                     x: e.x - image.x,
                     y: e.y - image.y
                 }
             })
+            // 三角形  正方形 和 梯形 --- 和点线一样的 判断
+            if (this.changeDrawAction == 3) {
+                //  加一个 点--- 尾头相连
+                if ((this.geometry == 1 || this.geometry == 2 || this.geometry == 3)) {
+                    points = points.slice(-1).concat(points)
+                }
+            }
             const { maxX, maxY, minX, minY } = this.getCritica(points, offset)
 
 
