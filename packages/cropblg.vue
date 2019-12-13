@@ -5,7 +5,7 @@
  * @Author: banlangen
  * @Date: 2019-12-06 13:28:23
  * @LastEditors: banlangen
- * @LastEditTime: 2019-12-13 10:39:53
+ * @LastEditTime: 2019-12-13 18:14:31
  -->
 
 <style lang="scss">
@@ -276,6 +276,8 @@ export default {
     ],
     data() {
         return {
+
+            // 默认值--修改--- 都不需要触发渲染-- 都是手动渲染所以 data 都不用要
             // 颜色
             penColor: [
                 '#000',
@@ -289,9 +291,9 @@ export default {
             ],
             // 笔的粗细
             penWeight: [
-                { lable: '细笔', value: 1 },
-                { lable: '粗笔', value: 2 },
-                { lable: '超粗笔', value: 4 }
+                { lable: '细笔', value: 1.5 },
+                { lable: '粗笔', value: 1.8 },
+                { lable: '超粗笔', value: 2.6 }
             ],
             // 书写风格
             penWriting: [
@@ -404,11 +406,11 @@ export default {
 
 
             //  img最大 最小缩放
-            const maxWidth = width * 3
-            const minWidth = width / 3
+            const imageMaxWidth = width * 3
+            const imageMinWidth = width / 3
 
-            this.maxScale = maxWidth / clientW
-            this.minScale = minWidth / clientH
+            this.maxScale = imageMaxWidth / clientW
+            this.minScale = imageMinWidth / clientH
             
             // this.maxRadius = Math.min(width, height) / 2
 
@@ -735,9 +737,8 @@ export default {
             }
         },
         /**
-         * @description: ddd
-         * @param {type}  dd
-         * @return: dd
+         * 移动的点
+         * @param {Event}  e dom event
          */
         handleMove (e) {
             if (this.meaninglessm) return
@@ -800,10 +801,14 @@ export default {
                     } else {
                         ctx.lineTo(currentPoint.x, currentPoint.y)
                     }
-                    // if (this.getDistance({ pageX: drawPoint.x, pageY: drawPoint.y }, { pageX: currentPoint.x, pageY: currentPoint.y }) > 2) {
-                    //     ctx.stroke()
-                    // }
-                    ctx.stroke()
+
+                    // 计算  两点之间的距离  比渲染ctx.stroke()  省时间
+                    if (this.getDistance({ pageX: this.firstPoint.x, pageY: this.firstPoint.y }, { pageX: currentPoint.x, pageY: currentPoint.y }) > 3) {
+                        ctx.stroke()
+                        //  划线用不上 firstPoint 暂时  那这个 替代 prev
+                        this.firstPoint = currentPoint
+                    }
+                    // ctx.stroke()
 
                     //  this.drawPoint  用这个变量的原因是  起点和最后一点 都不在 move事件上 // end  上的 最后一笔 时最准确的
                     this.pointLine.push(drawPoint)
@@ -1861,10 +1866,16 @@ export default {
         handlePointMove({ x, y }) {
             const { width, height } = this.options
             // 这个 点 要 有 最大 最小值
-            const point = {
+            let point = {
                 x: this.limit(x, 9, width - 9),
                 y: this.limit(y, 28, height - 9)
             }
+
+            // 图形最小值
+
+            // 离如果不是最小  找到最小x  和  最大x
+    
+
             //  和point 关联起来
             // 1. 靠手写
             // 2. 用辅助线来 -- 确定 图形
@@ -1926,7 +1937,11 @@ export default {
                  * 求出 前后的 index
                  *  最后一个 点 和  第一个点的相邻 点
                  */
-                
+
+                // const { maxX, maxY, minX, minY } = this.getCritica(this.pointLine, 0)
+                // if (point.x < minX + 50) {
+                //     point.x = this.limit(point.x, minX + 50, width - 9)
+                // }
                 
                 let beforeIndex = 0
                 if (this.index == 0) {
@@ -2026,9 +2041,13 @@ export default {
                 y = p1.pageY - p2.pageY
             return Math.atan2(y, x) * 180 / Math.PI
         },
-        // 限定范围值
+
         /**
-         *  @params min
+         * 限定范围值
+         * @param {Number} value 值
+         * @param {Number} min  最小值
+         * @param {Number} max 最大值
+         * @return: {void}
          */
         limit(value, min, max) {
             if (value < min) {
