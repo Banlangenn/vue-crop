@@ -1,3 +1,13 @@
+
+<!--
+ * @Descripttion: 手写组件
+ * @version: 0.0.1
+ * @Author: banlangen
+ * @Date: 2019-12-06 13:28:23
+ * @LastEditors: banlangen
+ * @LastEditTime: 2019-12-13 09:26:00
+ -->
+
 <style lang="scss">
     .draw-action-bar {
         width: 100%;
@@ -239,7 +249,7 @@
         @touchstart.stop="()=>{}" @touchmove.stop="()=>{}" @touchend.stop="()=>{}">
             <!-- <span>暂时没有图片,请选择图像</span> -->
             <slot name="placeholder"><span>暂时没有图片,请选择图像</span></slot>
-            <div style="display:none"  @click.stop="()=>{}">
+            <div style="display:none" @click.stop="()=>{}">
                 <input
                     @change="uploadImg"
                     type="file"
@@ -348,6 +358,10 @@ export default {
         }
     },
     methods: {
+        /**
+         * @param {img} image dom
+         * @return: {void}
+         */
         init(img) {
             // 连接--socket
             this.socketInit()
@@ -720,6 +734,11 @@ export default {
                 this.firstPoint = this.drawPoint
             }
         },
+        /**
+         * @description: ddd
+         * @param {type}  dd
+         * @return: dd
+         */
         handleMove (e) {
             if (this.meaninglessm) return
             // 判断是不是 读的一端
@@ -923,17 +942,27 @@ export default {
                    
                 // console.log('矩形')
                 // this.log('矩形模式', 'red', 2, 'rect')
-                const firstPoint = this.drawPoint
-                  
-                   
+                // const firstPoint = this.drawPoint
+                const { width, height } = this.options
+                const firstPoint = {
+                    x: this.limit(drawPoint.x, 9, width - 9),
+                    y: this.limit(drawPoint.y, 28, height - 9)
+                }
+                // // 这个 点 要 有 最大 最小值
+                const point = {
+                    x: this.limit(currentPoint.x, 9, width - 9),
+                    y: this.limit(currentPoint.y, 28, height - 9)
+                }
+
+
                 let points = []
                 switch (this.geometry) {
                 case 1:
                     // 三角形
                     points = [
                         // {x: firstPoint.x, y: firstPoint.y },
-                        { x: firstPoint.x, y: currentPoint.y },
-                        { x: currentPoint.x, y: currentPoint.y },
+                        { x: firstPoint.x, y: point.y },
+                        { x: point.x, y: point.y },
                         { x: firstPoint.x, y: firstPoint.y }
                     ]
                     break
@@ -941,20 +970,20 @@ export default {
                     // 四边形
                     points = [
                         //  {x: firstPoint.x, y: firstPoint.y },
-                        { x: currentPoint.x, y: firstPoint.y },
-                        { x: currentPoint.x, y: currentPoint.y },
-                        { x: firstPoint.x, y: currentPoint.y },
+                        { x: point.x, y: firstPoint.y },
+                        { x: point.x, y: point.y },
+                        { x: firstPoint.x, y: point.y },
                         { x: firstPoint.x, y: firstPoint.y }
                     ]
                     break
                 case 3: {
                     // 梯形
-                    const rectLength = (currentPoint.x - firstPoint.x) / 3
+                    const rectLength = (point.x - firstPoint.x) / 3
                     points = [
                         // {x: firstPoint.x, y: firstPoint.y },
-                        { x: currentPoint.x - rectLength, y: firstPoint.y },
-                        { x: currentPoint.x, y: currentPoint.y },
-                        { x: firstPoint.x - rectLength, y: currentPoint.y },
+                        { x: point.x - rectLength, y: firstPoint.y },
+                        { x: point.x, y: point.y },
+                        { x: firstPoint.x - rectLength, y: point.y },
                         { x: firstPoint.x, y: firstPoint.y }
                     ]
                 }
@@ -963,17 +992,17 @@ export default {
                 case 4: // 圆
                 case 5: // 箭头
 
-                    points = [firstPoint, currentPoint]
+                    points = [firstPoint, point]
                     break
                 case 6: // 数轴
                 case 7: // 坐标轴轴
                 case 8: {
                     // 椭圆
-                    const midpoint = this.getMidpoint(firstPoint, currentPoint)
+                    const midpoint = this.getMidpoint(firstPoint, point)
                     points = [
                         { x: midpoint.x, y: firstPoint.y },
-                        { x: currentPoint.x, y: midpoint.y },
-                        { x: midpoint.x, y: currentPoint.y },
+                        { x: point.x, y: midpoint.y },
+                        { x: midpoint.x, y: point.y },
                         { x: firstPoint.x, y: midpoint.y }
                     ]
                 }
@@ -1389,12 +1418,14 @@ export default {
 
         },
 
-        // 渲染几何图形
+
         /**
-             *  1. 绘图点
-             *  2. 辅助线的 圈半径
-             *  3. 是否显示 辅助线  （箭头特别）
-             */
+         * 渲染几何图形
+         * @param {{x: number, y: number }}  points  坐标
+         * @param {number}  radius  辅助线的 控制圈半径
+         * @param {Boolean}  isAuxiliary  是否画辅助线
+         * @return: {void}
+         */
         renderGeometry(points, radius, isAuxiliary) {
             const ctx = this.ctx2
             this.clearCtx2()
@@ -1504,7 +1535,11 @@ export default {
             }
               
         },
-        // 获取控制点
+        /**
+         * 获取控制点
+         * @param {{x: number, y: number}} points 这是一个参数
+         * @return: {void}
+         */
         getControlPoint(points) {
             const radius = 10
             // 画图
@@ -1567,6 +1602,11 @@ export default {
             this.auxiliaryLine = AL
         },
         // 获取最大 最小值
+        /**
+         * @param {{x: number, y: number}[]} points 坐标集合
+         * @param {number} offset 偏移量
+         * @return: {void}
+         */
         getCritica(points, offset) {
             let maxX = points[0].x, maxY = points[0].y, minX = points[0].x, minY = points[0].y
             for (let index = 1; index < points.length; index++) {
@@ -1592,12 +1632,11 @@ export default {
             }
         },
         /**
-             *  scale 缩放 比例
-             *  position  是否要计算图片的xy位置
-             *
-             *  因为 读初始化  图片的 xy 是 传过来的不 需要计算
-             *
-             */
+         * 缩放图片大小
+         * @param {number} scale 缩放比例
+         * @param {position} position 是否修改 图片 xy 的位置
+         * @return: {void}
+         */
         scaleImage(scale, position) {
             this.scale = scale
             const image = this.image
@@ -1682,6 +1721,7 @@ export default {
                 y: image.y + point.y * scale
             }
         },
+        
         checkRegion(x, y, target) {
             // 添加个误差
             return x + 2 > target.x &&
@@ -1699,13 +1739,13 @@ export default {
             this.clearCtx2()
             this.changeDrawAction = 3
         },
-        //  touchstart  触发 这个方法
+        /**
+         * touchstart  触发 这个方法
+         * @param {{x: number, y: number}}  touchstart -  起手的坐标
+         */
         getPointByCoordinate({ x, y }) {
 
             this.log('触发检测 点击区域')
-            // if (this.changeDrawAction !== -1) {
-            //     return
-            // }
            
             const image = this.image
             let t = {}
@@ -1771,29 +1811,43 @@ export default {
             return t
         },
         //  第一个值  第二个  中间点  point  点中哪个点
-        getAxisCritical(circleMidpoinVlaue, pointVlaue, isStartPoint) {
-            // 尽量 不要 依赖this
+
+        /**
+         * 获取 坐标轴的  控制指点坐标   限制最小值
+         * @param {{x: number, y: number}}  circleMidpoinVlaue -  原点的坐标
+         * @param {{x: number, y: number}}  pointVlaue -  控制点的坐标
+         * @param {{x: number, y: number}}  isStartPoint - 是不是左边是起点
+         * @return {{x: number, y: number}} - { x, y}
+         */
+        getAxisCritical(circleMidpoin, point, axis, isStartPoint) {
+            // 尽量 不要 依赖全局this
             const number = 40
-            const rightMinX = circleMidpoinVlaue + number
-            const leftMinX = circleMidpoinVlaue - number
+            const rightMinX = circleMidpoin[axis] + number
+            const leftMinX = circleMidpoin[axis] - number
+            const pointVlaue = point[axis]
             if (isStartPoint) {
                 // 算出最大 最小值
                 if (pointVlaue > leftMinX) {
-                    return leftMinX
+                    return { ...circleMidpoin, [axis]: leftMinX }
                 }
             } else {
                 if (pointVlaue < rightMinX) {
-                    return rightMinX
+                    // return rightMinX
+                    return { ...circleMidpoin, [axis]: rightMinX }
                 }
             }
-            return pointVlaue
+            return { ...circleMidpoin, [axis]: pointVlaue }
         },
+        /**
+         * 控制点移动
+         * @param {{x: number, y: number}}  移动的点 -  坐标
+         */
         handlePointMove({ x, y }) {
             const { width, height } = this.options
             // 这个 点 要 有 最大 最小值
             const point = {
                 x: this.limit(x, 9, width - 9),
-                y: this.limit(y, 29, height - 9)
+                y: this.limit(y, 28, height - 9)
             }
             //  和point 关联起来
             // 1. 靠手写
@@ -1803,24 +1857,23 @@ export default {
                     
             // 1三角 2四边 3梯形
             if (this.geometry == 7) {
+                const circleMidpoin = this.circleMidpoin
                 switch (this.index) {
                 case 0:
-                case 2: {
-                    // 作用域
-                    const topBottomX = this.circleMidpoin.x // x 是不会变的
-                    const topBottomY = this.getAxisCritical(this.circleMidpoin.y, point.y, this.index == 0)
-                    this.pointLine.splice(this.index, 1, { x: topBottomX, y: topBottomY })
+                case 2: { // 大括号  块作用域
+                    // 上下
+                    const changePoint = this.getAxisCritical(circleMidpoin, point, 'y', this.index == 0)
+                    this.pointLine.splice(this.index, 1, changePoint)
                 }
                     break
                 case 3:
                 case 1: {
                     // 左右
-                    const x = this.getAxisCritical(this.circleMidpoin.x, point.x, this.index == 3)
+                    const changePoint = this.getAxisCritical(circleMidpoin, point, 'x', this.index == 3)
                     if (this.index == 3) {
-                        this.offsetLeft = this.circleMidpoin.x - x
+                        this.offsetLeft = circleMidpoin.x - changePoint.x
                     }
-                    const y = this.circleMidpoin.y // y 是不会变的
-                    this.pointLine.splice(this.index, 1, { x, y })
+                    this.pointLine.splice(this.index, 1, changePoint)
                 }
                     break
                 default:
@@ -1828,14 +1881,14 @@ export default {
                 }
                     
             } else if (this.geometry == 6) {
-
+                const circleMidpoin = this.circleMidpoin
                 //  中间点  point  点中哪个点
-                const x = this.getAxisCritical(this.circleMidpoin.x, point.x, this.index == 0)
+                const changePoint = this.getAxisCritical(circleMidpoin, point, 'x', this.index == 0)
                 if (this.index == 0) {
-                    this.offsetLeft = this.circleMidpoin.x - x
+                    this.offsetLeft = circleMidpoin.x - changePoint.x
                 }
-                const y = this.circleMidpoin.y // y 是不会变的
-                this.pointLine.splice(this.index, 1, { x, y })
+                // const y = this.circleMidpoin.y // y 是不会变的
+                this.pointLine.splice(this.index, 1, changePoint)
             } else if (this.geometry == 4) {
                 // console.log(this.geometry)
                 // 这个圆形和 四边形一样的逻辑
@@ -1847,8 +1900,18 @@ export default {
                 }
                     
 
-            } else if (this.geometry == 2 || this.geometry == 4 || this.geometry == 3) {
+            } else if (this.geometry == 2 || this.geometry == 3) {
+                //  || this.geometry == 4
                 //  相邻 两个控制点 要变
+                // 2 3   矩形 梯形
+                // 一个点 变化  --影响 相邻的两个点变化
+
+                /**
+                 * 求出 前后的 index
+                 *  最后一个 点 和  第一个点的相邻 点
+                 */
+                
+                
                 let beforeIndex = 0
                 if (this.index == 0) {
                     beforeIndex = 3
@@ -1866,19 +1929,22 @@ export default {
 
                 const before = this.pointLine[beforeIndex]
                 const after = this.pointLine[afterIndex]
+
                 if (beforeIndex == 1 || beforeIndex == 3) {
-                    // 对的
-                    if (this.geometry !== 3) {
+                    if (this.geometry == 2) {
                         this.pointLine.splice(afterIndex, 1, { x: point.x, y: after.y })
                     }
                     this.pointLine.splice(beforeIndex, 1, { x: before.x, y: point.y })
                 } else {
-                    if (this.geometry !== 3) {
+                    //  矩形影响 两个点
+                    if (this.geometry == 2) {
                         this.pointLine.splice(beforeIndex, 1, { x: point.x, y: before.y })
                     }
+                    // 修改 后一个点
                     this.pointLine.splice(afterIndex, 1, { x: after.x, y: point.y })
                 }
 
+                // 修改本身的点
                 this.pointLine.splice(this.index, 1, point)
 
             } else {
