@@ -1592,7 +1592,21 @@ export default {
             // import cancelIcon from './img/cancel.png'
             //  怎么用上这个矩形  能不根据 矩形 反推 图形
             const { minX, minY, maxX, maxY } = this.getCritica(points, 8)
-                
+            //
+            const AL = {
+                x: minX,
+                y: minY,
+                width: maxX - minX,
+                height: maxY - minY
+            }
+            // if (AL.width < 30 || AL.height < 30) {
+            //     this.recoveryThree()
+            //     return
+            // }
+            ctx.setLineDash([5, 10])
+            ctx.rect(AL.x, AL.y, AL.width, AL.height)
+            ctx.stroke()
+            ctx.setLineDash([])
 
             // 确定 取消 按钮
             ctx.drawImage(this.cancelIcon.element, minX, minY - 20, 20, 20)
@@ -1606,19 +1620,6 @@ export default {
                 x: maxX - 20, y: minY - 20, width: 20, height: 20,
                 element: this.okIcon.element
             }
-
-
-            //
-            const AL = {
-                x: minX,
-                y: minY,
-                width: maxX - minX,
-                height: maxY - minY
-            }
-            ctx.setLineDash([5, 10])
-            ctx.rect(AL.x, AL.y, AL.width, AL.height)
-            ctx.stroke()
-            ctx.setLineDash([])
             // 拖动   矩形要用
             this.auxiliaryLine = AL
         },
@@ -1880,6 +1881,7 @@ export default {
             // 1. 靠手写
             // 2. 用辅助线来 -- 确定 图形
             //  最大 最小值
+            // const 、、、、
 
                     
             // 1三角 2四边 3梯形
@@ -1943,6 +1945,7 @@ export default {
                 //     point.x = this.limit(point.x, minX + 50, width - 9)
                 // }
                 
+                // 线实现在优化
                 let beforeIndex = 0
                 if (this.index == 0) {
                     beforeIndex = 3
@@ -1960,13 +1963,52 @@ export default {
 
                 const before = this.pointLine[beforeIndex]
                 const after = this.pointLine[afterIndex]
+                
+                //  新加 最小 面条代码
+                const distance = 30
+                if (this.index == 0) {
+                    point = {
+                        x: this.limit(x, before.x + distance, width),
+                        y: this.limit(y, 0, after.y - distance)
+                    }
+                }
 
-                if (beforeIndex == 1 || beforeIndex == 3) {
+                if (this.index == 1) {
+                    point = {
+                        x: this.limit(x, after.x + distance, width),
+                        y: this.limit(y, before.y + distance, height)
+                    }
+                }
+
+                if (this.index == 2) {
+                    point = {
+                        x: this.limit(x, 0, before.x - distance),
+                        y: this.limit(y, after.y + distance, height)
+                    }
+                }
+
+                if (this.index == 3) {
+                    point = {
+                        x: this.limit(x, 0, after.x - distance),
+                        y: this.limit(y, 0, before.y - distance)
+                    }
+                }
+
+                // 面条代码
+                if (this.index == 2 || this.index == 0) {
+                    // point = {
+                    //     x: this.limit(x, before.x + 50, width - 9),
+                    //     y: this.limit(y, after.y + 50, height - 9)
+                    // }
                     if (this.geometry == 2) {
                         this.pointLine.splice(afterIndex, 1, { x: point.x, y: after.y })
                     }
                     this.pointLine.splice(beforeIndex, 1, { x: before.x, y: point.y })
                 } else {
+                    // point = {
+                    //     x: this.limit(x, after.x + 50, width - 9),
+                    //     y: this.limit(y, before.y + 50, height - 9)
+                    // }
                     //  矩形影响 两个点
                     if (this.geometry == 2) {
                         this.pointLine.splice(beforeIndex, 1, { x: point.x, y: before.y })
