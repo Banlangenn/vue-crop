@@ -5,7 +5,7 @@
  * @Author: banlangen
  * @Date: 2019-12-06 13:28:23
  * @LastEditors: banlangen
- * @LastEditTime: 2019-12-13 18:14:31
+ * @LastEditTime: 2019-12-16 10:06:41
  -->
 
 <style lang="scss">
@@ -1161,10 +1161,10 @@ export default {
                    
                             
                 }
-                this.renderGeometry(this.pointLine, radius, true)
                 //  待确认状态
                 this.changeDrawAction = 4
                 // 获取可滑动的 控制点
+                this.renderGeometry(this.pointLine, radius, true)
                 return
             }
             // 搜集点 进入画笔
@@ -1552,9 +1552,8 @@ export default {
                 }
                 // 4个圈是 对的
                 // 画辅助线
-                this.drawAuxiliaryLine(ctx, this.rectControlPoint)
-            }
-              
+                this.drawAuxiliaryLine(ctx, this.rectControlPoint, geometry)
+            }  
         },
         /**
          * 获取控制点
@@ -1586,7 +1585,7 @@ export default {
             ))
         },
         //  画辅助线
-        drawAuxiliaryLine(ctx, points) {
+        drawAuxiliaryLine(ctx, points, geometry) {
 
             // import okIcon from './img/ok.png'
             // import cancelIcon from './img/cancel.png'
@@ -1599,10 +1598,14 @@ export default {
                 width: maxX - minX,
                 height: maxY - minY
             }
-            // if (AL.width < 30 || AL.height < 30) {
-            //     this.recoveryThree()
-            //     return
-            // }
+            // 不符合最小 矩形
+            if (AL.width < 46 || (geometry != 6 && AL.height < 46)) {
+                // 当前已经是  end 后了
+                this.recoveryThree()
+                return
+            }
+            
+            //  绘制 辅助线
             ctx.setLineDash([5, 10])
             ctx.rect(AL.x, AL.y, AL.width, AL.height)
             ctx.stroke()
@@ -1766,7 +1769,6 @@ export default {
          * @param {{x: number, y: number}}  touchstart -  起手的坐标
          */
         getPointByCoordinate({ x, y }) {
-
             this.log('触发检测 点击区域')
            
             const image = this.image
@@ -1922,6 +1924,43 @@ export default {
                 // console.log(this.geometry)
                 // 这个圆形和 四边形一样的逻辑
                 const currentPoint = this.pointLine[this.index]
+
+                // 获取控制点
+                // point = {
+                //     x: this.limit(x, before.x + distance, width),
+                //     y: this.limit(y, 0, after.y - distance)
+                // }
+
+                // 又是 4个  if  面条
+                // if (this.index == 0) {
+                //     point = {
+                //         x: this.limit(point.x, before.x + distance, width),
+                //         y: this.limit(point.y, 0, after.y - distance)
+                //     }
+                // }
+
+                // if (this.index == 1) {
+                //     point = {
+                //         x: this.limit(point.x, after.x + distance, width),
+                //         y: this.limit(point.y, before.y + distance, height)
+                //     }
+                // }
+
+                // if (this.index == 2) {
+                //     point = {
+                //         x: this.limit(point.x, 0, before.x - distance),
+                //         y: this.limit(point.y, after.y + distance, height)
+                //     }
+                // }
+
+                // if (this.index == 3) {
+                //     point = {
+                //         x: this.limit(point.x, 0, after.x - distance),
+                //         y: this.limit(point.y, 0, before.y - distance)
+                //     }
+                // }
+
+
                 if (this.index == 3 || this.index == 0) {
                     this.pointLine.splice(this.index, 1, { x: currentPoint.x, y: point.y })
                 } else {
@@ -1940,11 +1979,6 @@ export default {
                  *  最后一个 点 和  第一个点的相邻 点
                  */
 
-                // const { maxX, maxY, minX, minY } = this.getCritica(this.pointLine, 0)
-                // if (point.x < minX + 50) {
-                //     point.x = this.limit(point.x, minX + 50, width - 9)
-                // }
-                
                 // 线实现在优化
                 let beforeIndex = 0
                 if (this.index == 0) {
@@ -1964,33 +1998,33 @@ export default {
                 const before = this.pointLine[beforeIndex]
                 const after = this.pointLine[afterIndex]
                 
-                //  新加 最小 面条代码
+                //  新加 最小 面条代码   数组需要 矫正  上下 左右
                 const distance = 30
                 if (this.index == 0) {
                     point = {
-                        x: this.limit(x, before.x + distance, width),
-                        y: this.limit(y, 0, after.y - distance)
+                        x: this.limit(point.x, before.x + distance, width),
+                        y: this.limit(point.y, 0, after.y - distance)
                     }
                 }
 
                 if (this.index == 1) {
                     point = {
-                        x: this.limit(x, after.x + distance, width),
-                        y: this.limit(y, before.y + distance, height)
+                        x: this.limit(point.x, after.x + distance, width),
+                        y: this.limit(point.y, before.y + distance, height)
                     }
                 }
 
                 if (this.index == 2) {
                     point = {
-                        x: this.limit(x, 0, before.x - distance),
-                        y: this.limit(y, after.y + distance, height)
+                        x: this.limit(point.x, 0, before.x - distance),
+                        y: this.limit(point.y, after.y + distance, height)
                     }
                 }
 
                 if (this.index == 3) {
                     point = {
-                        x: this.limit(x, 0, after.x - distance),
-                        y: this.limit(y, 0, before.y - distance)
+                        x: this.limit(point.x, 0, after.x - distance),
+                        y: this.limit(point.y, 0, before.y - distance)
                     }
                 }
 
