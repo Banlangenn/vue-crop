@@ -2166,22 +2166,15 @@ browserify-zlib@^0.2.0:
   dependencies:
     pako "~1.0.5"
 
-browserslist@^4.0.0, browserslist@^4.3.4, browserslist@^4.4.2:
-  version "4.4.2"
-  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.4.2.tgz#6ea8a74d6464bb0bd549105f659b41197d8f0ba2"
+browserslist@^4.0.0, browserslist@^4.12.0, browserslist@^4.3.4, browserslist@^4.4.2, browserslist@^4.8.5:
+  version "4.16.6"
+  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.16.6.tgz#d7901277a5a88e554ed305b183ec9b0c08f66fa2"
   dependencies:
-    caniuse-lite "^1.0.30000939"
-    electron-to-chromium "^1.3.113"
-    node-releases "^1.1.8"
-
-browserslist@^4.12.0, browserslist@^4.8.5:
-  version "4.14.1"
-  resolved "https://registry.yarnpkg.com/browserslist/-/browserslist-4.14.1.tgz#cb2b490ba881d45dc3039078c7ed04411eaf3fa3"
-  dependencies:
-    caniuse-lite "^1.0.30001124"
-    electron-to-chromium "^1.3.562"
-    escalade "^3.0.2"
-    node-releases "^1.1.60"
+    caniuse-lite "^1.0.30001219"
+    colorette "^1.2.2"
+    electron-to-chromium "^1.3.723"
+    escalade "^3.1.1"
+    node-releases "^1.1.71"
 
 buffer-from@^1.0.0:
   version "1.1.1"
@@ -2345,13 +2338,9 @@ caniuse-api@^3.0.0:
     lodash.memoize "^4.1.2"
     lodash.uniq "^4.5.0"
 
-caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000939:
-  version "1.0.30000939"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30000939.tgz#b9ab7ac9e861bf78840b80c5dfbc471a5cd7e679"
-
-caniuse-lite@^1.0.30001124:
-  version "1.0.30001124"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001124.tgz#5d9998190258e11630d674fc50ea8e579ae0ced2"
+caniuse-lite@^1.0.0, caniuse-lite@^1.0.30000939, caniuse-lite@^1.0.30001219:
+  version "1.0.30001228"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001228.tgz#bfdc5942cd3326fa51ee0b42fbef4da9d492a7fa"
 
 case-sensitive-paths-webpack-plugin@^2.2.0:
   version "2.2.0"
@@ -2548,6 +2537,10 @@ color@^3.0.0:
   dependencies:
     color-convert "^1.9.1"
     color-string "^1.5.2"
+
+colorette@^1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/colorette/-/colorette-1.2.2.tgz#cbcc79d5e99caea2dbf10eb3a26fd8b3e6acfa94"
 
 combined-stream@^1.0.6, combined-stream@~1.0.6:
   version "1.0.7"
@@ -3219,13 +3212,9 @@ ejs@^2.6.1:
   version "2.6.1"
   resolved "https://registry.yarnpkg.com/ejs/-/ejs-2.6.1.tgz#498ec0d495655abc6f23cd61868d926464071aa0"
 
-electron-to-chromium@^1.3.113:
-  version "1.3.113"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.113.tgz#b1ccf619df7295aea17bc6951dc689632629e4a9"
-
-electron-to-chromium@^1.3.562:
-  version "1.3.562"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.562.tgz#79c20277ee1c8d0173a22af00e38433b752bc70f"
+electron-to-chromium@^1.3.723:
+  version "1.3.736"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.736.tgz#f632d900a1f788dab22fec9c62ec5c9c8f0c4052"
 
 elliptic@^6.0.0:
   version "6.4.1"
@@ -3310,9 +3299,9 @@ es-to-primitive@^1.2.0:
     is-date-object "^1.0.1"
     is-symbol "^1.0.2"
 
-escalade@^3.0.2:
-  version "3.0.2"
-  resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.0.2.tgz#6a580d70edb87880f22b4c91d0d56078df6962c4"
+escalade@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/escalade/-/escalade-3.1.1.tgz#d8cfdc7000965c5a0174b4a82eaa5c0552742e40"
 
 escape-html@~1.0.3:
   version "1.0.3"
@@ -5440,15 +5429,9 @@ node-pre-gyp@^0.10.0:
     semver "^5.3.0"
     tar "^4"
 
-node-releases@^1.1.60:
-  version "1.1.60"
-  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.60.tgz#6948bdfce8286f0b5d0e5a88e8384e954dfe7084"
-
-node-releases@^1.1.8:
-  version "1.1.8"
-  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.8.tgz#32a63fff63c5e51b7e0f540ac95947d220fc6862"
-  dependencies:
-    semver "^5.3.0"
+node-releases@^1.1.71:
+  version "1.1.72"
+  resolved "https://registry.yarnpkg.com/node-releases/-/node-releases-1.1.72.tgz#14802ab6b1039a79a0c7d662b610a5bbd76eacbe"
 
 node-sass@^4.12.0:
   version "4.14.1"
